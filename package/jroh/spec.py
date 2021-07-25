@@ -27,8 +27,8 @@ RAW_FIELD_TYPE_PATTERN = re.compile(
                 FIELD_STRING,
             )
         ),
-        NAMESPACE_PATTERN.pattern,
-        ID_PATTERN.pattern,
+        f"({NAMESPACE_PATTERN.pattern})",
+        f"({ID_PATTERN.pattern})",
     )
 )
 

@@ -385,11 +385,12 @@ def _check_model_type(model_type: str, node_uri: str) -> None:
 def _parse_raw_field_type(raw_field_type: str, field_type: FieldType) -> None:
     _check_raw_field_type(raw_field_type, field_type.node_uri)
     s = raw_field_type
-    if s[0].isupper():
+    if (i := s.find(".")) < 0:
+        field_type.is_model_ref = s[0].isupper()
+    else:
         field_type.is_model_ref = True
-        if (i := s.find(".")) >= 0:
-            field_type.namespace = s[:i]
-            s = s[i + 1 :]
+        field_type.namespace = s[:i]
+        s = s[i + 1 :]
     if (c := s[-1]) in ("?", "+", "*"):
         if c == "?":
             field_type.is_optional = True
