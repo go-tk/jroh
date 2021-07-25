@@ -20,19 +20,19 @@ yaml.add_representer(str, _str_representer)
 
 
 @dataclass
-class DumpSpecsResult:
+class TranslateSpecsResult:
     file_path_2_file_data: dict[str, str]
 
 
-def dump_specs(specs: list[Spec]) -> DumpSpecsResult:
-    dumper = _Dumper()
-    dumper.dump_specs(specs)
-    return DumpSpecsResult(
-        file_path_2_file_data=dumper.file_path_2_file_data(),
+def translate_specs(specs: list[Spec]) -> TranslateSpecsResult:
+    translateer = _Translator()
+    translateer.translate_specs(specs)
+    return TranslateSpecsResult(
+        file_path_2_file_data=translateer.file_path_2_file_data(),
     )
 
 
-class _Dumper:
+class _Translator:
     def __init__(self) -> None:
         self._namespace: str = ""
         self._builtins_file_path: str = ""
@@ -40,7 +40,7 @@ class _Dumper:
         self._schemas: dict[str, dict] = {}
         self._file_path_2_file_data: dict[str, str] = {}
 
-    def dump_specs(self, specs: list[Spec]) -> None:
+    def translate_specs(self, specs: list[Spec]) -> None:
         for spec in specs:
             self._namespace = spec.namespace
             if spec.namespace == GLOBAL:
@@ -54,12 +54,12 @@ class _Dumper:
                 )
                 open_api = {}
                 open_apis[self._file_name] = open_api
-                self._dump_service(service, open_api)
+                self._translate_service(service, open_api)
             if len(spec.models) >= 1:
                 self._file_name = _MODELS_YAML
                 open_api = {}
                 open_apis[self._file_name] = open_api
-                self._dump_models(spec.models, open_api)
+                self._translate_models(spec.models, open_api)
             for file_name, open_api in open_apis.items():
                 if spec.namespace == GLOBAL:
                     file_path = file_name
@@ -70,7 +70,7 @@ class _Dumper:
                     open_api, sort_keys=False
                 )
 
-    def _dump_service(self, service: Service, open_api: dict) -> None:
+    def _translate_service(self, service: Service, open_api: dict) -> None:
         open_api["openapi"] = "3.0.0"
         open_api["info"] = {
             "title": utils.title_case(service.id) + " API",
@@ -90,23 +90,23 @@ class _Dumper:
             paths[path] = {
                 "post": operation,
             }
-            self._dump_method(method, operation)
+            self._translate_method(method, operation)
         if len(schemas) >= 1:
             open_api["components"] = {"schemas": schemas}
 
-    def _dump_method(self, method: Method, operation: dict) -> None:
+    def _translate_method(self, method: Method, operation: dict) -> None:
         operation["operationId"] = utils.camel_case(method.id)
         if method.summary is not None:
             operation["summary"] = method.summary
         if method.description is not None:
             operation["description"] = method.description
         if method.params is not None:
-            operation["requestBody"] = self._make_request_body(method.params, method.id)
-        operation["responses"] = self._make_responses(
+            operation["requestBody"] = self._emit_request_body(method.params, method.id)
+        operation["responses"] = self._emit_responses(
             method.error_cases, method.result, method.id
         )
 
-    def _make_request_body(self, params: Params, method_id: str) -> dict:
+    def _emit_request_body(self, params: Params, method_id: str) -> dict:
         schema = {}
         request_body = {
             "content": {
@@ -115,22 +115,22 @@ class _Dumper:
                 },
             },
         }
-        self._dump_params(params, method_id, schema)
+        self._translate_params(params, method_id, schema)
         return request_body
 
-    def _dump_params(self, params: Params, method_id: str, schema: dict) -> None:
+    def _translate_params(self, params: Params, method_id: str, schema: dict) -> None:
         schema_id = utils.camel_case(method_id) + "Params"
         schema["$ref"] = "#/components/schemas/" + schema_id
         schema2 = {}
         self._schemas[schema_id] = schema2
-        self._dump_fields(params.fields, schema2)
+        self._translate_fields(params.fields, schema2)
 
-    def _make_responses(
+    def _emit_responses(
         self, error_cases: list[ErrorCase], result: Optional[Result], method_id: str
     ) -> dict:
         description_parts = []
         if len(error_cases) >= 1:
-            markdown = _dump_error_cases(error_cases)
+            markdown = _translate_error_cases(error_cases)
             description_parts.append("## Error Cases\n\n" + markdown)
         schema = {}
         responses = {
@@ -143,10 +143,10 @@ class _Dumper:
                 },
             },
         }
-        self._dump_resp(result, method_id, schema)
+        self._emit_resp(result, method_id, schema)
         return responses
 
-    def _dump_resp(
+    def _emit_resp(
         self, result: Optional[Result], method_id: str, schema: dict
     ) -> None:
         if result is None:
@@ -175,9 +175,9 @@ class _Dumper:
         self._schemas[schema_id] = schema2
         schema3 = {}
         properties["result"] = schema3
-        self._dump_result(result, method_id, schema3)
+        self._translate_result(result, method_id, schema3)
 
-    def _dump_result(self, result: Result, method_id: str, schema: dict) -> None:
+    def _translate_result(self, result: Result, method_id: str, schema: dict) -> None:
         schema_id = utils.camel_case(method_id) + "Result"
         schema["$ref"] = "#/components/schemas/" + schema_id
         schema[
@@ -185,9 +185,9 @@ class _Dumper:
         ] = "The RPC result returned. This field is mutually exclusive of the `error` field."
         schema2 = {}
         self._schemas[schema_id] = schema2
-        self._dump_fields(result.fields, schema2)
+        self._translate_fields(result.fields, schema2)
 
-    def _dump_models(self, models: list[Model], open_api: dict) -> None:
+    def _translate_models(self, models: list[Model], open_api: dict) -> None:
         open_api["openapi"] = "3.0.0"
         open_api["info"] = {
             "title": "Models",
@@ -202,16 +202,16 @@ class _Dumper:
             schema = {}
             schemas[schema_id] = schema
             if model.type == MODEL_STRUCT:
-                self._dump_struct(model.struct(), schema)
+                self._translate_struct(model.struct(), schema)
             elif model.type == MODEL_ENUM:
-                self._dump_enum(model.enum(), schema)
+                self._translate_enum(model.enum(), schema)
             else:
                 assert False, model.type
 
-    def _dump_struct(self, struct: Struct, schema: dict) -> None:
-        self._dump_fields(struct.fields, schema)
+    def _translate_struct(self, struct: Struct, schema: dict) -> None:
+        self._translate_fields(struct.fields, schema)
 
-    def _dump_fields(self, fields: list[Field], schema: dict) -> None:
+    def _translate_fields(self, fields: list[Field], schema: dict) -> None:
         schema["type"] = "object"
         properties = {}
         schema["properties"] = properties
@@ -220,14 +220,14 @@ class _Dumper:
             property_id = utils.camel_case(field.id)
             property = {}
             properties[property_id] = property
-            self._dump_field(field, property)
+            self._translate_field(field, property)
             field_type = field.type
             if not field_type.is_optional:
                 required_property_ids.append(property_id)
         if len(required_property_ids) >= 1:
             schema["required"] = required_property_ids
 
-    def _dump_field(self, field: Field, property: dict) -> None:
+    def _translate_field(self, field: Field, property: dict) -> None:
         field_type = field.type
         if field_type.is_repeated:
             property["type"] = "array"
@@ -275,14 +275,14 @@ class _Dumper:
             and (model := field_type.model).type == MODEL_ENUM
             and len(constants := model.enum().constants) >= 1
         ):
-            markdown = _dump_constants(constants)
+            markdown = _translate_constants(constants)
             description_parts.append("Constants:\n\n" + markdown)
         if len(description_parts) >= 1:
             property["description"] = "\n\n".join(description_parts)
         if field.example is not None:
             property["example"] = field.example
 
-    def _dump_enum(self, enum: Enum, schema: dict) -> None:
+    def _translate_enum(self, enum: Enum, schema: dict) -> None:
         schema.update(
             {
                 FIELD_INT32: {"type": "integer", "format": "int32"},
@@ -324,7 +324,7 @@ _MODELS_YAML = "models.yaml"
 _BUILTINS_YAML = "builtins.yaml"
 
 
-def _dump_error_cases(error_cases: list[ErrorCase]) -> str:
+def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
     lines = []
     lines.append("| Code | Message | Description |")
     lines.append("| - | - | - |")
@@ -340,7 +340,7 @@ def _dump_error_cases(error_cases: list[ErrorCase]) -> str:
     return "\n".join(lines)
 
 
-def _dump_constants(constants: list[Constant]) -> str:
+def _translate_constants(constants: list[Constant]) -> str:
     lines = []
     for constant in constants:
         line = f"- {utils.macro_case(constant.id)}({constant.value})"
