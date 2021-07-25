@@ -6,7 +6,7 @@ from .spec import (MODEL_STRUCT, Error, ErrorCase, Field, Method, Model,
 
 @dataclass
 class ResolveSpecsResult:
-    unused_prop_uris: list[str]
+    unused_node_uris: list[str]
     merged_specs: list[Spec]
 
 
@@ -14,7 +14,7 @@ def resolve_specs(specs: list[Spec]) -> ResolveSpecsResult:
     resolver = _Resolver()
     resolver.resolve_specs(specs)
     return ResolveSpecsResult(
-        unused_prop_uris=resolver.unused_prop_uris(),
+        unused_node_uris=resolver.unused_node_uris(),
         merged_specs=resolver.merged_specs(),
     )
 
@@ -27,7 +27,7 @@ class _Resolver:
         self._errors_by_id: dict[tuple[str, str], Error] = {}
         self._errors_by_code: dict[tuple[str, int], Error] = {}
         self._namespace: str = ""
-        self._unused_prop_uris: list[str] = []
+        self._unused_node_uris: list[str] = []
         self._merged_specs: list[Spec] = []
 
     def resolve_specs(self, specs: list[Spec]) -> None:
@@ -42,38 +42,38 @@ class _Resolver:
             if (
                 service2 := self._services.get((spec.namespace, service.id))
             ) is not None:
-                raise InvalidSpec(
-                    f"duplicate service id; prop_uri1={service.prop_uri!r} prop_uri2={service2.prop_uri!r}",
+                raise InvalidSpecError(
+                    f"duplicate service id; node_uri1={service.node_uri!r} node_uri2={service2.node_uri!r}",
                 )
             self._services[(spec.namespace, service.id)] = service
         for method in spec.methods:
             if (method2 := self._methods.get((spec.namespace, method.id))) is not None:
-                raise InvalidSpec(
-                    f"duplicate method id; prop_uri1={method.prop_uri!r} prop_uri2={method2.prop_uri!r}",
+                raise InvalidSpecError(
+                    f"duplicate method id; node_uri1={method.node_uri!r} node_uri2={method2.node_uri!r}",
                 )
             self._methods[(spec.namespace, method.id)] = method
         for model in spec.models:
             if (model2 := self._models.get((spec.namespace, model.id))) is not None:
-                raise InvalidSpec(
-                    f"duplicate model id; prop_uri1={model.prop_uri!r} prop_uri2={model2.prop_uri!r}",
+                raise InvalidSpecError(
+                    f"duplicate model id; node_uri1={model.node_uri!r} node_uri2={model2.node_uri!r}",
                 )
             self._models[(spec.namespace, model.id)] = model
         for error in spec.errors:
             if (
                 error2 := self._errors_by_id.get((spec.namespace, error.id))
             ) is not None:
-                raise InvalidSpec(
-                    f"duplicate error id; prop_uri1={error.prop_uri!r} prop_uri2={error2.prop_uri!r}",
+                raise InvalidSpecError(
+                    f"duplicate error id; node_uri1={error.node_uri!r} node_uri2={error2.node_uri!r}",
                 )
             self._errors_by_id[(spec.namespace, error.id)] = error
         for error in spec.errors:
             if (
                 error2 := self._errors_by_code.get((spec.namespace, error.code))
             ) is not None:
-                prop_uri1 = error.prop_uri + "/code"
-                prop_uri2 = error2.prop_uri + "/code"
-                raise InvalidSpec(
-                    f"duplicate error code; prop_uri1={prop_uri1!r} prop_uri2={prop_uri2!r} error_code={error.code}",
+                node_uri1 = error.node_uri + "/code"
+                node_uri2 = error2.node_uri + "/code"
+                raise InvalidSpecError(
+                    f"duplicate error code; node_uri1={node_uri1!r} node_uri2={node_uri2!r} error_code={error.code}",
                 )
             self._errors_by_code[(spec.namespace, error.code)] = error
 
@@ -85,9 +85,9 @@ class _Resolver:
     def _resolve_method(self, method: Method) -> None:
         service = self._services.get((self._namespace, method.service_id))
         if service is None:
-            prop_uri = method.prop_uri + "/service_id"
-            raise InvalidSpec(
-                f"service not found; prop_uri={prop_uri!r} service_id={method.service_id!r}",
+            node_uri = method.node_uri + "/service_id"
+            raise InvalidSpecError(
+                f"service not found; node_uri={node_uri!r} service_id={method.service_id!r}",
             )
         service.methods.append(method)
         if method.params is not None:
@@ -115,9 +115,9 @@ class _Resolver:
         model_id = field.type.value
         model = self._models.get((namespace, model_id))
         if model is None:
-            prop_uri = field.prop_uri + "/type"
-            raise InvalidSpec(
-                f"model not found; prop_uri={prop_uri!r} namespace={namespace!r} model_id={model_id!r}",
+            node_uri = field.node_uri + "/type"
+            raise InvalidSpecError(
+                f"model not found; node_uri={node_uri!r} namespace={namespace!r} model_id={model_id!r}",
             )
         field.type.model = model
         model.ref_count += 1
@@ -132,9 +132,9 @@ class _Resolver:
     def _resolve_error_case(self, error_case: ErrorCase) -> None:
         error = self._errors_by_id.get((self._namespace, error_case.error_id))
         if error is None:
-            error_case.prop_uri + "/type"
-            raise InvalidSpec(
-                f"error not found; prop_uri={error_case.prop_uri!r}",
+            error_case.node_uri + "/type"
+            raise InvalidSpecError(
+                f"error not found; node_uri={error_case.node_uri!r}",
             )
         error_case.error = error
         error.ref_count += 1
@@ -152,7 +152,7 @@ class _Resolver:
 
         for (namespace, _), service in self._services.items():
             if len(service.methods) == 0:
-                self._unused_prop_uris.append(service.prop_uri)
+                self._unused_node_uris.append(service.node_uri)
             else:
                 spec = get_spec(namespace)
                 spec.services.append(service)
@@ -161,25 +161,25 @@ class _Resolver:
             spec.methods.append(method)
         for (namespace, _), model in self._models.items():
             if model.ref_count == 0:
-                self._unused_prop_uris.append(model.prop_uri)
+                self._unused_node_uris.append(model.node_uri)
             else:
                 spec = get_spec(namespace)
                 spec.models.append(model)
         for (namespace, _), error in self._errors_by_id.items():
             if error.ref_count == 0:
-                self._unused_prop_uris.append(error.prop_uri)
+                self._unused_node_uris.append(error.node_uri)
             else:
                 spec = get_spec(namespace)
                 spec.errors.append(error)
         self._merged_specs = list(merged_specs.values())
 
-    def unused_prop_uris(self) -> list[str]:
-        return self._unused_prop_uris
+    def unused_node_uris(self) -> list[str]:
+        return self._unused_node_uris
 
     def merged_specs(self) -> list[Spec]:
         return self._merged_specs
 
 
-class InvalidSpec(Exception):
+class InvalidSpecError(Exception):
     def __init__(self, message: str) -> None:
         super().__init__("invalid spec: " + message)

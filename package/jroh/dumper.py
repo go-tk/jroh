@@ -73,7 +73,7 @@ class _Dumper:
     def _dump_service(self, service: Service, open_api: dict) -> None:
         open_api["openapi"] = "3.0.0"
         open_api["info"] = {
-            "title": utils.title_case(service.id) + " Service",
+            "title": utils.title_case(service.id) + " API",
             "version": service.version,
         }
         paths = {}
@@ -298,23 +298,23 @@ class _Dumper:
             schema["enum"] = values
 
     def _fix_dollar_refs(self, open_api: dict) -> None:
-        def walk_dict(d: dict):
-            for k, v in d.items():
+        def walk_mapping(m: dict):
+            for k, v in m.items():
                 if k == "$ref":
                     continue
                 if isinstance(v, dict):
-                    walk_dict(v)
+                    walk_mapping(v)
                 elif isinstance(v, list):
                     for v2 in v:
                         if isinstance(v2, dict):
-                            walk_dict(v2)
-            if "$ref" in d and len(d) >= 2:
-                dollar_ref = d["$ref"]
-                d2 = {k: v for k, v in d.items() if k != "$ref"}
-                d.clear()
-                d["allOf"] = [{"$ref": dollar_ref}, d2]
+                            walk_mapping(v2)
+            if "$ref" in m and len(m) >= 2:
+                dollar_ref = m["$ref"]
+                d2 = {k: v for k, v in m.items() if k != "$ref"}
+                m.clear()
+                m["allOf"] = [{"$ref": dollar_ref}, d2]
 
-        walk_dict(open_api)
+        walk_mapping(open_api)
 
     def file_path_2_file_data(self) -> dict[str, str]:
         return self._file_path_2_file_data

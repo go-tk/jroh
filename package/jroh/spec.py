@@ -42,9 +42,9 @@ ENUM_UNDERLYING_TYPE_PATTERN = re.compile(
 
 
 class Spec:
-    def __init__(self, prop_uri: str) -> None:
+    def __init__(self, node_uri: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
 
         self.namespace: str = GLOBAL
         self.services: list[Service] = []
@@ -54,9 +54,9 @@ class Spec:
 
 
 class Service:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.version: str = ""
@@ -68,9 +68,9 @@ class Service:
 
 
 class Method:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.service_id: str = ""
@@ -82,25 +82,25 @@ class Method:
 
 
 class Params:
-    def __init__(self, prop_uri: str) -> None:
+    def __init__(self, node_uri: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
 
         self.fields: list[Field] = []
 
 
 class Result:
-    def __init__(self, prop_uri: str) -> None:
+    def __init__(self, node_uri: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
 
         self.fields: list[Field] = []
 
 
 class ErrorCase:
-    def __init__(self, prop_uri: str, error_id: str) -> None:
+    def __init__(self, node_uri: str, error_id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.error_id: str = error_id
 
         self.description: Optional[str] = None
@@ -110,9 +110,9 @@ class ErrorCase:
 
 
 class Model:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.type: str = ""
@@ -137,9 +137,9 @@ class Struct:
 
 
 class Field:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.type: FieldType = FieldType("")
@@ -148,9 +148,9 @@ class Field:
 
 
 class FieldType:
-    def __init__(self, prop_uri: str) -> None:
+    def __init__(self, node_uri: str) -> None:
         # parse
-        self.prop_uri = prop_uri
+        self.node_uri = node_uri
 
         self.value: str = ""
         self.is_model_ref: bool = False
@@ -170,9 +170,9 @@ class Enum:
 
 
 class Constant:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.value: Any = None
@@ -180,9 +180,9 @@ class Constant:
 
 
 class Error:
-    def __init__(self, prop_uri: str, id: str) -> None:
+    def __init__(self, node_uri: str, id: str) -> None:
         # parse
-        self.prop_uri: str = prop_uri
+        self.node_uri: str = node_uri
         self.id: str = id
 
         self.code: int = 0

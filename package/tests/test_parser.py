@@ -14,7 +14,7 @@ class TestParser(unittest.TestCase):
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/' prop_type=list expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/' node_type=list expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -23,7 +23,7 @@ namespace: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/namespace' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/namespace' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -32,7 +32,7 @@ namespace: aaa
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid namespace; prop_uri='foo\.yaml#/namespace' namespace='aaa'",
+                out_exception_str=r"invalid specification: invalid namespace; node_uri='foo\.yaml#/namespace' namespace='aaa'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -41,7 +41,7 @@ services: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/services' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -50,7 +50,7 @@ services: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/services'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/services'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -59,7 +59,7 @@ methods: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/methods' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -68,7 +68,7 @@ methods: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/methods'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -77,7 +77,7 @@ models: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -86,7 +86,7 @@ models: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/models'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -95,7 +95,7 @@ errors: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/errors' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -104,7 +104,7 @@ errors: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/errors'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/errors'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -112,7 +112,7 @@ errors: {}
 xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/xyz"},
+                out_ignored_node_uris={"foo.yaml#/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -127,7 +127,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/services/aaa' id='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/services/aaa' id='aaa'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -137,7 +137,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/services/AAA' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services/AAA' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -147,7 +147,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/services/AAA/version'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/services/AAA/version'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -158,7 +158,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/services/AAA/version' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services/AAA/version' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -170,7 +170,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/services/AAA/description' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -182,7 +182,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/services/AAA/method_path_template' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/method_path_template' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -193,7 +193,7 @@ services:
     xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/services/AAA/xyz"},
+                out_ignored_node_uris={"foo.yaml#/services/AAA/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -208,7 +208,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/methods/aaa' id='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/aaa' id='aaa'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -218,7 +218,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/methods/AAA' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -228,7 +228,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/methods/AAA/service_id'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/methods/AAA/service_id'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -239,7 +239,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/methods/AAA/service_id' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_id' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -250,7 +250,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/methods/AAA/service_id' id='foo'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/service_id' id='foo'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -262,7 +262,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/methods/AAA/summary' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/summary' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -274,7 +274,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/methods/AAA/description' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -286,7 +286,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/methods/AAA/params' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/params' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -298,7 +298,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/methods/AAA/params'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/params'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -310,7 +310,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/methods/AAA/result' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/result' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -322,7 +322,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/methods/AAA/result'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/result'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -334,7 +334,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/methods/AAA/error_cases' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/error_cases' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -346,7 +346,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/methods/AAA/error_cases'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/error_cases'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -360,7 +360,7 @@ methods:
     xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/methods/AAA/xyz"},
+                out_ignored_node_uris={"foo.yaml#/methods/AAA/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -378,7 +378,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/methods/AAA/params/aaa' id='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/params/aaa' id='aaa'",
             ),
         ]
         common.test(self, test_data_list)
@@ -396,7 +396,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/methods/AAA/result/aaa' id='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/result/aaa' id='aaa'",
             ),
         ]
         common.test(self, test_data_list)
@@ -414,7 +414,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/methods/AAA/error_cases/eee' id='eee'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/error_cases/eee' id='eee'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -428,7 +428,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/methods/AAA/error_cases/EEE/description' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/error_cases/EEE/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -447,7 +447,7 @@ errors:
     code: 123
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/methods/AAA/error_cases/EEE/xyz"},
+                out_ignored_node_uris={"foo.yaml#/methods/AAA/error_cases/EEE/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -462,7 +462,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/models/mmm' id='mmm'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/models/mmm' id='mmm'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -472,7 +472,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/models/MMM/type'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/models/MMM/type'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -483,7 +483,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/type' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/type' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -494,7 +494,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid model type; prop_uri='foo\.yaml#/models/MMM/type' model_type='ttt'",
+                out_exception_str=r"invalid specification: invalid model type; node_uri='foo\.yaml#/models/MMM/type' model_type='ttt'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -505,7 +505,7 @@ models:
     xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/models/MMM/xyz"},
+                out_ignored_node_uris={"foo.yaml#/models/MMM/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -522,7 +522,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -534,7 +534,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/models/MMM/fields'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models/MMM/fields'",
             ),
         ]
         common.test(self, test_data_list)
@@ -552,7 +552,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/models/MMM/fields/fff' id='fff'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/models/MMM/fields/fff' id='fff'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -565,7 +565,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/models/MMM/fields/FFF/type'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/models/MMM/fields/FFF/type'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -579,7 +579,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid field type; prop_uri='foo\.yaml#/models/MMM/fields/FFF/type' field_type='ttt'",
+                out_exception_str=r"invalid specification: invalid field type; node_uri='foo\.yaml#/models/MMM/fields/FFF/type' field_type='ttt'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -594,7 +594,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=float expected_prop_type=bool",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=bool",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -609,7 +609,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=float expected_prop_type=int",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=int",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -624,7 +624,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=float expected_prop_type=int",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=int",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -639,7 +639,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=str expected_prop_type=float",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=str expected_node_type=float",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -654,7 +654,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=str expected_prop_type=float",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=str expected_node_type=float",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -669,7 +669,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -684,7 +684,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -699,7 +699,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=int expected_prop_type=list",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=list",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -714,7 +714,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -729,7 +729,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example' prop_type=int expected_prop_type=list",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=list",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -744,7 +744,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -764,7 +764,7 @@ models:
         type: int32
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/models/MMM/fields/FFF/example"},
+                out_ignored_node_uris={"foo.yaml#/models/MMM/fields/FFF/example"},
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -779,7 +779,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/models/MMM/fields/FFF/description' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -793,7 +793,7 @@ models:
         xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/models/MMM/fields/FFF/xyz"},
+                out_ignored_node_uris={"foo.yaml#/models/MMM/fields/FFF/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -809,7 +809,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/models/MMM/underlying_type'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/models/MMM/underlying_type'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -821,7 +821,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid enum underlying type; prop_uri='foo\.yaml#/models/MMM/underlying_type' enum_underlying_type='vvv'",
+                out_exception_str=r"invalid specification: invalid enum underlying type; node_uri='foo\.yaml#/models/MMM/underlying_type' enum_underlying_type='vvv'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -834,7 +834,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/constants' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -847,7 +847,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: property should not be empty: prop_uri='foo\.yaml#/models/MMM/constants'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models/MMM/constants'",
             ),
         ]
         common.test(self, test_data_list)
@@ -866,7 +866,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/models/MMM/constants/ccc' id='ccc'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/models/MMM/constants/ccc' id='ccc'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -880,7 +880,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/models/MMM/constants/CCC/value'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/models/MMM/constants/CCC/value'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -895,7 +895,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/constants/CCC/value' prop_type=float expected_prop_type=int",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=float expected_node_type=int",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -910,7 +910,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/constants/CCC/value' prop_type=str expected_prop_type=int",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=str expected_node_type=int",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -925,7 +925,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/constants/CCC/value' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -941,7 +941,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/models/MMM/constants/CCC/description' prop_type=int expected_prop_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -956,7 +956,7 @@ models:
         xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/models/MMM/constants/CCC/xyz"},
+                out_ignored_node_uris={"foo.yaml#/models/MMM/constants/CCC/xyz"},
             ),
         ]
         common.test(self, test_data_list)
@@ -971,7 +971,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; prop_uri='foo\.yaml#/errors/eee' id='eee'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/errors/eee' id='eee'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -981,7 +981,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid property type: prop_uri='foo\.yaml#/errors/EEE' prop_type=int expected_prop_type=dict",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors/EEE' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -991,7 +991,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing property: prop_uri='foo\.yaml#/errors/EEE/code'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/errors/EEE/code'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1002,7 +1002,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid property type: prop_uri='foo\.yaml#/errors/EEE/code' prop_type=str expected_prop_type=int",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/errors/EEE/code' node_type=str expected_node_type=int",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1013,7 +1013,7 @@ errors:
     xyz: 1
 """
                 },
-                out_ignored_prop_uris={"foo.yaml#/errors/EEE/xyz"},
+                out_ignored_node_uris={"foo.yaml#/errors/EEE/xyz"},
             ),
         ]
         common.test(self, test_data_list)

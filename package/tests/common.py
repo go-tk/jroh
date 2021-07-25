@@ -11,8 +11,8 @@ class TestData:
 
     out_exception_type: Optional[Type[BaseException]] = None
     out_exception_str: str = ""
-    out_ignored_prop_uris: Optional[set[str]] = None
-    out_unused_prop_uris: Optional[set[str]] = None
+    out_ignored_node_uris: Optional[set[str]] = None
+    out_unused_node_uris: Optional[set[str]] = None
     out_file_path_2_file_data: Optional[dict[str, str]] = None
 
 
@@ -23,13 +23,13 @@ def test(test_case: TestCase, test_data_list: list[TestData]) -> None:
                 result1 = parser.parse_files(test_data.in_file_path_2_file_data)
                 result2 = resolver.resolve_specs(result1.specs)
                 result3 = dumper.dump_specs(result2.merged_specs)
-                if (ignored_prop_uris := test_data.out_ignored_prop_uris) is not None:
+                if (ignored_node_uris := test_data.out_ignored_node_uris) is not None:
                     test_case.assertSetEqual(
-                        set(result1.ignored_prop_uris), ignored_prop_uris
+                        set(result1.ignored_node_uris), ignored_node_uris
                     )
-                if (unused_prop_uris := test_data.out_unused_prop_uris) is not None:
+                if (unused_node_uris := test_data.out_unused_node_uris) is not None:
                     test_case.assertSetEqual(
-                        set(result2.unused_prop_uris), unused_prop_uris
+                        set(result2.unused_node_uris), unused_node_uris
                     )
                 if (
                     file_path_2_file_data := test_data.out_file_path_2_file_data
