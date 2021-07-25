@@ -5,10 +5,10 @@ import yaml
 
 from .spec import (ENUM_UNDERLYING_TYPE_PATTERN, FIELD_BOOL, FIELD_FLOAT32,
                    FIELD_FLOAT64, FIELD_INT32, FIELD_INT64, FIELD_STRING,
-                   ID_PATTERN, MODEL_ENUM, MODEL_STRUCT, MODEL_TYPE_PATTERN,
-                   NAMESPACE_PATTERN, RAW_FIELD_TYPE_PATTERN, Constant, Enum,
-                   Error, ErrorCase, Field, FieldType, Method, Model, Params,
-                   Result, Service, Spec, Struct)
+                   FIELD_TYPE_PATTERN, ID_PATTERN, MODEL_ENUM, MODEL_STRUCT,
+                   MODEL_TYPE_PATTERN, NAMESPACE_PATTERN, REF_PATTERN,
+                   Constant, Enum, Error, ErrorCase, Field, FieldType, Method,
+                   Model, Params, Ref, Result, Service, Spec, Struct)
 
 
 @dataclass
@@ -154,11 +154,11 @@ class _Parser:
     ) -> None:
         raw_error_cases = _ensure_node_type(raw_error_cases, dict, node_uri)
         _ensure_not_empty(raw_error_cases, node_uri)
-        for error_id, raw_error_case in raw_error_cases.items():
-            node_uri2 = node_uri + "/" + str(error_id)
-            error_id = _ensure_node_type(error_id, str, node_uri2)
-            _check_id(error_id, node_uri2)
-            error_case = ErrorCase(node_uri2, error_id)
+        for raw_error_ref, raw_error_case in raw_error_cases.items():
+            node_uri2 = node_uri + "/" + str(raw_error_ref)
+            raw_error_ref = _ensure_node_type(raw_error_ref, str, node_uri2)
+            error_ref = _parse_raw_ref(raw_error_ref, node_uri2)
+            error_case = ErrorCase(node_uri2, error_ref)
             self._parse_raw_error_case(raw_error_case, error_case)
             error_cases.append(error_case)
 
@@ -237,7 +237,7 @@ class _Parser:
             )
             field.description = description
         if (
-            not field_type.is_model_ref
+            field_type.model_ref is None
             and (example := raw_field.pop("example", None)) is not None
         ):
             type = {
@@ -320,9 +320,9 @@ class _Parser:
         raw_error = _ensure_node_type(raw_error, dict, error.node_uri)
         raw_error = raw_error.copy()
         node_uri = error.node_uri + "/code"
-        code = _pop_node(raw_error, "code", node_uri)
-        code = _ensure_node_type(code, int, node_uri)
-        error.code = code
+        error_code = _pop_node(raw_error, "code", node_uri)
+        error_code = _ensure_node_type(error_code, int, node_uri)
+        error.code = error_code
         for key in raw_error.keys():
             self._ignored_node_uris.append(error.node_uri + "/" + key)
 
@@ -385,12 +385,6 @@ def _check_model_type(model_type: str, node_uri: str) -> None:
 def _parse_raw_field_type(raw_field_type: str, field_type: FieldType) -> None:
     _check_raw_field_type(raw_field_type, field_type.node_uri)
     s = raw_field_type
-    if (i := s.find(".")) < 0:
-        field_type.is_model_ref = s[0].isupper()
-    else:
-        field_type.is_model_ref = True
-        field_type.namespace = s[:i]
-        s = s[i + 1 :]
     if (c := s[-1]) in ("?", "+", "*"):
         if c == "?":
             field_type.is_optional = True
@@ -402,13 +396,19 @@ def _parse_raw_field_type(raw_field_type: str, field_type: FieldType) -> None:
         else:
             assert False, c
         s = s[:-1]
-    field_type.value = s
+    if (i := s.find(".")) < 0:
+        if s[0].islower():
+            field_type.value = s
+        else:
+            field_type.model_ref = Ref(namespace=None, id=s)
+    else:
+        field_type.model_ref = Ref(namespace=s[:i], id=s[i + 1 :])
 
 
 def _check_raw_field_type(raw_field_type: str, node_uri: str) -> None:
-    if RAW_FIELD_TYPE_PATTERN.fullmatch(raw_field_type) is None:
+    if FIELD_TYPE_PATTERN.fullmatch(raw_field_type) is None:
         raise InvalidSpecError(
-            f"invalid field type; node_uri={node_uri!r} field_type={raw_field_type!r} expected_pattern={RAW_FIELD_TYPE_PATTERN.pattern!r}"
+            f"invalid field type; node_uri={node_uri!r} field_type={raw_field_type!r} expected_pattern={FIELD_TYPE_PATTERN.pattern!r}"
         )
 
 
@@ -416,4 +416,20 @@ def _check_enum_underlying_type(enum_underlying_type: str, node_uri: str) -> Non
     if ENUM_UNDERLYING_TYPE_PATTERN.fullmatch(enum_underlying_type) is None:
         raise InvalidSpecError(
             f"invalid enum underlying type; node_uri={node_uri!r} enum_underlying_type={enum_underlying_type!r} expected_pattern={ENUM_UNDERLYING_TYPE_PATTERN.pattern!r}"
+        )
+
+
+def _parse_raw_ref(raw_ref: str, node_uri: str) -> Ref:
+    _check_raw_ref(raw_ref, node_uri)
+    if (i := raw_ref.find(".")) < 0:
+        ref = Ref(namespace=None, id=raw_ref)
+    else:
+        ref = Ref(namespace=raw_ref[:i], id=raw_ref[i + 1 :])
+    return ref
+
+
+def _check_raw_ref(raw_ref: str, node_uri: str) -> None:
+    if REF_PATTERN.fullmatch(raw_ref) is None:
+        raise InvalidSpecError(
+            f"invalid ref; node_uri={node_uri!r} ref={raw_ref!r} expected_pattern={REF_PATTERN.pattern!r}"
         )

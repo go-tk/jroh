@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass
 from typing import Any, Optional
 
 _WORD_PATTERN = re.compile(r"[A-Z]([A-Z0-9]*|[a-z0-9]*)s?")
@@ -9,14 +10,18 @@ ID_PATTERN = re.compile(
 GLOBAL = "global"
 NAMESPACE_PATTERN = re.compile(GLOBAL + r"|" + ID_PATTERN.pattern)
 
+REF_PATTERN = re.compile(
+    r"({}\.)?{}".format(f"({NAMESPACE_PATTERN.pattern})", f"({ID_PATTERN.pattern})")
+)
+
 FIELD_BOOL = "bool"
 FIELD_INT32 = "int32"
 FIELD_INT64 = "int64"
 FIELD_FLOAT32 = "float32"
 FIELD_FLOAT64 = "float64"
 FIELD_STRING = "string"
-RAW_FIELD_TYPE_PATTERN = re.compile(
-    r"({}|({}\.)?{})(\?|\+|\*)?".format(
+FIELD_TYPE_PATTERN = re.compile(
+    r"({}|{})(\?|\+|\*)?".format(
         r"|".join(
             (
                 FIELD_BOOL,
@@ -27,8 +32,7 @@ RAW_FIELD_TYPE_PATTERN = re.compile(
                 FIELD_STRING,
             )
         ),
-        f"({NAMESPACE_PATTERN.pattern})",
-        f"({ID_PATTERN.pattern})",
+        f"({REF_PATTERN.pattern})",
     )
 )
 
@@ -98,10 +102,10 @@ class Result:
 
 
 class ErrorCase:
-    def __init__(self, node_uri: str, error_id: str) -> None:
+    def __init__(self, node_uri: str, error_ref: "Ref") -> None:
         # parse
         self.node_uri: str = node_uri
-        self.error_id: str = error_id
+        self.error_ref: Ref = error_ref
 
         self.description: Optional[str] = None
 
@@ -152,11 +156,10 @@ class FieldType:
         # parse
         self.node_uri = node_uri
 
-        self.value: str = ""
-        self.is_model_ref: bool = False
-        self.namespace: Optional[str] = None
         self.is_optional: bool = False
         self.is_repeated: bool = False
+        self.model_ref: Optional[Ref] = None
+        self.value: str = ""
 
         # resolution
         self.model: Optional[Model] = None
@@ -189,3 +192,9 @@ class Error:
 
         # resolution
         self.ref_count: int = 0
+
+
+@dataclass
+class Ref:
+    namespace: Optional[str]
+    id: str

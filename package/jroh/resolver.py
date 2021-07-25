@@ -96,6 +96,15 @@ class _Resolver:
             self._resolve_result(method.result)
         for error_case in method.error_cases:
             self._resolve_error_case(error_case)
+        error_cases: dict[int, ErrorCase] = {}
+        for error_case in method.error_cases:
+            error = error_case.error
+            assert error is not None
+            if (error_case2 := error_cases.get(error.code)) is not None:
+                raise InvalidSpecError(
+                    f"error code conflict; node_uri1={error_case.node_uri!r} node_uri2={error_case2.node_uri!r} error_code={error.code!r}",
+                )
+            error_cases[error.code] = error_case
 
     def _resolve_params(self, params: Params) -> None:
         for field in params.fields:
@@ -106,13 +115,13 @@ class _Resolver:
             self._resolve_field(field)
 
     def _resolve_field(self, field: Field) -> None:
-        if not field.type.is_model_ref:
+        model_ref = field.type.model_ref
+        if model_ref is None:
             return
-        if field.type.namespace is None:
+        namespace = model_ref.namespace
+        if namespace is None:
             namespace = self._namespace
-        else:
-            namespace = field.type.namespace
-        model_id = field.type.value
+        model_id = model_ref.id
         model = self._models.get((namespace, model_id))
         if model is None:
             node_uri = field.node_uri + "/type"
@@ -130,11 +139,16 @@ class _Resolver:
                 self._resolve_field(field)
 
     def _resolve_error_case(self, error_case: ErrorCase) -> None:
-        error = self._errors_by_id.get((self._namespace, error_case.error_id))
+        error_ref = error_case.error_ref
+        namespace = error_ref.namespace
+        if namespace is None:
+            namespace = self._namespace
+        error_id = error_ref.id
+        error = self._errors_by_id.get((namespace, error_id))
         if error is None:
             error_case.node_uri + "/type"
             raise InvalidSpecError(
-                f"error not found; node_uri={error_case.node_uri!r}",
+                f"error not found; node_uri={error_case.node_uri!r} namespace={namespace!r} error_id={error_id!r}",
             )
         error_case.error = error
         error.ref_count += 1

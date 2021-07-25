@@ -414,7 +414,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/error_cases/eee' id='eee'",
+                out_exception_str=r"invalid specification: invalid ref; node_uri='foo\.yaml#/methods/AAA/error_cases/eee' ref='eee'",
             ),
             common.TestData(
                 in_file_path_2_file_data={

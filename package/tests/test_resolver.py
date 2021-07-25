@@ -144,6 +144,37 @@ errors:
         ]
         common.test(self, test_data_list)
 
+    def test_error_code_conflict(self):
+        test_data_list = [
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_id: Hello
+    error_cases:
+      Foo: {}
+      New.Bar: {}
+errors:
+  Foo:
+    code: 1000
+""",
+                    "foo2.yaml": """
+namespace: New
+errors:
+  Bar:
+    code: 1000
+""",
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid spec: error code conflict; node_uri1='foo\.yaml#/methods/World/error_cases/New\.Bar' node_uri2='foo\.yaml#/methods/World/error_cases/Foo' error_code=1000",
+            ),
+        ]
+        common.test(self, test_data_list)
+
     def test_service_ref(self):
         test_data_list = [
             common.TestData(
@@ -215,11 +246,11 @@ methods:
   World:
     service_id: Hello
     error_cases:
-      Something-Wrong: {}
+      New.Something-Wrong: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong'",
+                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/New.Something-Wrong' namespace='New' error_id='Something-Wrong'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -258,7 +289,7 @@ errors:
 """,
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong'",
+                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong' namespace='New' error_id='Something-Wrong'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -273,6 +304,68 @@ methods:
       Something-Wrong: {}
 """,
                     "bar.yaml": """
+namespace: New
+errors:
+  Something-Wrong:
+    code: 1000
+""",
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong' namespace='global' error_id='Something-Wrong'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_id: Hello
+    error_cases:
+      Something-Wrong: {}
+""",
+                    "bar.yaml": """
+errors:
+  Something-Wrong:
+    code: 1000
+""",
+                },
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+namespace: New
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_id: Hello
+    error_cases:
+      global.Something-Wrong: {}
+""",
+                    "bar.yaml": """
+errors:
+  Something-Wrong:
+    code: 1000
+""",
+                },
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_id: Hello
+    error_cases:
+      New.Something-Wrong: {}
+""",
+                    "bar.yaml": """
+namespace: New
 errors:
   Something-Wrong:
     code: 1000
@@ -329,6 +422,30 @@ services:
 methods:
   World:
     service_id: Hello
+    result:
+      Bar:
+        type: Bar
+      I:
+        type: int32
+""",
+                    "bar.yaml": """
+models:
+  Bar:
+    type: struct
+""",
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/result/Bar/type' namespace='New' model_id='Bar'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_id: Hello
     params:
       Bar:
         type: Bar
@@ -339,8 +456,6 @@ models:
     type: struct
 """,
                 },
-                out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/params/Bar/type' namespace='New' model_id='Bar'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -382,6 +497,36 @@ models:
   Bar:
     type: struct
 """,
+                },
+            ),
+        ]
+        common.test(self, test_data_list)
+
+    def test_unused_node(self):
+        test_data_list = [
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo1.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+""",
+                    "foo2.yaml": """
+models:
+  Foo:
+    type: enum
+    underlying_type: int32
+""",
+                    "foo3.yaml": """
+errors:
+  Wrong:
+    code: 1000
+""",
+                },
+                out_unused_node_uris={
+                    "foo1.yaml#/services/Hello",
+                    "foo2.yaml#/models/Foo",
+                    "foo3.yaml#/errors/Wrong",
                 },
             ),
         ]
