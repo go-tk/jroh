@@ -123,6 +123,7 @@ class Model:
         self.definition: Any = None
 
         # resolution
+        self.namespace: str = ""
         self.ref_count: int = 0
 
     def struct(self) -> "Struct":

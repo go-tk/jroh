@@ -193,6 +193,7 @@ class _Translator:
             "title": "Models",
             "version": "",
         }
+        open_api["paths"] = {}
         schemas = {}
         open_api["components"] = {
             "schemas": schemas,
@@ -213,6 +214,8 @@ class _Translator:
 
     def _translate_fields(self, fields: list[Field], schema: dict) -> None:
         schema["type"] = "object"
+        if len(fields) == 0:
+            return
         properties = {}
         schema["properties"] = properties
         required_property_ids = []
@@ -240,7 +243,7 @@ class _Translator:
                 {
                     FIELD_BOOL: {"type": "boolean"},
                     FIELD_INT32: {"type": "integer", "format": "int32"},
-                    FIELD_INT64: {"type": "integer", "format": "int32"},
+                    FIELD_INT64: {"type": "integer", "format": "int64"},
                     FIELD_FLOAT32: {"type": "number", "format": "float"},
                     FIELD_FLOAT64: {"type": "number", "format": "double"},
                     FIELD_STRING: {"type": "string"},

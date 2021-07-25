@@ -57,6 +57,7 @@ class _Resolver:
                 raise InvalidSpecError(
                     f"duplicate model id; node_uri1={model.node_uri!r} node_uri2={model2.node_uri!r}",
                 )
+            model.namespace = spec.namespace
             self._models[(spec.namespace, model.id)] = model
         for error in spec.errors:
             if (
@@ -135,8 +136,11 @@ class _Resolver:
 
     def _resolve_model(self, model: Model) -> None:
         if model.type == MODEL_STRUCT:
+            namespace = self._namespace
+            self._namespace = model.namespace
             for field in model.struct().fields:
                 self._resolve_field(field)
+            self._namespace = namespace
 
     def _resolve_error_case(self, error_case: ErrorCase) -> None:
         error_ref = error_case.error_ref

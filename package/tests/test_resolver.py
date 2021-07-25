@@ -496,6 +496,11 @@ namespace: New
 models:
   Bar:
     type: struct
+    fields:
+      Baz:
+        type: Baz
+  Baz:
+    type: struct
 """,
                 },
             ),
