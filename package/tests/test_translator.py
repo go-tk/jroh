@@ -228,6 +228,11 @@ methods:
       Color2:
         type: Color
         description: None
+      Fruits1:
+        type: Fruit*
+      Fruits2:
+        type: Fruit+
+        description: Test
 """,
                     "b.yaml": """
 models:
@@ -240,6 +245,17 @@ models:
       Black:
         value: 22
         description: Black
+  Fruit:
+    type: enum
+    description: An fruit
+    underlying_type: string
+    constants:
+      Apple:
+        value: Ap
+        description: An apple
+      Banana:
+        value: Bn
+        description: A banana
 """,
                 },
                 out_file_path_2_file_data={
@@ -287,8 +303,32 @@ components:
 
               - RED(1)
               - BLACK(22): Black
+        fruits1:
+          type: array
+          items:
+            allOf:
+            - $ref: models.yaml#/components/schemas/fruit
+            - description: |-
+                An fruit
+
+                Constants:
+
+                - APPLE("Ap"): An apple
+                - BANANA("Bn"): A banana
+        fruits2:
+          type: array
+          items:
+            $ref: models.yaml#/components/schemas/fruit
+          description: |-
+            Test
+
+            Constants:
+
+            - APPLE("Ap"): An apple
+            - BANANA("Bn"): A banana
       required:
       - color2
+      - fruits2
 """,
                     "models.yaml": """\
 openapi: 3.0.0
@@ -304,6 +344,11 @@ components:
       enum:
       - 1
       - 22
+    fruit:
+      type: string
+      enum:
+      - Ap
+      - Bn
 """,
                 },
             ),

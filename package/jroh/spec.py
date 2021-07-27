@@ -120,6 +120,7 @@ class Model:
         self.id: str = id
 
         self.type: str = ""
+        self.description: Optional[str] = None
         self.definition: Any = None
 
         # resolution
@@ -189,6 +190,7 @@ class Error:
         self.node_uri: str = node_uri
         self.id: str = id
 
+        self.description: Optional[str] = None
         self.code: int = 0
 
         # resolution

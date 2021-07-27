@@ -192,6 +192,11 @@ class _Parser:
         model_type = _ensure_node_type(model_type, str, node_uri)
         _check_model_type(model_type, node_uri)
         model.type = model_type
+        if (description := raw_model.pop("description", None)) is not None:
+            description = _ensure_node_type(
+                description, str, model.node_uri + "/description"
+            )
+            model.description = description
         if model_type == MODEL_STRUCT:
             struct = Struct()
             self._parse_raw_struct(raw_model, struct, model.node_uri)
@@ -323,6 +328,11 @@ class _Parser:
         error_code = _pop_node(raw_error, "code", node_uri)
         error_code = _ensure_node_type(error_code, int, node_uri)
         error.code = error_code
+        if (description := raw_error.pop("description", None)) is not None:
+            description = _ensure_node_type(
+                description, str, error.node_uri + "/description"
+            )
+            error.description = description
         for key in raw_error.keys():
             self._ignored_node_uris.append(error.node_uri + "/" + key)
 

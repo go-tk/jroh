@@ -270,18 +270,30 @@ class _Translator:
                 + "#/components/schemas/"
                 + utils.camel_case(model_ref.id)
             )
+        if field_type.model_ref is None:
+            model = None
+        else:
+            model = field_type.model
+            assert model is not None
         description_parts = []
-        if field.description is not None:
+        if field.description is None:
+            if model is not None and model.description is not None:
+                description_parts.append(model.description)
+        else:
             description_parts.append(field.description)
         if (
-            field_type.model_ref is not None
-            and (model := field_type.model).type == MODEL_ENUM
+            model is not None
+            and model.type == MODEL_ENUM
             and len(constants := model.enum().constants) >= 1
         ):
             markdown = _translate_constants(constants)
             description_parts.append("Constants:\n\n" + markdown)
         if len(description_parts) >= 1:
-            property["description"] = "\n\n".join(description_parts)
+            if field.description is None:
+                property3 = property2
+            else:
+                property3 = property
+            property3["description"] = "\n\n".join(description_parts)
         if field.example is not None:
             property["example"] = field.example
 
@@ -336,7 +348,10 @@ def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
         assert error is not None
         message = error.id.lower().replace("-", " ")
         if error_case.description is None:
-            description = ""
+            if error.description is None:
+                description = ""
+            else:
+                description = error.description
         else:
             description = error_case.description
         lines.append(f"| {error.code} | {message} | {description} |")
@@ -346,7 +361,13 @@ def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
 def _translate_constants(constants: list[Constant]) -> str:
     lines = []
     for constant in constants:
-        line = f"- {utils.macro_case(constant.id)}({constant.value})"
+        if isinstance(constant.value, int):
+            value_repr = str(constant.value)
+        elif isinstance(constant.value, str):
+            value_repr = '"' + constant.value + '"'
+        else:
+            assert False, type(constant.value)
+        line = f"- {utils.macro_case(constant.id)}({value_repr})"
         if constant.description is not None:
             line += f": {constant.description}"
         lines.append(line)

@@ -501,6 +501,18 @@ models:
                     "foo.yaml": """
 models:
   MMM:
+    type: enum
+    description: 1
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/description' node_type=int expected_node_type=str",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
     type: struct
     xyz: 1
 """
@@ -1003,6 +1015,18 @@ errors:
                 },
                 out_exception_type=InvalidSpecError,
                 out_exception_str=r"invalid node type: node_uri='foo\.yaml#/errors/EEE/code' node_type=str expected_node_type=int",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+errors:
+  EEE:
+    code: 100
+    description: 1
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors/EEE/description' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
