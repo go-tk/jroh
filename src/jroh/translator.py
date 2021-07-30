@@ -4,10 +4,28 @@ from typing import Optional
 import yaml
 
 from . import utils
-from .spec import (FIELD_BOOL, FIELD_FLOAT32, FIELD_FLOAT64, FIELD_INT32,
-                   FIELD_INT64, FIELD_STRING, GLOBAL, MODEL_ENUM, MODEL_STRUCT,
-                   Constant, Enum, ErrorCase, Field, Method, Model, Params,
-                   Result, Service, Spec, Struct)
+from .spec import (
+    FIELD_BOOL,
+    FIELD_FLOAT32,
+    FIELD_FLOAT64,
+    FIELD_INT32,
+    FIELD_INT64,
+    FIELD_STRING,
+    GLOBAL,
+    MODEL_ENUM,
+    MODEL_STRUCT,
+    Constant,
+    Enum,
+    ErrorCase,
+    Field,
+    Method,
+    Model,
+    Params,
+    Result,
+    Service,
+    Spec,
+    Struct,
+)
 
 
 def _str_representer(dumper: yaml.Dumper, data: str):

@@ -1,7 +1,17 @@
 from dataclasses import dataclass
 
-from .spec import (MODEL_STRUCT, Error, ErrorCase, Field, Method, Model,
-                   Params, Result, Service, Spec)
+from .spec import (
+    MODEL_STRUCT,
+    Error,
+    ErrorCase,
+    Field,
+    Method,
+    Model,
+    Params,
+    Result,
+    Service,
+    Spec,
+)
 
 
 @dataclass

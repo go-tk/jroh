@@ -3,12 +3,36 @@ from typing import Type, TypeVar, Union
 
 import yaml
 
-from .spec import (ENUM_UNDERLYING_TYPE_PATTERN, FIELD_BOOL, FIELD_FLOAT32,
-                   FIELD_FLOAT64, FIELD_INT32, FIELD_INT64, FIELD_STRING,
-                   FIELD_TYPE_PATTERN, ID_PATTERN, MODEL_ENUM, MODEL_STRUCT,
-                   MODEL_TYPE_PATTERN, NAMESPACE_PATTERN, REF_PATTERN,
-                   Constant, Enum, Error, ErrorCase, Field, FieldType, Method,
-                   Model, Params, Ref, Result, Service, Spec, Struct)
+from .spec import (
+    ENUM_UNDERLYING_TYPE_PATTERN,
+    FIELD_BOOL,
+    FIELD_FLOAT32,
+    FIELD_FLOAT64,
+    FIELD_INT32,
+    FIELD_INT64,
+    FIELD_STRING,
+    FIELD_TYPE_PATTERN,
+    ID_PATTERN,
+    MODEL_ENUM,
+    MODEL_STRUCT,
+    MODEL_TYPE_PATTERN,
+    NAMESPACE_PATTERN,
+    REF_PATTERN,
+    Constant,
+    Enum,
+    Error,
+    ErrorCase,
+    Field,
+    FieldType,
+    Method,
+    Model,
+    Params,
+    Ref,
+    Result,
+    Service,
+    Spec,
+    Struct,
+)
 
 
 @dataclass
