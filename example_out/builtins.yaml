@@ -5,7 +5,7 @@ info:
 paths: {}
 components:
   schemas:
-    rpcRespWithoutResult:
+    rpcRespWithoutResults:
       type: object
       properties:
         id:
@@ -32,8 +32,10 @@ components:
           description: A String providing a short description of the error.
           example: something wrong
         data:
-          description: A Primitive or Structured value that contains additional information
-            about the error.
+          type: object
+          additionalProperties: true
+          description: A Structured value that contains additional information about
+            the error.
       required:
       - code
       - message

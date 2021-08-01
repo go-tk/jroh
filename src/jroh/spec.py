@@ -81,7 +81,7 @@ class Method:
         self.summary: Optional[str] = None
         self.description: Optional[str] = None
         self.params: Optional[Params] = None
-        self.result: Optional[Result] = None
+        self.results: Optional[Results] = None
         self.error_cases: list[ErrorCase] = []
 
 
@@ -93,7 +93,7 @@ class Params:
         self.fields: list[Field] = []
 
 
-class Result:
+class Results:
     def __init__(self, node_uri: str) -> None:
         # parse
         self.node_uri: str = node_uri

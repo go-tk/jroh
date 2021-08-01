@@ -76,7 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResults
   /rpc/Profile.DeleteProfile:
     post:
       operationId: deleteProfile
@@ -100,4 +100,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResults

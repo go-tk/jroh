@@ -16,7 +16,7 @@ methods:
       Profile:
         type: Profile
         description: Details of the profile.
-    result:
+    results:
       Profile-ID:
         type: int64
         description: The identifier of the profile created.
@@ -36,7 +36,7 @@ methods:
         type: int64
         description: The identifier of the profile to retrieve.
         example: 1000
-    result:
+    results:
       Profile:
         type: Profile
         description: Details of the profile.

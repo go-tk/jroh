@@ -54,7 +54,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                     "greeting_v2_api.yaml": """\
 openapi: 3.0.0
@@ -71,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                     "xyz/greeting_api.yaml": """\
 openapi: 3.0.0
@@ -88,7 +88,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                 },
             ),
@@ -122,7 +122,7 @@ methods:
   Say-Hello-V3:
     service_ids: [Greeting]
     description: Test
-    result:
+    results:
       Bar:
         type: string
 """,
@@ -143,7 +143,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
   /global.Greeting.SayHelloV2:
     post:
       operationId: sayHelloV2
@@ -159,7 +159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
   /global.Greeting.SayHelloV3:
     post:
       operationId: sayHelloV3
@@ -193,7 +193,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                     "schemas.yaml": """\
 openapi: 3.0.0
@@ -222,15 +222,15 @@ components:
           allOf:
           - $ref: builtins.yaml#/components/schemas/rpcError
           - description: The RPC error encountered. This field is mutually exclusive
-              of the `result` field.
-        result:
+              of the `results` field.
+        results:
           allOf:
-          - $ref: '#/components/schemas/sayHelloV3Result'
-          - description: The RPC result returned. This field is mutually exclusive
+          - $ref: '#/components/schemas/sayHelloV3Results'
+          - description: The RPC results returned. This field is mutually exclusive
               of the `error` field.
       required:
       - id
-    sayHelloV3Result:
+    sayHelloV3Results:
       type: object
       properties:
         bar:
@@ -312,7 +312,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                     "schemas.yaml": """\
 openapi: 3.0.0
@@ -442,7 +442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                 },
             ),
@@ -541,7 +541,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResult
+                $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResults
 """,
                     "ns1/schemas.yaml": """\
 openapi: 3.0.0

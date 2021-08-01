@@ -319,11 +319,11 @@ methods:
 methods:
   AAA:
     service_ids: [Foo]
-    result: 1
+    results: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/result' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/results' node_type=int expected_node_type=dict",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -331,11 +331,11 @@ methods:
 methods:
   AAA:
     service_ids: [Foo]
-    result: {}
+    results: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/result'",
+                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/results'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -396,7 +396,7 @@ methods:
         ]
         common.test(self, test_data_list)
 
-    def test_result(self):
+    def test_results(self):
         test_data_list = [
             common.TestData(
                 in_file_path_2_file_data={
@@ -404,12 +404,12 @@ methods:
 methods:
   AAA:
     service_ids: [Foo]
-    result:
+    results:
       aaa: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/result/aaa' id='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/results/aaa' id='aaa'",
             ),
         ]
         common.test(self, test_data_list)

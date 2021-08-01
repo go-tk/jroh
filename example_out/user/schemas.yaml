@@ -26,15 +26,15 @@ components:
           allOf:
           - $ref: ../builtins.yaml#/components/schemas/rpcError
           - description: The RPC error encountered. This field is mutually exclusive
-              of the `result` field.
-        result:
+              of the `results` field.
+        results:
           allOf:
-          - $ref: '#/components/schemas/createProfileResult'
-          - description: The RPC result returned. This field is mutually exclusive
+          - $ref: '#/components/schemas/createProfileResults'
+          - description: The RPC results returned. This field is mutually exclusive
               of the `error` field.
       required:
       - id
-    createProfileResult:
+    createProfileResults:
       type: object
       properties:
         profileID:
@@ -66,15 +66,15 @@ components:
           allOf:
           - $ref: ../builtins.yaml#/components/schemas/rpcError
           - description: The RPC error encountered. This field is mutually exclusive
-              of the `result` field.
-        result:
+              of the `results` field.
+        results:
           allOf:
-          - $ref: '#/components/schemas/getProfileResult'
-          - description: The RPC result returned. This field is mutually exclusive
+          - $ref: '#/components/schemas/getProfileResults'
+          - description: The RPC results returned. This field is mutually exclusive
               of the `error` field.
       required:
       - id
-    getProfileResult:
+    getProfileResults:
       type: object
       properties:
         profile:

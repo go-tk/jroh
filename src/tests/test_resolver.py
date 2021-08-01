@@ -438,7 +438,7 @@ services:
 methods:
   World:
     service_ids: [Hello]
-    result:
+    results:
       Bar:
         type: Bar
       I:
@@ -451,7 +451,7 @@ models:
 """,
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/result/Bar/type' namespace='New' model_id='Bar'",
+                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/results/Bar/type' namespace='New' model_id='Bar'",
             ),
             common.TestData(
                 in_file_path_2_file_data={

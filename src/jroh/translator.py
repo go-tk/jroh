@@ -21,7 +21,7 @@ from .spec import (
     Method,
     Model,
     Params,
-    Result,
+    Results,
     Service,
     Spec,
     Struct,
@@ -38,14 +38,16 @@ yaml.add_representer(str, _str_representer)
 
 
 @dataclass
-class TranslateSpecsResult:
+class TranslateSpecsResults:
     file_path_2_file_data: dict[str, str]
 
 
-def translate_specs(specs: list[Spec], test_mode: bool = False) -> TranslateSpecsResult:
+def translate_specs(
+    specs: list[Spec], test_mode: bool = False
+) -> TranslateSpecsResults:
     translateer = _Translator(test_mode)
     translateer.translate_specs(specs)
-    return TranslateSpecsResult(
+    return TranslateSpecsResults(
         file_path_2_file_data=translateer.file_path_2_file_data(),
     )
 
@@ -124,7 +126,7 @@ class _Translator:
         if method.params is not None:
             operation["requestBody"] = self._emit_request_body(method.params, method.id)
         operation["responses"] = self._emit_responses(
-            method.error_cases, method.result, method.id
+            method.error_cases, method.results, method.id
         )
 
     def _emit_request_body(self, params: Params, method_id: str) -> dict:
@@ -149,7 +151,7 @@ class _Translator:
         self._translate_fields(params.fields, schema2)
 
     def _emit_responses(
-        self, error_cases: list[ErrorCase], result: Optional[Result], method_id: str
+        self, error_cases: list[ErrorCase], results: Optional[Results], method_id: str
     ) -> dict:
         description_parts = []
         if len(error_cases) >= 1:
@@ -166,15 +168,15 @@ class _Translator:
                 },
             },
         }
-        self._emit_resp(result, method_id, schema)
+        self._emit_resp(results, method_id, schema)
         return responses
 
     def _emit_resp(
-        self, result: Optional[Result], method_id: str, schema: dict
+        self, results: Optional[Results], method_id: str, schema: dict
     ) -> None:
-        if result is None:
+        if results is None:
             schema["$ref"] = (
-                self._builtins_file_path + "#/components/schemas/rpcRespWithoutResult"
+                self._builtins_file_path + "#/components/schemas/rpcRespWithoutResults"
             )
             return
         schema_id = utils.camel_case(method_id) + "Resp"
@@ -190,7 +192,7 @@ class _Translator:
             },
             "error": {
                 "$ref": self._builtins_file_path + "#/components/schemas/rpcError",
-                "description": "The RPC error encountered. This field is mutually exclusive of the `result` field.",
+                "description": "The RPC error encountered. This field is mutually exclusive of the `results` field.",
             },
         }
         schema2 = {
@@ -200,18 +202,20 @@ class _Translator:
         }
         self._schemas[schema_id] = schema2
         schema3 = {}
-        properties["result"] = schema3
-        self._translate_result(result, method_id, schema3)
+        properties["results"] = schema3
+        self._translate_results(results, method_id, schema3)
 
-    def _translate_result(self, result: Result, method_id: str, schema: dict) -> None:
-        schema_id = utils.camel_case(method_id) + "Result"
+    def _translate_results(
+        self, results: Results, method_id: str, schema: dict
+    ) -> None:
+        schema_id = utils.camel_case(method_id) + "Results"
         schema["$ref"] = "#/components/schemas/" + schema_id
         schema[
             "description"
-        ] = "The RPC result returned. This field is mutually exclusive of the `error` field."
+        ] = "The RPC results returned. This field is mutually exclusive of the `error` field."
         schema2 = {}
         self._schemas[schema_id] = schema2
-        self._translate_fields(result.fields, schema2)
+        self._translate_fields(results.fields, schema2)
 
     def _translate_models(self, models: list[Model], schemas: dict[str, dict]) -> None:
         for model in models:
@@ -368,7 +372,7 @@ _BUILTINS_OPEN_API = {
     "paths": {},
     "components": {
         "schemas": {
-            "rpcRespWithoutResult": {
+            "rpcRespWithoutResults": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -401,7 +405,9 @@ _BUILTINS_OPEN_API = {
                         "example": "something wrong",
                     },
                     "data": {
-                        "description": "A Primitive or Structured value that contains additional information about the error.",
+                        "type": "object",
+                        "additionalProperties": True,
+                        "description": "A Structured value that contains additional information about the error.",
                     },
                 },
                 "required": ["code", "message"],

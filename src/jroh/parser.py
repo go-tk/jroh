@@ -28,7 +28,7 @@ from .spec import (
     Model,
     Params,
     Ref,
-    Result,
+    Results,
     Service,
     Spec,
     Struct,
@@ -36,16 +36,16 @@ from .spec import (
 
 
 @dataclass
-class ParseFilesResult:
+class ParseFilesResults:
     ignored_node_uris: list[str]
     specs: list[Spec]
 
 
-def parse_files(file_path_2_file_data: dict[str, str]) -> ParseFilesResult:
+def parse_files(file_path_2_file_data: dict[str, str]) -> ParseFilesResults:
     parser = _Parser()
     for file_path, file_data in file_path_2_file_data.items():
         parser.parse_file(file_data, file_path)
-    return ParseFilesResult(
+    return ParseFilesResults(
         ignored_node_uris=parser.ignored_node_uris(),
         specs=parser.specs(),
     )
@@ -159,10 +159,10 @@ class _Parser:
             params = Params(method.node_uri + "/params")
             self._parse_raw_params(raw_params, params)
             method.params = params
-        if (raw_result := raw_method.pop("result", None)) is not None:
-            result = Result(method.node_uri + "/result")
-            self._parse_raw_result(raw_result, result)
-            method.result = result
+        if (raw_results := raw_method.pop("results", None)) is not None:
+            results = Results(method.node_uri + "/results")
+            self._parse_raw_results(raw_results, results)
+            method.results = results
         if (raw_error_cases := raw_method.pop("error_cases", None)) is not None:
             self._parse_raw_error_cases(
                 raw_error_cases, method.error_cases, method.node_uri + "/error_cases"
@@ -173,8 +173,8 @@ class _Parser:
     def _parse_raw_params(self, raw_params, params: Params) -> None:
         self._parse_raw_fields(raw_params, params.fields, params.node_uri)
 
-    def _parse_raw_result(self, raw_result, result: Result) -> None:
-        self._parse_raw_fields(raw_result, result.fields, result.node_uri)
+    def _parse_raw_results(self, raw_results, results: Results) -> None:
+        self._parse_raw_fields(raw_results, results.fields, results.node_uri)
 
     def _parse_raw_error_cases(
         self, raw_error_cases, error_cases: list[ErrorCase], node_uri: str

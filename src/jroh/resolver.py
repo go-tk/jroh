@@ -8,22 +8,22 @@ from .spec import (
     Method,
     Model,
     Params,
-    Result,
+    Results,
     Service,
     Spec,
 )
 
 
 @dataclass
-class ResolveSpecsResult:
+class ResolveSpecsResults:
     unused_node_uris: list[str]
     merged_specs: list[Spec]
 
 
-def resolve_specs(specs: list[Spec]) -> ResolveSpecsResult:
+def resolve_specs(specs: list[Spec]) -> ResolveSpecsResults:
     resolver = _Resolver()
     resolver.resolve_specs(specs)
-    return ResolveSpecsResult(
+    return ResolveSpecsResults(
         unused_node_uris=resolver.unused_node_uris(),
         merged_specs=resolver.merged_specs(),
     )
@@ -104,8 +104,8 @@ class _Resolver:
             service.methods.append(method)
         if method.params is not None:
             self._resolve_params(method.params)
-        if method.result is not None:
-            self._resolve_result(method.result)
+        if method.results is not None:
+            self._resolve_results(method.results)
         for error_case in method.error_cases:
             self._resolve_error_case(error_case)
         error_cases: dict[int, ErrorCase] = {}
@@ -122,8 +122,8 @@ class _Resolver:
         for field in params.fields:
             self._resolve_field(field)
 
-    def _resolve_result(self, result: Result) -> None:
-        for field in result.fields:
+    def _resolve_results(self, results: Results) -> None:
+        for field in results.fields:
             self._resolve_field(field)
 
     def _resolve_field(self, field: Field) -> None:

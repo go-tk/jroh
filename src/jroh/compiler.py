@@ -31,14 +31,14 @@ def _compile_files(file_paths: list[str], output_dir_path: str) -> None:
             file_data = f.read()
         file_path_2_file_data[file_path] = file_data
         parser.parse_files(file_path_2_file_data)
-    result1 = parser.parse_files(file_path_2_file_data)
-    for node_uri in result1.ignored_node_uris:
+    results1 = parser.parse_files(file_path_2_file_data)
+    for node_uri in results1.ignored_node_uris:
         print(f"WARNING: node ignored: {node_uri}", file=sys.stderr)
-    result2 = resolver.resolve_specs(result1.specs)
-    for node_uri in result2.unused_node_uris:
+    results2 = resolver.resolve_specs(results1.specs)
+    for node_uri in results2.unused_node_uris:
         print(f"WARNING: node unused: {node_uri}", file=sys.stderr)
-    result3 = translator.translate_specs(result2.merged_specs)
-    for file_path, file_data in result3.file_path_2_file_data.items():
+    results3 = translator.translate_specs(results2.merged_specs)
+    for file_path, file_data in results3.file_path_2_file_data.items():
         file_path = os.path.join(output_dir_path, file_path)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w+") as f:
