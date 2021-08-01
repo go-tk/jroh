@@ -94,13 +94,14 @@ class _Resolver:
             self._resolve_method(method)
 
     def _resolve_method(self, method: Method) -> None:
-        service = self._services.get((self._namespace, method.service_id))
-        if service is None:
-            node_uri = method.node_uri + "/service_id"
-            raise InvalidSpecError(
-                f"service not found; node_uri={node_uri!r} service_id={method.service_id!r}",
-            )
-        service.methods.append(method)
+        for i, service_id in enumerate(method.service_ids):
+            service = self._services.get((self._namespace, service_id))
+            if service is None:
+                node_uri = method.node_uri + f"/service_ids[{i}]"
+                raise InvalidSpecError(
+                    f"service not found; node_uri={node_uri!r} service_id={service_id!r}",
+                )
+            service.methods.append(method)
         if method.params is not None:
             self._resolve_params(method.params)
         if method.result is not None:

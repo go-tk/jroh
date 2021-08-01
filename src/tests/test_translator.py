@@ -27,15 +27,15 @@ services:
                     "b.yaml": """
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
   Say-Hello-V2:
-    service_id: Greeting-V2
+    service_ids: [Greeting-V2]
 """,
                     "b2.yaml": """
 namespace: XYZ
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
 """,
                 },
                 out_file_path_2_file_data={
@@ -105,19 +105,22 @@ services:
   Greeting:
     version: 1.1.1
     method_path_template: '{namespace}.{service_id}.{method_id}'
+  Greeting-X:
+    version: 1.1.1
+    method_path_template: '{namespace}-x.{service_id}.{method_id}'
 """,
                     "b.yaml": """
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
   Say-Hello-V2:
-    service_id: Greeting
+    service_ids: [Greeting, Greeting-X]
     summary: Haha
     params:
       Foo:
         type: int32
   Say-Hello-V3:
-    service_id: Greeting
+    service_ids: [Greeting]
     description: Test
     result:
       Bar:
@@ -168,6 +171,29 @@ paths:
             application/json:
               schema:
                 $ref: schemas.yaml#/components/schemas/sayHelloV3Resp
+""",
+                    "greeting_x_api.yaml": """\
+openapi: 3.0.0
+info:
+  title: Greeting X API
+  version: 1.1.1
+paths:
+  /global-x.GreetingX.SayHelloV2:
+    post:
+      operationId: sayHelloV2
+      summary: Haha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas.yaml#/components/schemas/sayHelloV2Params
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
 """,
                     "schemas.yaml": """\
 openapi: 3.0.0
@@ -228,7 +254,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
     params:
       Color:
         type: Color?
@@ -371,7 +397,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
     error_cases:
       Fail:
         description: Failed
@@ -435,7 +461,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_id: Greeting
+    service_ids: [Greeting]
     params:
       F:
         type: Foo?

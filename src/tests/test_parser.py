@@ -228,36 +228,49 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/methods/AAA/service_id'",
+                out_exception_str=r"invalid specification: missing node: node_uri='foo\.yaml#/methods/AAA/service_ids'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: 1
+    service_ids: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_id' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_ids' node_type=int expected_node_type=list",
             ),
             common.TestData(
                 in_file_path_2_file_data={
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: foo
+    service_ids: [1]
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/service_id' id='foo'",
+                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_ids\[0\]' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids:
+    - Abc
+    - foo
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/methods/AAA/service_ids\[1\]' id='foo'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+methods:
+  AAA:
+    service_ids: [Foo]
     summary: 1
 """
                 },
@@ -269,7 +282,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     description: 1
 """
                 },
@@ -281,7 +294,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     params: 1
 """
                 },
@@ -293,7 +306,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     params: {}
 """
                 },
@@ -305,7 +318,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     result: 1
 """
                 },
@@ -317,7 +330,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     result: {}
 """
                 },
@@ -329,7 +342,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     error_cases: 1
 """
                 },
@@ -341,7 +354,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     error_cases: {}
 """
                 },
@@ -356,7 +369,7 @@ services:
     version: 1.0.1
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     xyz: 1
 """
                 },
@@ -372,7 +385,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     params:
       aaa: {}
 """
@@ -390,7 +403,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     result:
       aaa: {}
 """
@@ -408,7 +421,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     error_cases:
       eee: {}
 """
@@ -421,7 +434,7 @@ methods:
                     "foo.yaml": """
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     error_cases:
       EEE:
         description: 1
@@ -438,7 +451,7 @@ services:
     version: 1.1.1
 methods:
   AAA:
-    service_id: Foo
+    service_ids: [Foo]
     error_cases:
       EEE:
         xyz: 1

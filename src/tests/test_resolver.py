@@ -28,12 +28,12 @@ services:
                     "foo.yaml": """
 methods:
   Hello:
-    service_id: World
+    service_ids: [World]
 """,
                     "foo2.yaml": """
 methods:
   Hello:
-    service_id: World
+    service_ids: [World]
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -80,7 +80,7 @@ services:
     version: 1.1.1
 methods:
   Hello:
-    service_id: World
+    service_ids: [World]
 models:
   Test:
     type: struct
@@ -95,7 +95,7 @@ services:
     version: 1.1.1
 methods:
   Hello:
-    service_id: World
+    service_ids: [World]
 models:
   Test:
     type: struct
@@ -154,7 +154,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       Foo: {}
       New.Bar: {}
@@ -182,11 +182,11 @@ errors:
                     "foo.yaml": """
 methods:
   World:
-    service_id: Hello1
+    service_ids: [Hello1]
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: service not found; node_uri='foo\.yaml#/methods/World/service_id' service_id='Hello1'",
+                out_exception_str=r"invalid spec: service not found; node_uri='foo\.yaml#/methods/World/service_ids\[0\]' service_id='Hello1'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -196,9 +196,23 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
 """
                 },
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+services:
+  Hello:
+    version: 1.1.1
+methods:
+  World:
+    service_ids: [Hello, Hello1]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid spec: service not found; node_uri='foo\.yaml#/methods/World/service_ids\[1\]' service_id='Hello1'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -211,11 +225,11 @@ services:
                     "bar.yaml": """
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
 """,
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: service not found; node_uri='bar\.yaml#/methods/World/service_id' service_id='Hello'",
+                out_exception_str=r"invalid spec: service not found; node_uri='bar\.yaml#/methods/World/service_ids\[0\]' service_id='Hello'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -223,11 +237,13 @@ methods:
 services:
   Hello:
     version: 1.1.1
+  World:
+    version: 1.1.2
 """,
                     "bar.yaml": """
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello, World]
 """,
                 },
             ),
@@ -244,7 +260,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       New.Something-Wrong: {}
 """
@@ -260,7 +276,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       Something-Wrong: {}
 errors:
@@ -278,7 +294,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       Something-Wrong: {}
 """,
@@ -299,7 +315,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       Something-Wrong: {}
 """,
@@ -321,7 +337,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       Something-Wrong: {}
 """,
@@ -341,7 +357,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       global.Something-Wrong: {}
 """,
@@ -360,7 +376,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     error_cases:
       New.Something-Wrong: {}
 """,
@@ -385,7 +401,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     params:
       Bar:
         type: Bar
@@ -402,7 +418,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     params:
       Bar:
         type: Bar
@@ -421,7 +437,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     result:
       Bar:
         type: Bar
@@ -445,7 +461,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     params:
       Bar:
         type: Bar
@@ -466,7 +482,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     params:
       Bar:
         type: global.Bar
@@ -486,7 +502,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_id: Hello
+    service_ids: [Hello]
     params:
       Bar:
         type: New.Bar

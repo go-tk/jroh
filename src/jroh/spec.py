@@ -77,7 +77,7 @@ class Method:
         self.node_uri: str = node_uri
         self.id: str = id
 
-        self.service_id: str = ""
+        self.service_ids: list[str] = []
         self.summary: Optional[str] = None
         self.description: Optional[str] = None
         self.params: Optional[Params] = None
