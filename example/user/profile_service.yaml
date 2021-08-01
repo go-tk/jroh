@@ -1,0 +1,142 @@
+namespace: User
+
+services:
+  Profile:
+    version: 0.0.1
+    description: Manages profiles.
+    method_path_template: /rpc/{service_id}.{method_id}
+
+methods:
+  Create-Profile:
+    service_ids:
+    - Profile
+    summary: Creates a profile
+    description: Stores a new profile.
+    params:
+      Profile:
+        type: Profile
+        description: Details of the profile.
+    result:
+      Profile-ID:
+        type: int64
+        description: The identifier of the profile created.
+        example: 1000
+    error_cases:
+      global.Parse-Error: {}
+      global.Invalid-Params: {}
+      global.Internal-Error: {}
+
+  Get-Profile:
+    service_ids:
+    - Profile
+    summary: Gets a profile
+    description: Retrieves an existing profile.
+    params:
+      Profile-ID:
+        type: int64
+        description: The identifier of the profile to retrieve.
+        example: 1000
+    result:
+      Profile:
+        type: Profile
+        description: Details of the profile.
+    error_cases:
+      global.Parse-Error: {}
+      global.Internal-Error: {}
+      Profile-Not-Found: {}
+
+  Update-Profile:
+    service_ids:
+    - Profile
+    summary: Updates a profile
+    description: Modifies an existing profile.
+    params:
+      Profile-Patch:
+        type: Profile-Patch
+        description: The patch to apply to the profile.
+    error_cases:
+      global.Parse-Error: {}
+      global.Invalid-Params: {}
+      global.Internal-Error: {}
+      Profile-Not-Found: {}
+
+  Delete-Profile:
+    service_ids:
+    - Profile
+    summary: Deletes a profile
+    description: Purges an existing profile.
+    params:
+      Profile-ID:
+        type: int64
+        description: The identifier of the profile to purge.
+        example: 1000
+    error_cases:
+      global.Parse-Error: {}
+      global.Internal-Error: {}
+      Profile-Not-Found: {}
+
+models:
+  Profile:
+    type: struct
+    fields:
+      ID:
+        type: int64
+        description: The identifier of the profile. It's ignored while creating a profile.
+        example: 1000
+      Nickname:
+        type: string
+        description: The nickname. Should not be empty string.
+        example: Lee
+      Gender-Type:
+        type: Gender-Type
+        description: The type of gender.
+      Weight:
+        type: float64?
+        description: The weight in kilograms.
+        example: 177.1
+      Height:
+        type: int32?
+        description: The height in centimeters.
+        example: 73
+
+  Gender-Type:
+    type: enum
+    underlying_type: int32
+    constants:
+      Gender-Female:
+        value: 1
+        description: The gender is female.
+      Gender-Male:
+        value: 2
+        description: The gender is male.
+      Gender-Other:
+        value: 3
+        description: Other genders.
+
+  Profile-Patch:
+    type: struct
+    fields:
+      ID:
+        type: int64
+        description: The identifier of the profile to update.
+        example: 1000
+      Nickname:
+        type: string?
+        description: The new nickname. Should not be empty string.
+        example: Lyn
+      Gender-Type:
+        type: Gender-Type?
+        description: The new type of gender.
+      Weight:
+        type: float64?
+        description: The new weight in kilograms.
+        example: 70.8
+      Height:
+        type: int32?
+        description: The new height in centimeters.
+        example: 175
+
+errors:
+  Profile-Not-Found:
+    code: 1
+    description: The profile operated does not exist.

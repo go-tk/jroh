@@ -1,0 +1,10 @@
+errors:
+  Parse-Error:
+    code: -32700
+    description: Invalid JSON was received by the server.
+  Invalid-Params:
+    code: -32602
+    description: Invalid method parameter(s).
+  Internal-Error:
+    code: -32603
+    description: Internal JSON-RPC error.
