@@ -22,7 +22,9 @@ def test(test_case: TestCase, test_data_list: list[TestData]) -> None:
             if test_data.out_exception_type is None:
                 result1 = parser.parse_files(test_data.in_file_path_2_file_data)
                 result2 = resolver.resolve_specs(result1.specs)
-                result3 = translator.translate_specs(result2.merged_specs)
+                result3 = translator.translate_specs(
+                    result2.merged_specs, test_mode=True
+                )
                 if (ignored_node_uris := test_data.out_ignored_node_uris) is not None:
                     test_case.assertSetEqual(
                         set(result1.ignored_node_uris), ignored_node_uris
@@ -43,5 +45,7 @@ def test(test_case: TestCase, test_data_list: list[TestData]) -> None:
                 ):
                     result1 = parser.parse_files(test_data.in_file_path_2_file_data)
                     result2 = resolver.resolve_specs(result1.specs)
-                    result3 = translator.translate_specs(result2.merged_specs)
+                    result3 = translator.translate_specs(
+                        result2.merged_specs, test_mode=True
+                    )
                     _ = result3
