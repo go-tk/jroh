@@ -39,7 +39,7 @@ methods:
 """,
                 },
                 out_file_path_2_file_data={
-                    "greeting.service.yaml": """\
+                    "greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -56,7 +56,7 @@ paths:
               schema:
                 $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
 """,
-                    "greeting_v2.service.yaml": """\
+                    "greeting_v2_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting V2 API
@@ -73,7 +73,7 @@ paths:
               schema:
                 $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
 """,
-                    "xyz/greeting.service.yaml": """\
+                    "xyz/greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -125,7 +125,7 @@ methods:
 """,
                 },
                 out_file_path_2_file_data={
-                    "greeting.service.yaml": """\
+                    "greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -149,7 +149,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sayHelloV2Params'
+              $ref: schemas.yaml#/components/schemas/sayHelloV2Params
       responses:
         '200':
           description: ''
@@ -167,7 +167,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/sayHelloV3Resp'
+                $ref: schemas.yaml#/components/schemas/sayHelloV3Resp
+""",
+                    "schemas.yaml": """\
+openapi: 3.0.0
+info:
+  title: Schemas
+  version: ''
+paths: {}
 components:
   schemas:
     sayHelloV2Params:
@@ -259,7 +266,7 @@ models:
 """,
                 },
                 out_file_path_2_file_data={
-                    "greeting.service.yaml": """\
+                    "greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -272,7 +279,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sayHelloParams'
+              $ref: schemas.yaml#/components/schemas/sayHelloParams
       responses:
         '200':
           description: ''
@@ -280,6 +287,13 @@ paths:
             application/json:
               schema:
                 $ref: builtins.yaml#/components/schemas/rpcRespWithoutResult
+""",
+                    "schemas.yaml": """\
+openapi: 3.0.0
+info:
+  title: Schemas
+  version: ''
+paths: {}
 components:
   schemas:
     sayHelloParams:
@@ -287,7 +301,7 @@ components:
       properties:
         color:
           allOf:
-          - $ref: models.yaml#/components/schemas/color
+          - $ref: '#/components/schemas/color'
           - description: |-
               Constants:
 
@@ -295,7 +309,7 @@ components:
               - BLACK(22): Black
         color2:
           allOf:
-          - $ref: models.yaml#/components/schemas/color
+          - $ref: '#/components/schemas/color'
           - description: |-
               None
 
@@ -307,7 +321,7 @@ components:
           type: array
           items:
             allOf:
-            - $ref: models.yaml#/components/schemas/fruit
+            - $ref: '#/components/schemas/fruit'
             - description: |-
                 An fruit
 
@@ -318,7 +332,7 @@ components:
         fruits2:
           type: array
           items:
-            $ref: models.yaml#/components/schemas/fruit
+            $ref: '#/components/schemas/fruit'
           description: |-
             Test
 
@@ -329,15 +343,6 @@ components:
       required:
       - color2
       - fruits2
-""",
-                    "models.yaml": """\
-openapi: 3.0.0
-info:
-  title: Models
-  version: ''
-paths: {}
-components:
-  schemas:
     color:
       type: integer
       format: int32
@@ -389,7 +394,7 @@ errors:
 """,
                 },
                 out_file_path_2_file_data={
-                    "greeting.service.yaml": """\
+                    "greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -490,7 +495,7 @@ models:
 """,
                 },
                 out_file_path_2_file_data={
-                    "ns1/greeting.service.yaml": """\
+                    "ns1/greeting_api.yaml": """\
 openapi: 3.0.0
 info:
   title: Greeting API
@@ -503,7 +508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sayHelloParams'
+              $ref: schemas.yaml#/components/schemas/sayHelloParams
       responses:
         '200':
           description: ''
@@ -511,34 +516,32 @@ paths:
             application/json:
               schema:
                 $ref: ../builtins.yaml#/components/schemas/rpcRespWithoutResult
+""",
+                    "ns1/schemas.yaml": """\
+openapi: 3.0.0
+info:
+  title: Schemas
+  version: ''
+paths: {}
 components:
   schemas:
     sayHelloParams:
       type: object
       properties:
         f:
-          $ref: models.yaml#/components/schemas/foo
+          $ref: '#/components/schemas/foo'
         ff2:
           type: array
           items:
-            $ref: ../models.yaml#/components/schemas/s
+            $ref: ../schemas.yaml#/components/schemas/s
           description: aaa
         fun:
           allOf:
-          - $ref: ../no_where/models.yaml#/components/schemas/fun
+          - $ref: ../no_where/schemas.yaml#/components/schemas/fun
           - description: Have fun
       required:
       - ff2
       - fun
-""",
-                    "ns1/models.yaml": """\
-openapi: 3.0.0
-info:
-  title: Models
-  version: ''
-paths: {}
-components:
-  schemas:
     foo:
       type: object
       properties:
@@ -550,13 +553,13 @@ components:
           description: ABC
         y:
           allOf:
-          - $ref: ../models.yaml#/components/schemas/s
+          - $ref: ../schemas.yaml#/components/schemas/s
           - description: CDE
 """,
-                    "no_where/models.yaml": """\
+                    "no_where/schemas.yaml": """\
 openapi: 3.0.0
 info:
-  title: Models
+  title: Schemas
   version: ''
 paths: {}
 components:
@@ -571,10 +574,10 @@ components:
     aa:
       type: object
 """,
-                    "models.yaml": """\
+                    "schemas.yaml": """\
 openapi: 3.0.0
 info:
-  title: Models
+  title: Schemas
   version: ''
 paths: {}
 components:

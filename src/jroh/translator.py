@@ -54,7 +54,6 @@ class _Translator:
     def __init__(self) -> None:
         self._namespace: str = ""
         self._builtins_file_path: str = ""
-        self._file_name: str = ""
         self._schemas: dict[str, dict] = {}
         self._file_path_2_file_data: dict[str, str] = {}
 
@@ -66,18 +65,18 @@ class _Translator:
             else:
                 self._builtins_file_path = "../" + _BUILTINS_YAML
             open_apis: dict[str, dict] = {}
+            schemas = {}
+            self._schemas = schemas
             for service in spec.services:
-                self._file_name = _SERVICE_YAML_TEMPLATE.format(
-                    utils.snake_case(service.id)
-                )
                 open_api = {}
-                open_apis[self._file_name] = open_api
+                file_name = _API_YAML_TEMPLATE.format(utils.snake_case(service.id))
+                open_apis[file_name] = open_api
                 self._translate_service(service, open_api)
-            if len(spec.models) >= 1:
-                self._file_name = _MODELS_YAML
+            self._translate_models(spec.models, schemas)
+            if len(schemas) >= 1:
                 open_api = {}
-                open_apis[self._file_name] = open_api
-                self._translate_models(spec.models, open_api)
+                open_apis[_SCHEMAS_YAML] = open_api
+                self._save_schemas(schemas, open_api)
             for file_name, open_api in open_apis.items():
                 if spec.namespace == GLOBAL:
                     file_path = file_name
@@ -96,8 +95,6 @@ class _Translator:
         }
         paths = {}
         open_api["paths"] = paths
-        schemas = {}
-        self._schemas = schemas
         for method in service.methods:
             path = "/" + service.method_path_template.lstrip("/").format(
                 namespace=utils.pascal_case(self._namespace),
@@ -109,8 +106,6 @@ class _Translator:
                 "post": operation,
             }
             self._translate_method(method, operation)
-        if len(schemas) >= 1:
-            open_api["components"] = {"schemas": schemas}
 
     def _translate_method(self, method: Method, operation: dict) -> None:
         operation["operationId"] = utils.camel_case(method.id)
@@ -138,7 +133,9 @@ class _Translator:
 
     def _translate_params(self, params: Params, method_id: str, schema: dict) -> None:
         schema_id = utils.camel_case(method_id) + "Params"
-        schema["$ref"] = "#/components/schemas/" + schema_id
+        schema["$ref"] = _SCHEMAS_YAML + "#/components/schemas/" + schema_id
+        if schema_id in self._schemas:
+            return
         schema2 = {}
         self._schemas[schema_id] = schema2
         self._translate_fields(params.fields, schema2)
@@ -173,7 +170,9 @@ class _Translator:
             )
             return
         schema_id = utils.camel_case(method_id) + "Resp"
-        schema["$ref"] = "#/components/schemas/" + schema_id
+        schema["$ref"] = _SCHEMAS_YAML + "#/components/schemas/" + schema_id
+        if schema_id in self._schemas:
+            return
         properties = {
             "id": {
                 "type": "integer",
@@ -205,17 +204,7 @@ class _Translator:
         self._schemas[schema_id] = schema2
         self._translate_fields(result.fields, schema2)
 
-    def _translate_models(self, models: list[Model], open_api: dict) -> None:
-        open_api["openapi"] = "3.0.0"
-        open_api["info"] = {
-            "title": "Models",
-            "version": "",
-        }
-        open_api["paths"] = {}
-        schemas = {}
-        open_api["components"] = {
-            "schemas": schemas,
-        }
+    def _translate_models(self, models: list[Model], schemas: dict[str, dict]) -> None:
         for model in models:
             schema_id = utils.camel_case(model.id)
             schema = {}
@@ -272,19 +261,16 @@ class _Translator:
             if namespace is None:
                 namespace = self._namespace
             if namespace == self._namespace:
-                if self._file_name == _MODELS_YAML:
-                    models_file_path = ""
-                else:
-                    models_file_path = _MODELS_YAML
+                schemas_file_path = ""
             else:
                 if namespace == GLOBAL:
-                    models_file_path = "../" + _MODELS_YAML
+                    schemas_file_path = "../" + _SCHEMAS_YAML
                 else:
-                    models_file_path = (
-                        "../" + utils.snake_case(namespace) + "/" + _MODELS_YAML
+                    schemas_file_path = (
+                        "../" + utils.snake_case(namespace) + "/" + _SCHEMAS_YAML
                     )
             property2["$ref"] = (
-                models_file_path
+                schemas_file_path
                 + "#/components/schemas/"
                 + utils.camel_case(model_ref.id)
             )
@@ -329,6 +315,15 @@ class _Translator:
         if len(values) >= 1:
             schema["enum"] = values
 
+    def _save_schemas(self, schemas: dict[str, dict], open_api: dict) -> None:
+        open_api["openapi"] = "3.0.0"
+        open_api["info"] = {
+            "title": "Schemas",
+            "version": "",
+        }
+        open_api["paths"] = {}
+        open_api["components"] = {"schemas": schemas}
+
     def _fix_dollar_refs(self, open_api: dict) -> None:
         def walk_mapping(m: dict):
             for k, v in m.items():
@@ -352,8 +347,8 @@ class _Translator:
         return self._file_path_2_file_data
 
 
-_SERVICE_YAML_TEMPLATE = "{}.service.yaml"
-_MODELS_YAML = "models.yaml"
+_API_YAML_TEMPLATE = "{}_api.yaml"
+_SCHEMAS_YAML = "schemas.yaml"
 _BUILTINS_YAML = "builtins.yaml"
 
 
