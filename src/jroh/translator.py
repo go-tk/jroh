@@ -56,7 +56,7 @@ class _Translator:
     def __init__(self, test_mode: bool) -> None:
         self._test_mode = test_mode
         self._namespace: str = ""
-        self._builtins_file_path: str = ""
+        self._common_file_path: str = ""
         self._schemas: dict[str, dict] = {}
         self._file_path_2_file_data: dict[str, str] = {}
 
@@ -64,9 +64,9 @@ class _Translator:
         for spec in specs:
             self._namespace = spec.namespace
             if spec.namespace == GLOBAL:
-                self._builtins_file_path = _BUILTINS_YAML
+                self._common_file_path = _COMMON_YAML
             else:
-                self._builtins_file_path = "../" + _BUILTINS_YAML
+                self._common_file_path = "../" + _COMMON_YAML
             open_apis: dict[str, dict] = {}
             schemas = {}
             self._schemas = schemas
@@ -90,8 +90,8 @@ class _Translator:
                     open_api, sort_keys=False
                 )
         if not self._test_mode:
-            self._file_path_2_file_data[_BUILTINS_YAML] = yaml.dump(
-                _BUILTINS_OPEN_API, sort_keys=False
+            self._file_path_2_file_data[_COMMON_YAML] = yaml.dump(
+                _COMMON_OPEN_API, sort_keys=False
             )
 
     def _translate_service(self, service: Service, open_api: dict) -> None:
@@ -176,7 +176,7 @@ class _Translator:
     ) -> None:
         if results is None:
             schema["$ref"] = (
-                self._builtins_file_path + "#/components/schemas/rpcRespWithoutResults"
+                self._common_file_path + "#/components/schemas/rpcRespWithoutResults"
             )
             return
         schema_id = utils.camel_case(method_id) + "Resp"
@@ -191,7 +191,7 @@ class _Translator:
                 "example": 12345,
             },
             "error": {
-                "$ref": self._builtins_file_path + "#/components/schemas/rpcError",
+                "$ref": self._common_file_path + "#/components/schemas/rpcError",
                 "description": "The RPC error encountered. This field is mutually exclusive of the `results` field.",
             },
         }
@@ -362,8 +362,8 @@ class _Translator:
 
 _API_YAML_TEMPLATE = "{}_api.yaml"
 _SCHEMAS_YAML = "schemas.yaml"
-_BUILTINS_YAML = "builtins.yaml"
-_BUILTINS_OPEN_API = {
+_COMMON_YAML = "common.yaml"
+_COMMON_OPEN_API = {
     "openapi": "3.0.0",
     "info": {
         "title": "Builtins",
