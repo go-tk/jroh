@@ -114,12 +114,12 @@ class _Parser:
             )
             service.description = description
         if (
-            method_path_template := raw_service.pop("method_path_template", None)
+            rpc_path_template := raw_service.pop("rpc_path_template", None)
         ) is not None:
-            method_path_template = _ensure_node_type(
-                method_path_template, str, service.node_uri + "/method_path_template"
+            rpc_path_template = _ensure_node_type(
+                rpc_path_template, str, service.node_uri + "/rpc_path_template"
             )
-            service.method_path_template = method_path_template
+            service.rpc_path_template = rpc_path_template
         for key in raw_service.keys():
             self._ignored_node_uris.append(service.node_uri + "/" + key)
 

@@ -4,7 +4,7 @@ services:
   Profile:
     version: 0.0.1
     description: Manages profiles.
-    method_path_template: /rpc/{service_id}.{method_id}
+    rpc_path_template: /rpc/{service_id}.{method_id}
 
 methods:
   Create-Profile:
@@ -21,10 +21,6 @@ methods:
         type: int64
         description: The identifier of the profile created.
         example: 1000
-    error_cases:
-      global.Parse-Error: {}
-      global.Invalid-Params: {}
-      global.Internal-Error: {}
 
   Get-Profile:
     service_ids:
@@ -41,8 +37,6 @@ methods:
         type: Profile
         description: Details of the profile.
     error_cases:
-      global.Parse-Error: {}
-      global.Internal-Error: {}
       Profile-Not-Found: {}
 
   Update-Profile:
@@ -55,9 +49,6 @@ methods:
         type: Profile-Patch
         description: The patch to apply to the profile.
     error_cases:
-      global.Parse-Error: {}
-      global.Invalid-Params: {}
-      global.Internal-Error: {}
       Profile-Not-Found: {}
 
   Delete-Profile:
@@ -71,8 +62,6 @@ methods:
         description: The identifier of the profile to purge.
         example: 1000
     error_cases:
-      global.Parse-Error: {}
-      global.Internal-Error: {}
       Profile-Not-Found: {}
 
 models:

@@ -327,7 +327,7 @@ errors:
 """,
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong' namespace='global' error_id='Something-Wrong'",
+                out_exception_str=r"invalid spec: error not found; node_uri='foo\.yaml#/methods/World/error_cases/Something-Wrong' namespace='Default' error_id='Something-Wrong'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -359,7 +359,7 @@ methods:
   World:
     service_ids: [Hello]
     error_cases:
-      global.Something-Wrong: {}
+      Default.Something-Wrong: {}
 """,
                     "bar.yaml": """
 errors:
@@ -408,7 +408,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/params/Bar/type' namespace='global' model_id='Bar'",
+                out_exception_str=r"invalid spec: model not found; node_uri='foo\.yaml#/methods/World/params/Bar/type' namespace='Default' model_id='Bar'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -485,7 +485,7 @@ methods:
     service_ids: [Hello]
     params:
       Bar:
-        type: global.Bar
+        type: Default.Bar
 """,
                     "bar.yaml": """
 models:

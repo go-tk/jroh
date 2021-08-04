@@ -5,22 +5,24 @@ import yaml
 
 from . import utils
 from .spec import (
+    DEFAULT,
     FIELD_BOOL,
     FIELD_FLOAT32,
     FIELD_FLOAT64,
     FIELD_INT32,
     FIELD_INT64,
     FIELD_STRING,
-    GLOBAL,
     MODEL_ENUM,
     MODEL_STRUCT,
     Constant,
     Enum,
+    Error,
     ErrorCase,
     Field,
     Method,
     Model,
     Params,
+    Ref,
     Results,
     Service,
     Spec,
@@ -63,7 +65,7 @@ class _Translator:
     def translate_specs(self, specs: list[Spec]) -> None:
         for spec in specs:
             self._namespace = spec.namespace
-            if spec.namespace == GLOBAL:
+            if spec.namespace == DEFAULT:
                 self._common_file_path = _COMMON_YAML
             else:
                 self._common_file_path = "../" + _COMMON_YAML
@@ -72,19 +74,16 @@ class _Translator:
             self._schemas = schemas
             for service in spec.services:
                 open_api = {}
-                file_name = _API_YAML_TEMPLATE.format(utils.snake_case(service.id))
+                file_name = _SERVICE_YAML_TEMPLATE.format(utils.snake_case(service.id))
                 open_apis[file_name] = open_api
                 self._translate_service(service, open_api)
             self._translate_models(spec.models, schemas)
             if len(schemas) >= 1:
                 open_api = {}
-                open_apis[_SCHEMAS_YAML] = open_api
+                open_apis[_MODELS_YAML] = open_api
                 self._save_schemas(schemas, open_api)
             for file_name, open_api in open_apis.items():
-                if spec.namespace == GLOBAL:
-                    file_path = file_name
-                else:
-                    file_path = utils.snake_case(spec.namespace) + "/" + file_name
+                file_path = utils.snake_case(spec.namespace) + "/" + file_name
                 self._fix_dollar_refs(open_api)
                 self._file_path_2_file_data[file_path] = yaml.dump(
                     open_api, sort_keys=False
@@ -97,7 +96,7 @@ class _Translator:
     def _translate_service(self, service: Service, open_api: dict) -> None:
         open_api["openapi"] = "3.0.0"
         info = {
-            "title": utils.title_case(service.id) + " API",
+            "title": utils.title_case(service.id) + " Service",
             "version": service.version,
         }
         open_api["info"] = info
@@ -106,7 +105,7 @@ class _Translator:
         paths = {}
         open_api["paths"] = paths
         for method in service.methods:
-            path = "/" + service.method_path_template.lstrip("/").format(
+            path = "/" + service.rpc_path_template.lstrip("/").format(
                 namespace=utils.pascal_case(self._namespace),
                 service_id=utils.pascal_case(service.id),
                 method_id=utils.pascal_case(method.id),
@@ -125,8 +124,14 @@ class _Translator:
             operation["description"] = method.description
         if method.params is not None:
             operation["requestBody"] = self._emit_request_body(method.params, method.id)
+        error_cases = [_INTERNAL_ERROR_CASE]
+        if method.params is not None:
+            error_cases.append(_PARSE_ERROR_CASE)
+            error_cases.append(_INVALID_PARAMS_ERROR_CASE)
+        error_cases.extend(method.error_cases)
+        error_cases.sort(key=lambda x: x.error.code)
         operation["responses"] = self._emit_responses(
-            method.error_cases, method.results, method.id
+            error_cases, method.results, method.id
         )
 
     def _emit_request_body(self, params: Params, method_id: str) -> dict:
@@ -143,7 +148,7 @@ class _Translator:
 
     def _translate_params(self, params: Params, method_id: str, schema: dict) -> None:
         schema_id = utils.camel_case(method_id) + "Params"
-        schema["$ref"] = _SCHEMAS_YAML + "#/components/schemas/" + schema_id
+        schema["$ref"] = _MODELS_YAML + "#/components/schemas/" + schema_id
         if schema_id in self._schemas:
             return
         schema2 = {}
@@ -153,10 +158,8 @@ class _Translator:
     def _emit_responses(
         self, error_cases: list[ErrorCase], results: Optional[Results], method_id: str
     ) -> dict:
-        description_parts = []
-        if len(error_cases) >= 1:
-            markdown = _translate_error_cases(error_cases)
-            description_parts.append("## Error Cases\n\n" + markdown)
+        markdown = _translate_error_cases(error_cases)
+        description_parts = ["## Error Cases\n\n" + markdown]
         schema = {}
         responses = {
             "200": {
@@ -175,19 +178,18 @@ class _Translator:
         self, results: Optional[Results], method_id: str, schema: dict
     ) -> None:
         schema_id = utils.camel_case(method_id) + "Resp"
-        schema["$ref"] = _SCHEMAS_YAML + "#/components/schemas/" + schema_id
+        schema["$ref"] = _MODELS_YAML + "#/components/schemas/" + schema_id
         if schema_id in self._schemas:
             return
         properties = {
             "id": {
-                "type": "integer",
-                "format": "int64",
-                "description": "The RPC identifier generated by the server.",
-                "example": 12345,
+                "type": "string",
+                "description": "A String generated by the server to identify the RPC.",
+                "example": "9m4e2mr0ui3e8a215n4g",
             },
             "error": {
-                "$ref": self._common_file_path + "#/components/schemas/rpcError",
-                "description": "The RPC error encountered."
+                "$ref": self._common_file_path + "#/components/schemas/error",
+                "description": "The error encountered."
                 + (
                     ""
                     if results is None
@@ -213,7 +215,7 @@ class _Translator:
         schema["$ref"] = "#/components/schemas/" + schema_id
         schema[
             "description"
-        ] = "The RPC results returned. This field is mutually exclusive of the `error` field."
+        ] = "The results returned. This field is mutually exclusive of the `error` field."
         schema2 = {}
         self._schemas[schema_id] = schema2
         self._translate_fields(results.fields, schema2)
@@ -277,12 +279,9 @@ class _Translator:
             if namespace == self._namespace:
                 schemas_file_path = ""
             else:
-                if namespace == GLOBAL:
-                    schemas_file_path = "../" + _SCHEMAS_YAML
-                else:
-                    schemas_file_path = (
-                        "../" + utils.snake_case(namespace) + "/" + _SCHEMAS_YAML
-                    )
+                schemas_file_path = (
+                    "../" + utils.snake_case(namespace) + "/" + _MODELS_YAML
+                )
             property2["$ref"] = (
                 schemas_file_path
                 + "#/components/schemas/"
@@ -332,7 +331,7 @@ class _Translator:
     def _save_schemas(self, schemas: dict[str, dict], open_api: dict) -> None:
         open_api["openapi"] = "3.0.0"
         open_api["info"] = {
-            "title": "Schemas",
+            "title": "Models",
             "version": "",
         }
         open_api["paths"] = {}
@@ -361,19 +360,19 @@ class _Translator:
         return self._file_path_2_file_data
 
 
-_API_YAML_TEMPLATE = "{}_api.yaml"
-_SCHEMAS_YAML = "schemas.yaml"
+_SERVICE_YAML_TEMPLATE = "{}_service.yaml"
+_MODELS_YAML = "models.yaml"
 _COMMON_YAML = "common.yaml"
 _COMMON_OPEN_API = {
     "openapi": "3.0.0",
     "info": {
-        "title": "Builtins",
+        "title": "Common",
         "version": "",
     },
     "paths": {},
     "components": {
         "schemas": {
-            "rpcError": {
+            "error": {
                 "type": "object",
                 "properties": {
                     "code": {
@@ -398,6 +397,21 @@ _COMMON_OPEN_API = {
         },
     },
 }
+
+_PARSE_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
+_PARSE_ERROR_CASE.error = Error("", "Parse-Error")
+_PARSE_ERROR_CASE.error.code = -32700
+_PARSE_ERROR_CASE.error.description = "Invalid JSON was received by the server."
+
+_INVALID_PARAMS_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
+_INVALID_PARAMS_ERROR_CASE.error = Error("", "Invalid-Params")
+_INVALID_PARAMS_ERROR_CASE.error.code = -32602
+_INVALID_PARAMS_ERROR_CASE.error.description = "Invalid method parameter(s)."
+
+_INTERNAL_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
+_INTERNAL_ERROR_CASE.error = Error("", "Internal-Error")
+_INTERNAL_ERROR_CASE.error.code = -32603
+_INTERNAL_ERROR_CASE.error.description = "Internal JSON-RPC error."
 
 
 def _translate_error_cases(error_cases: list[ErrorCase]) -> str:

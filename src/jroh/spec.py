@@ -7,8 +7,8 @@ ID_PATTERN = re.compile(
     r"{}(-{})*".format(_WORD_PATTERN.pattern, _WORD_PATTERN.pattern)
 )
 
-GLOBAL = "global"
-NAMESPACE_PATTERN = re.compile(GLOBAL + r"|" + ID_PATTERN.pattern)
+DEFAULT = "Default"
+NAMESPACE_PATTERN = re.compile(DEFAULT + r"|" + ID_PATTERN.pattern)
 
 REF_PATTERN = re.compile(
     r"({}\.)?{}".format(f"({NAMESPACE_PATTERN.pattern})", f"({ID_PATTERN.pattern})")
@@ -50,7 +50,7 @@ class Spec:
         # parse
         self.node_uri: str = node_uri
 
-        self.namespace: str = GLOBAL
+        self.namespace: str = DEFAULT
         self.services: list[Service] = []
         self.methods: list[Method] = []
         self.models: list[Model] = []
@@ -65,7 +65,7 @@ class Service:
 
         self.version: str = ""
         self.description: Optional[str] = None
-        self.method_path_template: str = "/rpc/{service_id}.{method_id}"
+        self.rpc_path_template: str = "/rpc/{service_id}.{method_id}"
 
         # resolution
         self.methods: list[Method] = []
@@ -190,8 +190,8 @@ class Error:
         self.node_uri: str = node_uri
         self.id: str = id
 
-        self.description: Optional[str] = None
         self.code: int = 0
+        self.description: Optional[str] = None
 
         # resolution
         self.ref_count: int = 0

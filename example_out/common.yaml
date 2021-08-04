@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  title: Builtins
+  title: Common
   version: ''
 paths: {}
 components:
   schemas:
-    rpcError:
+    error:
       type: object
       properties:
         code:

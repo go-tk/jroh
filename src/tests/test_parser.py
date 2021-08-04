@@ -178,11 +178,11 @@ services:
 services:
   AAA:
     version: 1.0.0
-    method_path_template: 1
+    rpc_path_template: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/method_path_template' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/rpc_path_template' node_type=int expected_node_type=str",
             ),
             common.TestData(
                 in_file_path_2_file_data={

@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Profile API
+  title: Profile Service
   version: 0.0.1
   description: Manages profiles.
 paths:
@@ -13,7 +13,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: schemas.yaml#/components/schemas/createProfileParams
+              $ref: models.yaml#/components/schemas/createProfileParams
       responses:
         '200':
           description: |-
@@ -22,12 +22,12 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32602 | invalid params | Invalid method parameter(s). |
             | -32603 | internal error | Internal JSON-RPC error. |
+            | -32602 | invalid params | Invalid method parameter(s). |
           content:
             application/json:
               schema:
-                $ref: schemas.yaml#/components/schemas/createProfileResp
+                $ref: models.yaml#/components/schemas/createProfileResp
   /rpc/Profile.GetProfile:
     post:
       operationId: getProfile
@@ -37,7 +37,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: schemas.yaml#/components/schemas/getProfileParams
+              $ref: models.yaml#/components/schemas/getProfileParams
       responses:
         '200':
           description: |-
@@ -47,11 +47,12 @@ paths:
             | - | - | - |
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
+            | -32602 | invalid params | Invalid method parameter(s). |
             | 1 | profile not found | The profile operated does not exist. |
           content:
             application/json:
               schema:
-                $ref: schemas.yaml#/components/schemas/getProfileResp
+                $ref: models.yaml#/components/schemas/getProfileResp
   /rpc/Profile.UpdateProfile:
     post:
       operationId: updateProfile
@@ -61,7 +62,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: schemas.yaml#/components/schemas/updateProfileParams
+              $ref: models.yaml#/components/schemas/updateProfileParams
       responses:
         '200':
           description: |-
@@ -70,13 +71,13 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32602 | invalid params | Invalid method parameter(s). |
             | -32603 | internal error | Internal JSON-RPC error. |
+            | -32602 | invalid params | Invalid method parameter(s). |
             | 1 | profile not found | The profile operated does not exist. |
           content:
             application/json:
               schema:
-                $ref: schemas.yaml#/components/schemas/updateProfileResp
+                $ref: models.yaml#/components/schemas/updateProfileResp
   /rpc/Profile.DeleteProfile:
     post:
       operationId: deleteProfile
@@ -86,7 +87,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: schemas.yaml#/components/schemas/deleteProfileParams
+              $ref: models.yaml#/components/schemas/deleteProfileParams
       responses:
         '200':
           description: |-
@@ -96,8 +97,9 @@ paths:
             | - | - | - |
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
+            | -32602 | invalid params | Invalid method parameter(s). |
             | 1 | profile not found | The profile operated does not exist. |
           content:
             application/json:
               schema:
-                $ref: schemas.yaml#/components/schemas/deleteProfileResp
+                $ref: models.yaml#/components/schemas/deleteProfileResp
