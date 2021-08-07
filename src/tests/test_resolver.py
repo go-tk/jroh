@@ -59,6 +59,30 @@ models:
             common.TestData(
                 in_file_path_2_file_data={
                     "foo.yaml": """
+models:
+  EEE:
+    type: enum
+    underlying_type: int32
+    constants:
+      Apple:
+        value: 100
+""",
+                    "foo2.yaml": """
+models:
+  TTT:
+    type: enum
+    underlying_type: string
+    constants:
+      Apple:
+        value: "apple"
+""",
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid spec: duplicate constant id; node_uri1='foo2\.yaml#/models/TTT/constants/Apple' node_uri2='foo\.yaml#/models/EEE/constants/Apple'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
 errors:
   Err:
     code: 1

@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 
 from .spec import (
+    MODEL_ENUM,
     MODEL_STRUCT,
+    Constant,
     Error,
     ErrorCase,
     Field,
@@ -34,6 +36,7 @@ class _Resolver:
         self._services: dict[tuple[str, str], Service] = {}
         self._methods: dict[tuple[str, str], Method] = {}
         self._models: dict[tuple[str, str], Model] = {}
+        self._constants: dict[tuple[str, str], Constant] = {}
         self._errors_by_id: dict[tuple[str, str], Error] = {}
         self._errors_by_code: dict[tuple[str, int], Error] = {}
         self._namespace: str = ""
@@ -69,6 +72,17 @@ class _Resolver:
                 )
             model.namespace = spec.namespace
             self._models[(spec.namespace, model.id)] = model
+        for model in spec.models:
+            if model.type != MODEL_ENUM:
+                continue
+            for constant in model.enum().constants:
+                if (
+                    constant2 := self._constants.get((spec.namespace, constant.id))
+                ) is not None:
+                    raise InvalidSpecError(
+                        f"duplicate constant id; node_uri1={constant.node_uri!r} node_uri2={constant2.node_uri!r}",
+                    )
+                self._constants[(spec.namespace, constant.id)] = constant
         for error in spec.errors:
             if (
                 error2 := self._errors_by_id.get((spec.namespace, error.id))
