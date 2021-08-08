@@ -68,6 +68,7 @@ class Service:
 
         # resolution
         self.methods: list[Method] = []
+        self.rpc_paths: list[str] = []
 
 
 class Method:

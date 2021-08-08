@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from . import utils
 from .spec import (
     MODEL_ENUM,
     MODEL_STRUCT,
@@ -116,6 +117,12 @@ class _Resolver:
                     f"service not found; node_uri={node_uri!r} service_id={service_id!r}",
                 )
             service.methods.append(method)
+            rpc_path = "/" + service.rpc_path_template.lstrip("/").format(
+                namespace=utils.pascal_case(self._namespace),
+                service_id=utils.pascal_case(service.id),
+                method_id=utils.pascal_case(method.id),
+            )
+            service.rpc_paths.append(rpc_path)
         if method.params is not None:
             self._resolve_params(method.params)
         if method.results is not None:

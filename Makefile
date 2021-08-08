@@ -17,3 +17,8 @@ format:
 test:
 	coverage run --omit=src/tests/*,.venv/* -m unittest discover --start-directory=src/tests --top-level-directory=.
 	coverage report
+
+
+.PHONY: example
+example:
+	python3 -m src.jroh.compiler example/**/*.yaml -out example_out --go_out example_go_out:example/api

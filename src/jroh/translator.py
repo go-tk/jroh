@@ -104,14 +104,10 @@ class _Translator:
             info["description"] = service.description
         paths = {}
         open_api["paths"] = paths
-        for method in service.methods:
-            path = "/" + service.rpc_path_template.lstrip("/").format(
-                namespace=utils.pascal_case(self._namespace),
-                service_id=utils.pascal_case(service.id),
-                method_id=utils.pascal_case(method.id),
-            )
+        for i, method in enumerate(service.methods):
+            rpc_path = service.rpc_paths[i]
             operation = {}
-            paths[path] = {
+            paths[rpc_path] = {
                 "post": operation,
             }
             self._translate_method(method, operation)
