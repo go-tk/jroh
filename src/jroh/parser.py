@@ -16,7 +16,6 @@ from .spec import (
     MODEL_ENUM,
     MODEL_STRUCT,
     MODEL_TYPE_PATTERN,
-    NAMESPACE_PATTERN,
     REF_PATTERN,
     Constant,
     Enum,
@@ -69,7 +68,7 @@ class _Parser:
         if (namespace := raw_spec.pop("namespace", None)) is not None:
             node_uri = spec.node_uri + "namespace"
             namespace = _ensure_node_type(namespace, str, node_uri)
-            _check_namespace(namespace, node_uri)
+            _check_id(namespace, node_uri)
             spec.namespace = namespace
         if (raw_services := raw_spec.pop("services", None)) is not None:
             self._parse_raw_services(
@@ -396,13 +395,6 @@ def _ensure_node_type(node_value, expected_node_type: Type[_T], node_uri: str) -
 def _ensure_not_empty(node_value: Union[list, dict], node_uri: str):
     if len(node_value) == 0:
         raise InvalidSpecError(f"node should not be empty: node_uri={node_uri!r}")
-
-
-def _check_namespace(namespace: str, node_uri: str) -> None:
-    if NAMESPACE_PATTERN.fullmatch(namespace) is None:
-        raise InvalidSpecError(
-            f"invalid namespace; node_uri={node_uri!r} namespace={namespace!r} expected_pattern={NAMESPACE_PATTERN.pattern!r}"
-        )
 
 
 def _check_id(id: str, node_uri: str) -> None:

@@ -2,16 +2,15 @@ import re
 from dataclasses import dataclass
 from typing import Any, Optional
 
+DEFAULT = "Default"
+
 _WORD_PATTERN = re.compile(r"[A-Z]([A-Z0-9]*|[a-z0-9]*)s?")
 ID_PATTERN = re.compile(
     r"{}(-{})*".format(_WORD_PATTERN.pattern, _WORD_PATTERN.pattern)
 )
 
-DEFAULT = "Default"
-NAMESPACE_PATTERN = re.compile(DEFAULT + r"|" + ID_PATTERN.pattern)
-
 REF_PATTERN = re.compile(
-    r"({}\.)?{}".format(f"({NAMESPACE_PATTERN.pattern})", f"({ID_PATTERN.pattern})")
+    r"({}\.)?{}".format(f"({ID_PATTERN.pattern})", f"({ID_PATTERN.pattern})")
 )
 
 FIELD_BOOL = "bool"

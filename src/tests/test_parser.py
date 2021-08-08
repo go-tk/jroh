@@ -32,7 +32,7 @@ namespace: aaa
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid namespace; node_uri='foo\.yaml#/namespace' namespace='aaa'",
+                out_exception_str=r"invalid specification: invalid id; node_uri='foo\.yaml#/namespace' id='aaa'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
