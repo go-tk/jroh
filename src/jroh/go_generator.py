@@ -104,7 +104,7 @@ func (Dummy${service_name}Service) ${method_name}(${context1()}.Context\
 
 func ForEachRPCHandlerOf${service_name}Service(service ${service_name}Service, callback func(
     rpcPath string,
-    rpcHandler ${http()}.Handler,
+    rpcHandler ${http()}.HandlerFunc,
     rpcInfoFactory ${apicommon()}.RPCInfoFactory,
 ) (ok bool)) {
 <%
@@ -117,7 +117,7 @@ func ForEachRPCHandlerOf${service_name}Service(service ${service_name}Service, c
     rpc_path = service.rpc_paths[i]
 %>\
     {
-        rpcHandler := http.HandlerFunc(func(w ${http()}.ResponseWriter, r *${http()}.Request) {
+        rpcHandler := func(w ${http()}.ResponseWriter, r *${http()}.Request) {
             ctx := r.Context()
             rpcInfo := ${apicommon()}.RPCInfoFromContext(ctx)
             var data struct {
@@ -169,8 +169,8 @@ func ForEachRPCHandlerOf${service_name}Service(service ${service_name}Service, c
 % endif
 )
             ${apicommon()}.SaveErr(err, rpcInfo)
-        })
-        rpcInfoFactory := func() *${apicommon()}.RPCInfo { return ${apicommon()}.NewRPCInfo("${namespace}", "${service_name}", "${method_name}") }
+        }
+        rpcInfoFactory := func(id string) *${apicommon()}.RPCInfo { return ${apicommon()}.NewRPCInfo("${namespace}", "${service_name}", "${method_name}", id) }
         if !callback(${utils.quote(rpc_path)}, rpcHandler, rpcInfoFactory) {
             return
         }

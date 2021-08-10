@@ -8,8 +8,8 @@ type RPCInfo struct {
 	namespace   string
 	serviceName string
 	methodName  string
-
 	id          string
+
 	rawParams   []byte
 	params      interface{}
 	error       *Error
@@ -20,20 +20,19 @@ type RPCInfo struct {
 	respWriteErr error
 }
 
-func NewRPCInfo(namespace string, serviceName string, methodName string) *RPCInfo {
+func NewRPCInfo(namespace string, serviceName string, methodName string, id string) *RPCInfo {
 	return &RPCInfo{
 		namespace:   namespace,
 		serviceName: serviceName,
 		methodName:  methodName,
+		id:          id,
 	}
 }
 
 func (ri *RPCInfo) Namespace() string   { return ri.namespace }
 func (ri *RPCInfo) ServiceName() string { return ri.serviceName }
 func (ri *RPCInfo) MethodName() string  { return ri.methodName }
-
-func (ri *RPCInfo) ID() string      { return ri.id }
-func (ri *RPCInfo) SetID(id string) { ri.id = id }
+func (ri *RPCInfo) ID() string          { return ri.id }
 
 func (ri *RPCInfo) RawParams() []byte             { return ri.rawParams }
 func (ri *RPCInfo) SetRawParams(rawParams []byte) { ri.rawParams = rawParams }
@@ -58,7 +57,7 @@ func (ri *RPCInfo) SetRespWriteErr(respWriteErr error) {
 	ri.respWriteErr = respWriteErr
 }
 
-type RPCInfoFactory func() *RPCInfo
+type RPCInfoFactory func(id string) *RPCInfo
 
 type contextValueRPCInfo struct{}
 

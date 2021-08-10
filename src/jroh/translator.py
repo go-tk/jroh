@@ -374,18 +374,23 @@ _COMMON_OPEN_API = {
                     "code": {
                         "type": "integer",
                         "format": "int32",
-                        "description": "A Number that indicates the error type that occurred.",
-                        "example": 10001,
+                        "description": "The error type that occurred.",
+                        "example": -32700,
                     },
                     "message": {
                         "type": "string",
-                        "description": "A String providing a short description of the error.",
-                        "example": "something wrong",
+                        "description": "A short description of the error.",
+                        "example": "parse error",
+                    },
+                    "details": {
+                        "type": "string",
+                        "description": "Detailed information about the error.",
+                        "example": "unexpected end of JSON input",
                     },
                     "data": {
                         "type": "object",
                         "additionalProperties": True,
-                        "description": "A Structured value that contains additional information about the error.",
+                        "description": "Additional information about the error.",
                     },
                 },
                 "required": ["code", "message"],

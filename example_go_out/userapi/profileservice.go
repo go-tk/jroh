@@ -30,11 +30,11 @@ func (DummyProfileService) DeleteProfile(context.Context, *DeleteProfileParams) 
 
 func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
 	rpcPath string,
-	rpcHandler http.Handler,
+	rpcHandler http.HandlerFunc,
 	rpcInfoFactory apicommon.RPCInfoFactory,
 ) (ok bool)) {
 	{
-		rpcHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			rpcInfo := apicommon.RPCInfoFromContext(ctx)
 			var data struct {
@@ -65,14 +65,16 @@ func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
 			}
 			err := service.CreateProfile(ctx, &data.Params, &data.Results)
 			apicommon.SaveErr(err, rpcInfo)
-		})
-		rpcInfoFactory := func() *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "CreateProfile") }
+		}
+		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
+			return apicommon.NewRPCInfo("User", "Profile", "CreateProfile", id)
+		}
 		if !callback("/rpc/Profile.CreateProfile", rpcHandler, rpcInfoFactory) {
 			return
 		}
 	}
 	{
-		rpcHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			rpcInfo := apicommon.RPCInfoFromContext(ctx)
 			var data struct {
@@ -103,14 +105,14 @@ func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
 			}
 			err := service.GetProfile(ctx, &data.Params, &data.Results)
 			apicommon.SaveErr(err, rpcInfo)
-		})
-		rpcInfoFactory := func() *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "GetProfile") }
+		}
+		rpcInfoFactory := func(id string) *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "GetProfile", id) }
 		if !callback("/rpc/Profile.GetProfile", rpcHandler, rpcInfoFactory) {
 			return
 		}
 	}
 	{
-		rpcHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			rpcInfo := apicommon.RPCInfoFromContext(ctx)
 			var data struct {
@@ -137,14 +139,16 @@ func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
 			}
 			err := service.UpdateProfile(ctx, &data.Params)
 			apicommon.SaveErr(err, rpcInfo)
-		})
-		rpcInfoFactory := func() *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "UpdateProfile") }
+		}
+		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
+			return apicommon.NewRPCInfo("User", "Profile", "UpdateProfile", id)
+		}
 		if !callback("/rpc/Profile.UpdateProfile", rpcHandler, rpcInfoFactory) {
 			return
 		}
 	}
 	{
-		rpcHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			rpcInfo := apicommon.RPCInfoFromContext(ctx)
 			var data struct {
@@ -171,8 +175,10 @@ func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
 			}
 			err := service.DeleteProfile(ctx, &data.Params)
 			apicommon.SaveErr(err, rpcInfo)
-		})
-		rpcInfoFactory := func() *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "DeleteProfile") }
+		}
+		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
+			return apicommon.NewRPCInfo("User", "Profile", "DeleteProfile", id)
+		}
 		if !callback("/rpc/Profile.DeleteProfile", rpcHandler, rpcInfoFactory) {
 			return
 		}

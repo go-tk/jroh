@@ -30,13 +30,11 @@ func ReadParams(reader io.Reader, rpcInfo *RPCInfo) bool {
 	if err := json.Unmarshal(rawParams, params); err != nil {
 		switch err.(type) {
 		case *json.SyntaxError:
-			*error = *ErrParse.WithData(ErrorData{
-				"details": err.Error(),
-			})
+			*error = *ErrParse
+			error.Details = err.Error()
 		case *json.UnmarshalTypeError:
-			*error = *ErrInvalidParams.WithData(ErrorData{
-				"details": err.Error(),
-			})
+			*error = *ErrInvalidParams
+			error.Details = err.Error()
 		default:
 			convertErr(err, rpcInfo)
 		}
@@ -44,9 +42,8 @@ func ReadParams(reader io.Reader, rpcInfo *RPCInfo) bool {
 	}
 	if validator, ok := params.(Validator); ok {
 		if err := validator.Validate(); err != nil {
-			*error = *ErrInvalidParams.WithData(ErrorData{
-				"details": err.Error(),
-			})
+			*error = *ErrInvalidParams
+			error.Details = err.Error()
 			return false
 		}
 	}
@@ -68,20 +65,21 @@ func SavePanicValue(panicValue interface{}, rpcInfo *RPCInfo) {
 	stackTrace := string(buffer[:n])
 	rpcInfo.SetStackTrace(stackTrace)
 	error := rpcInfo.Error()
+	*error = *ErrInternal
 	if DebugMode {
-		*error = *ErrInternal.WithData(ErrorData{
-			"details":    errStr,
-			"stackTrace": stackTrace,
-		})
-	} else {
-		*error = *ErrInternal
+		error.Details = errStr
+		error.Data.SetValue("stackTrace", stackTrace)
 	}
 }
 
 func WriteResp(resp interface{}, responseWriter http.ResponseWriter, rpcInfo *RPCInfo) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(responseWriter).Encode(resp); err != nil {
+	encoder := json.NewEncoder(responseWriter)
+	if DebugMode {
+		encoder.SetIndent("", "    ")
+	}
+	if err := encoder.Encode(resp); err != nil {
 		rpcInfo.SetRespWriteErr(err)
 	}
 }
@@ -93,11 +91,8 @@ func convertErr(err error, rpcInfo *RPCInfo) {
 		return
 	}
 	rpcInfo.SetInternalErr(err)
+	*error = *ErrInternal
 	if DebugMode {
-		*error = *ErrInternal.WithData(ErrorData{
-			"details": err.Error(),
-		})
-	} else {
-		*error = *ErrInternal
+		error.Details = err.Error()
 	}
 }

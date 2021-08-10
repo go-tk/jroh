@@ -2,7 +2,9 @@
 
 package apicommon
 
-import "fmt"
+import (
+	"strconv"
+)
 
 const ErrorParse ErrorCode = -32700
 
@@ -30,11 +32,15 @@ type ErrorCode int32
 type Error struct {
 	Code    ErrorCode `json:"code"`
 	Message string    `json:"message"`
+	Details string    `json:"details"`
 	Data    ErrorData `json:"data,omitempty"`
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("api: %s (%d)", e.Message, e.Code)
+	if e.Details == "" {
+		return "api: " + e.Message + " (" + strconv.FormatInt(int64(e.Code), 10) + ")"
+	}
+	return "api: " + e.Message + " (" + strconv.FormatInt(int64(e.Code), 10) + "): " + e.Details
 }
 
 func (e *Error) Is(err error) bool {
@@ -42,12 +48,6 @@ func (e *Error) Is(err error) bool {
 		return true
 	}
 	return false
-}
-
-func (e *Error) WithData(data ErrorData) *Error {
-	e2 := *e
-	e2.Data = data
-	return &e2
 }
 
 type ErrorData map[string]interface{}
