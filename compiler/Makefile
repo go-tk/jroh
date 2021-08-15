@@ -21,4 +21,4 @@ test:
 
 .PHONY: example
 example:
-	find example -type f -name '*.yaml' | xargs python3 -m src.jroh.compiler --out example_out --go_out example_go_out:example/api
+	find ../example -type f -name '*.yaml' | xargs python3 -m src.jroh.compiler --out ../example_out --go_out ../example_go_out:example/api

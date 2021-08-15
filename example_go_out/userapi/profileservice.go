@@ -4,8 +4,15 @@ package userapi
 
 import (
 	context "context"
-	apicommon "example/api/apicommon"
+	apicommon "github.com/go-tk/jroh/go/apicommon"
 	http "net/http"
+)
+
+const (
+	ProfileService_CreateProfile apicommon.MethodIndex = 0
+	ProfileService_GetProfile    apicommon.MethodIndex = 1
+	ProfileService_UpdateProfile apicommon.MethodIndex = 2
+	ProfileService_DeleteProfile apicommon.MethodIndex = 3
 )
 
 type ProfileService interface {
@@ -28,159 +35,112 @@ func (DummyProfileService) GetProfile(context.Context, *GetProfileParams, *GetPr
 func (DummyProfileService) UpdateProfile(context.Context, *UpdateProfileParams) error { return nil }
 func (DummyProfileService) DeleteProfile(context.Context, *DeleteProfileParams) error { return nil }
 
-func ForEachRPCHandlerOfProfileService(service ProfileService, callback func(
-	rpcPath string,
-	rpcHandler http.HandlerFunc,
-	rpcInfoFactory apicommon.RPCInfoFactory,
-) (ok bool)) {
+func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.ServeMux, options apicommon.RegisterHandlersOptions) {
+	options.Normalize(4)
 	{
-		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			rpcInfo := apicommon.RPCInfoFromContext(ctx)
-			var data struct {
-				Params  CreateProfileParams
-				Error   apicommon.Error
-				Results CreateProfileResults
-				Resp    CreateProfileResp
+		middlewares := options.Middlewares[ProfileService_CreateProfile]
+		rpcInterceptors := options.RPCInterceptors[ProfileService_CreateProfile]
+		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+			var s struct {
+				IncomingRPC apicommon.IncomingRPC
+				Params      CreateProfileParams
+				Results     CreateProfileResults
 			}
-			rpcInfo.SetParams(&data.Params)
-			rpcInfo.SetError(&data.Error)
-			rpcInfo.SetResults(&data.Results)
-			defer func() {
-				if panicValue := recover(); panicValue != nil {
-					apicommon.SavePanicValue(panicValue, rpcInfo)
-				}
-				data.Resp.ID = rpcInfo.ID()
-				if data.Error.Code == 0 {
-					rpcInfo.SetError(nil)
-					data.Resp.Results = &data.Results
-				} else {
-					rpcInfo.SetResults(nil)
-					data.Resp.Error = &data.Error
-				}
-				apicommon.WriteResp(&data.Resp, w, rpcInfo)
-			}()
-			if !apicommon.ReadParams(r.Body, rpcInfo) {
-				return
+			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
+				return service.CreateProfile(ctx, rpc.Params().(*CreateProfileParams), rpc.Results().(*CreateProfileResults))
 			}
-			err := service.CreateProfile(ctx, &data.Params, &data.Results)
-			apicommon.SaveErr(err, rpcInfo)
+			s.IncomingRPC.Init(
+				"User",
+				"Profile",
+				"CreateProfile",
+				traceID,
+				&s.Params,
+				&s.Results,
+				rpcHandler,
+				rpcInterceptors,
+			)
+			return &s.IncomingRPC
 		}
-		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
-			return apicommon.NewRPCInfo("User", "Profile", "CreateProfile", id)
-		}
-		if !callback("/rpc/Profile.CreateProfile", rpcHandler, rpcInfoFactory) {
-			return
-		}
+		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		serveMux.Handle("/rpc/Profile.CreateProfile", handler)
 	}
 	{
-		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			rpcInfo := apicommon.RPCInfoFromContext(ctx)
-			var data struct {
-				Params  GetProfileParams
-				Error   apicommon.Error
-				Results GetProfileResults
-				Resp    GetProfileResp
+		middlewares := options.Middlewares[ProfileService_GetProfile]
+		rpcInterceptors := options.RPCInterceptors[ProfileService_GetProfile]
+		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+			var s struct {
+				IncomingRPC apicommon.IncomingRPC
+				Params      GetProfileParams
+				Results     GetProfileResults
 			}
-			rpcInfo.SetParams(&data.Params)
-			rpcInfo.SetError(&data.Error)
-			rpcInfo.SetResults(&data.Results)
-			defer func() {
-				if panicValue := recover(); panicValue != nil {
-					apicommon.SavePanicValue(panicValue, rpcInfo)
-				}
-				data.Resp.ID = rpcInfo.ID()
-				if data.Error.Code == 0 {
-					rpcInfo.SetError(nil)
-					data.Resp.Results = &data.Results
-				} else {
-					rpcInfo.SetResults(nil)
-					data.Resp.Error = &data.Error
-				}
-				apicommon.WriteResp(&data.Resp, w, rpcInfo)
-			}()
-			if !apicommon.ReadParams(r.Body, rpcInfo) {
-				return
+			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
+				return service.GetProfile(ctx, rpc.Params().(*GetProfileParams), rpc.Results().(*GetProfileResults))
 			}
-			err := service.GetProfile(ctx, &data.Params, &data.Results)
-			apicommon.SaveErr(err, rpcInfo)
+			s.IncomingRPC.Init(
+				"User",
+				"Profile",
+				"GetProfile",
+				traceID,
+				&s.Params,
+				&s.Results,
+				rpcHandler,
+				rpcInterceptors,
+			)
+			return &s.IncomingRPC
 		}
-		rpcInfoFactory := func(id string) *apicommon.RPCInfo { return apicommon.NewRPCInfo("User", "Profile", "GetProfile", id) }
-		if !callback("/rpc/Profile.GetProfile", rpcHandler, rpcInfoFactory) {
-			return
-		}
+		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		serveMux.Handle("/rpc/Profile.GetProfile", handler)
 	}
 	{
-		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			rpcInfo := apicommon.RPCInfoFromContext(ctx)
-			var data struct {
-				Params UpdateProfileParams
-				Error  apicommon.Error
-				Resp   UpdateProfileResp
+		middlewares := options.Middlewares[ProfileService_UpdateProfile]
+		rpcInterceptors := options.RPCInterceptors[ProfileService_UpdateProfile]
+		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+			var s struct {
+				IncomingRPC apicommon.IncomingRPC
+				Params      UpdateProfileParams
 			}
-			rpcInfo.SetParams(&data.Params)
-			rpcInfo.SetError(&data.Error)
-			defer func() {
-				if panicValue := recover(); panicValue != nil {
-					apicommon.SavePanicValue(panicValue, rpcInfo)
-				}
-				data.Resp.ID = rpcInfo.ID()
-				if data.Error.Code == 0 {
-					rpcInfo.SetError(nil)
-				} else {
-					data.Resp.Error = &data.Error
-				}
-				apicommon.WriteResp(&data.Resp, w, rpcInfo)
-			}()
-			if !apicommon.ReadParams(r.Body, rpcInfo) {
-				return
+			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
+				return service.UpdateProfile(ctx, rpc.Params().(*UpdateProfileParams))
 			}
-			err := service.UpdateProfile(ctx, &data.Params)
-			apicommon.SaveErr(err, rpcInfo)
+			s.IncomingRPC.Init(
+				"User",
+				"Profile",
+				"UpdateProfile",
+				traceID,
+				&s.Params,
+				nil,
+				rpcHandler,
+				rpcInterceptors,
+			)
+			return &s.IncomingRPC
 		}
-		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
-			return apicommon.NewRPCInfo("User", "Profile", "UpdateProfile", id)
-		}
-		if !callback("/rpc/Profile.UpdateProfile", rpcHandler, rpcInfoFactory) {
-			return
-		}
+		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		serveMux.Handle("/rpc/Profile.UpdateProfile", handler)
 	}
 	{
-		rpcHandler := func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			rpcInfo := apicommon.RPCInfoFromContext(ctx)
-			var data struct {
-				Params DeleteProfileParams
-				Error  apicommon.Error
-				Resp   DeleteProfileResp
+		middlewares := options.Middlewares[ProfileService_DeleteProfile]
+		rpcInterceptors := options.RPCInterceptors[ProfileService_DeleteProfile]
+		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+			var s struct {
+				IncomingRPC apicommon.IncomingRPC
+				Params      DeleteProfileParams
 			}
-			rpcInfo.SetParams(&data.Params)
-			rpcInfo.SetError(&data.Error)
-			defer func() {
-				if panicValue := recover(); panicValue != nil {
-					apicommon.SavePanicValue(panicValue, rpcInfo)
-				}
-				data.Resp.ID = rpcInfo.ID()
-				if data.Error.Code == 0 {
-					rpcInfo.SetError(nil)
-				} else {
-					data.Resp.Error = &data.Error
-				}
-				apicommon.WriteResp(&data.Resp, w, rpcInfo)
-			}()
-			if !apicommon.ReadParams(r.Body, rpcInfo) {
-				return
+			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
+				return service.DeleteProfile(ctx, rpc.Params().(*DeleteProfileParams))
 			}
-			err := service.DeleteProfile(ctx, &data.Params)
-			apicommon.SaveErr(err, rpcInfo)
+			s.IncomingRPC.Init(
+				"User",
+				"Profile",
+				"DeleteProfile",
+				traceID,
+				&s.Params,
+				nil,
+				rpcHandler,
+				rpcInterceptors,
+			)
+			return &s.IncomingRPC
 		}
-		rpcInfoFactory := func(id string) *apicommon.RPCInfo {
-			return apicommon.NewRPCInfo("User", "Profile", "DeleteProfile", id)
-		}
-		if !callback("/rpc/Profile.DeleteProfile", rpcHandler, rpcInfoFactory) {
-			return
-		}
+		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		serveMux.Handle("/rpc/Profile.DeleteProfile", handler)
 	}
 }

@@ -32,14 +32,6 @@ class _Generator:
     def generate_code(self, specs: list[Spec]) -> None:
         for spec in specs:
             self._generate_package_code(spec)
-        for file_path in (
-            "apicommon/errors.go",
-            "apicommon/rpcinfo.go",
-            "apicommon/utils.go",
-        ):
-            self._file_path_2_file_data[file_path] = utils.get_data(
-                "data/go/" + file_path
-            ).decode()
 
     def _generate_package_code(self, spec: Spec) -> None:
         self._namespace = spec.namespace
@@ -64,10 +56,20 @@ package {self._make_package_name()}
 <%
     context1 = g._import_package("context", "context")
     http = g._import_package("http", "net/http")
-    apicommon = g._import_package("apicommon", "../apicommon")
+    apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
 
+    namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
 %>\
+const (
+% for i, method in enumerate(service.methods):
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+    ${service_name}Service_${method_name} ${apicommon()}.MethodIndex = ${i}
+% endfor
+)
+
 type ${service_name}Service interface {
 % for method in service.methods:
 <%
@@ -102,78 +104,58 @@ func (Dummy${service_name}Service) ${method_name}(${context1()}.Context\
 ) error { return nil }
 % endfor
 
-func ForEachRPCHandlerOf${service_name}Service(service ${service_name}Service, callback func(
-    rpcPath string,
-    rpcHandler ${http()}.HandlerFunc,
-    rpcInfoFactory ${apicommon()}.RPCInfoFactory,
-) (ok bool)) {
-<%
-    namespace = utils.pascal_case(g._namespace)
-    service_name = utils.pascal_case(service.id)
-%>\
+func RegisterHandlersOf${service_name}Service(service ${service_name}Service, serveMux *${http()}.ServeMux, options ${apicommon()}.RegisterHandlersOptions) {
+    options.Normalize(${len(service.methods)})
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
     rpc_path = service.rpc_paths[i]
 %>\
     {
-        rpcHandler := func(w ${http()}.ResponseWriter, r *${http()}.Request) {
-            ctx := r.Context()
-            rpcInfo := ${apicommon()}.RPCInfoFromContext(ctx)
-            var data struct {
+        middlewares := options.Middlewares[${service_name}Service_${method_name}]
+        rpcInterceptors := options.RPCInterceptors[${service_name}Service_${method_name}]
+        incomingRPCFactory := func(traceID string) *${apicommon()}.IncomingRPC {
+            var s struct {
+                IncomingRPC ${apicommon()}.IncomingRPC
 % if method.params is not None:
                 Params ${method_name}Params
 % endif
-                Error ${apicommon()}.Error
 % if method.results is not None:
                 Results ${method_name}Results
 % endif
-                Resp ${method_name}Resp
             }
+            rpcHandler := func(ctx ${context1()}.Context, rpc *${apicommon()}.RPC) error {
+                return service.${method_name}(ctx\
 % if method.params is not None:
-            rpcInfo.SetParams(&data.Params)
-% endif
-            rpcInfo.SetError(&data.Error)
-% if method.results is not None:
-            rpcInfo.SetResults(&data.Results)
-% endif
-            defer func() {
-                if panicValue := recover(); panicValue != nil {
-                    ${apicommon()}.SavePanicValue(panicValue, rpcInfo)
-                }
-                data.Resp.ID = rpcInfo.ID()
-                if data.Error.Code == 0 {
-                    rpcInfo.SetError(nil)
-% if method.results is not None:
-                    data.Resp.Results = &data.Results
-% endif
-                } else {
-% if method.results is not None:
-                    rpcInfo.SetResults(nil)
-% endif
-                    data.Resp.Error = &data.Error
-                }
-                ${apicommon()}.WriteResp(&data.Resp, w, rpcInfo)
-            }()
-% if method.params is not None:
-            if !${apicommon()}.ReadParams(r.Body, rpcInfo) {
-                return
-            }
-% endif
-            err := service.${method_name}(ctx\
-% if method.params is not None:
-, &data.Params\
+, rpc.Params().(*${method_name}Params)\
 % endif
 % if method.results is not None:
-, &data.Results\
+, rpc.Results().(*${method_name}Results)\
 % endif
 )
-            ${apicommon()}.SaveErr(err, rpcInfo)
+            }
+            s.IncomingRPC.Init(
+                "${namespace}",
+                "${service_name}",
+                "${method_name}",
+                traceID,
+% if method.params is None:
+                nil,
+% else:
+                &s.Params,
+% endif
+% if method.results is None:
+                nil,
+% else:
+                &s.Results,
+% endif
+                rpcHandler,
+                rpcInterceptors,
+            )
+            return &s.IncomingRPC
         }
-        rpcInfoFactory := func(id string) *${apicommon()}.RPCInfo { return ${apicommon()}.NewRPCInfo("${namespace}", "${service_name}", "${method_name}", id) }
-        if !callback(${utils.quote(rpc_path)}, rpcHandler, rpcInfoFactory) {
-            return
-        }
+        handler := ${apicommon()}.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+        serveMux.Handle(${utils.quote(rpc_path)}, handler)
     }
 % endfor
 }
@@ -199,7 +181,7 @@ package {self._make_package_name()}
             Template(
                 r"""\
 <%
-    apicommon = g._import_package("apicommon", "../apicommon")
+    apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
 %>\
 % for method in methods:
 <%
@@ -215,7 +197,7 @@ type ${method_name}Params struct {
 % endif
 
 type ${method_name}Resp struct {
-    ID string `json:"id"`
+    TraceID string `json:"traceID"`
     Error *${apicommon()}.Error `json:"error,omitempty"`
 % if method.results is not None:
     Results *${method_name}Results `json:"results,omitempty"`
@@ -294,7 +276,7 @@ package {self._make_package_name()}
             Template(
                 r"""\
 <%
-    apicommon = g._import_package("apicommon", "../apicommon")
+    apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
 %>\
 % for error in errors:
 <%

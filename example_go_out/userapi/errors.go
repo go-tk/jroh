@@ -3,7 +3,7 @@
 package userapi
 
 import (
-	apicommon "example/api/apicommon"
+	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
 const ErrorProfileNotFound apicommon.ErrorCode = 1

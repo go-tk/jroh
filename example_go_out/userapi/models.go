@@ -3,7 +3,7 @@
 package userapi
 
 import (
-	apicommon "example/api/apicommon"
+	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
 type CreateProfileParams struct {
@@ -11,7 +11,7 @@ type CreateProfileParams struct {
 }
 
 type CreateProfileResp struct {
-	ID      string                `json:"id"`
+	TraceID string                `json:"traceID"`
 	Error   *apicommon.Error      `json:"error,omitempty"`
 	Results *CreateProfileResults `json:"results,omitempty"`
 }
@@ -25,7 +25,7 @@ type GetProfileParams struct {
 }
 
 type GetProfileResp struct {
-	ID      string             `json:"id"`
+	TraceID string             `json:"traceID"`
 	Error   *apicommon.Error   `json:"error,omitempty"`
 	Results *GetProfileResults `json:"results,omitempty"`
 }
@@ -39,8 +39,8 @@ type UpdateProfileParams struct {
 }
 
 type UpdateProfileResp struct {
-	ID    string           `json:"id"`
-	Error *apicommon.Error `json:"error,omitempty"`
+	TraceID string           `json:"traceID"`
+	Error   *apicommon.Error `json:"error,omitempty"`
 }
 
 type DeleteProfileParams struct {
@@ -48,8 +48,8 @@ type DeleteProfileParams struct {
 }
 
 type DeleteProfileResp struct {
-	ID    string           `json:"id"`
-	Error *apicommon.Error `json:"error,omitempty"`
+	TraceID string           `json:"traceID"`
+	Error   *apicommon.Error `json:"error,omitempty"`
 }
 
 type Profile struct {
