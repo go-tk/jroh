@@ -20,7 +20,7 @@ FIELD_FLOAT32 = "float32"
 FIELD_FLOAT64 = "float64"
 FIELD_STRING = "string"
 FIELD_TYPE_PATTERN = re.compile(
-    r"({}|{})(\?|\+|\*)?".format(
+    r"({}|{})(\?|\+|\*|\{{\d+(,(\d+)?)?\}})?".format(
         r"|".join(
             (
                 FIELD_BOOL,
@@ -149,6 +149,10 @@ class Field:
         self.id: str = id
 
         self.type: FieldType = FieldType("")
+        self.min: Any = None
+        self.max: Any = None
+        self.min_length: Optional[int] = None
+        self.max_length: Optional[int] = None
         self.description: Optional[str] = None
         self.example: Any = None
 
@@ -158,13 +162,19 @@ class FieldType:
         # parse
         self.node_uri = node_uri
 
-        self.is_optional: bool = False
-        self.is_repeated: bool = False
+        self.min_count: int = 1
+        self.max_count: Optional[int] = 1
         self.model_ref: Optional[Ref] = None
         self.value: str = ""
 
         # resolution
         self.model: Optional[Model] = None
+
+    def is_optional(self) -> bool:
+        return self.min_count == 0
+
+    def is_repeated(self) -> bool:
+        return self.max_count is None or self.max_count >= 2
 
 
 class Enum:

@@ -1,8 +1,8 @@
 package apicommon
 
 import (
+	"bytes"
 	"encoding/base64"
-	"encoding/binary"
 	"math/rand"
 	"net/http"
 )
@@ -46,8 +46,7 @@ func (rho *RegisterHandlersOptions) Normalize(numberOfMethods int) {
 	if rho.TraceIDGenerator == nil {
 		rho.TraceIDGenerator = func() string {
 			var buffer [16]byte
-			binary.BigEndian.PutUint64(buffer[:8], rand.Uint64())
-			binary.BigEndian.PutUint64(buffer[8:], rand.Uint64())
+			rand.Read(buffer[:])
 			traceID := base64.RawURLEncoding.EncodeToString(buffer[:])
 			return traceID
 		}
@@ -74,11 +73,18 @@ func MakeHandler(
 	}
 	handler = func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var buffer bytes.Buffer
+			if _, err := buffer.ReadFrom(r.Body); err != nil {
+				return
+			}
 			traceID := r.Header.Get("X-Trace-ID")
 			if traceID == "" {
 				traceID = traceIDGenerator()
 			}
 			incomingRPC := incomingRPCFactory(traceID)
+			if buffer.Len() >= 1 {
+				incomingRPC.RawParams = buffer.Bytes()
+			}
 			ctx := makeContextWithRPC(r.Context(), &incomingRPC.RPC)
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		})

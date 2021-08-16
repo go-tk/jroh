@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"runtime"
 	"unsafe"
@@ -32,13 +31,7 @@ func (ir *IncomingRPC) readParams(reader io.Reader) bool {
 	if params == nil {
 		return true
 	}
-	rawParams, err := ioutil.ReadAll(reader)
-	if err != nil {
-		ir.saveErr(err)
-		return false
-	}
-	ir.RawParams = rawParams
-	if err := json.Unmarshal(rawParams, params); err != nil {
+	if err := json.Unmarshal(ir.RawParams, params); err != nil {
 		switch err.(type) {
 		case *json.SyntaxError:
 			ir.Error = *ErrParse

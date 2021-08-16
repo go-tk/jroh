@@ -327,10 +327,10 @@ import (
     def _generate_field_code(self, field: Field) -> str:
         field_type = field.type
         field_type_code = ""
-        if field_type.is_repeated:
+        if field_type.is_repeated():
             field_type_code += "[]"
         else:
-            if field_type.is_optional:
+            if field_type.is_optional():
                 field_type_code += "*"
         if (model_ref := field_type.model_ref) is None:
             field_type_code += field_type.value
@@ -344,7 +344,7 @@ import (
                 field_type_code += import_name + "."
             field_type_code += utils.pascal_case(model_ref.id)
         json_tag = utils.camel_case(field.id)
-        if field_type.is_optional:
+        if field_type.is_optional():
             json_tag += ",omitempty"
         filed_code = (
             f'{utils.pascal_case(field.id)} {field_type_code} `json:"{json_tag}"`'

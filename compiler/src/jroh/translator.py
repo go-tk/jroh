@@ -244,15 +244,19 @@ class _Translator:
             properties[property_id] = property
             self._translate_field(field, property)
             field_type = field.type
-            if not field_type.is_optional:
+            if not field_type.is_optional():
                 required_property_ids.append(property_id)
         if len(required_property_ids) >= 1:
             schema["required"] = required_property_ids
 
     def _translate_field(self, field: Field, property: dict) -> None:
         field_type = field.type
-        if field_type.is_repeated:
+        if field_type.is_repeated():
             property["type"] = "array"
+            if field_type.min_count >= 1:
+                property["minItems"] = field_type.min_count
+            if field_type.max_count is not None:
+                property["maxItems"] = field_type.max_count
             property2 = {}
             property["items"] = property2
         else:
@@ -268,6 +272,21 @@ class _Translator:
                     FIELD_STRING: {"type": "string"},
                 }[field_type.value]
             )
+            if field_type.value in (
+                FIELD_INT32,
+                FIELD_INT64,
+                FIELD_FLOAT32,
+                FIELD_FLOAT64,
+            ):
+                if field.min is not None:
+                    property2["minimum"] = field.min
+                if field.max is not None:
+                    property2["maximum"] = field.max
+            elif field_type.value == FIELD_STRING:
+                if field.min_length is not None:
+                    property2["minLength"] = field.min_length
+                if field.max_length is not None:
+                    property2["maxLength"] = field.max_length
         else:
             namespace = model_ref.namespace
             if namespace is None:
@@ -334,7 +353,7 @@ class _Translator:
         open_api["components"] = {"schemas": schemas}
 
     def _fix_dollar_refs(self, open_api: dict) -> None:
-        def walk_mapping(m: dict):
+        def walk_mapping(m: dict) -> None:
             for k, v in m.items():
                 if k == "$ref":
                     continue

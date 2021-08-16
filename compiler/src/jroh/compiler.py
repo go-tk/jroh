@@ -86,7 +86,7 @@ def _compile_files(file_paths: list[str], out: str, go_out: Optional[str]) -> No
         _format_go_code(file_paths)
 
 
-def _format_go_code(file_paths: list[str]):
+def _format_go_code(file_paths: list[str]) -> None:
     try:
         subprocess.run(["gofmt", "-w", *file_paths])
     except Exception as e:

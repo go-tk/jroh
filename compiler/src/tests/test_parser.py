@@ -14,7 +14,7 @@ class TestParser(unittest.TestCase):
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/' node_type=list expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/' node_kind=sequence expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -23,7 +23,7 @@ namespace: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/namespace' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/namespace' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -41,7 +41,7 @@ services: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/services' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -50,7 +50,7 @@ services: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/services'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/services'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -59,7 +59,7 @@ methods: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/methods' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -68,7 +68,7 @@ methods: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/methods'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -77,7 +77,7 @@ models: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -86,7 +86,7 @@ models: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/models'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -95,7 +95,7 @@ errors: 1
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/errors' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -104,7 +104,7 @@ errors: {}
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/errors'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/errors'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -137,7 +137,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services/AAA' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/services/AAA' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -158,7 +158,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/services/AAA/version' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/services/AAA/version' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -170,7 +170,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/services/AAA/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -182,7 +182,7 @@ services:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/services/AAA/rpc_path_template' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/services/AAA/rpc_path_template' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -218,7 +218,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/methods/AAA' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -239,7 +239,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_ids' node_type=int expected_node_type=list",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/methods/AAA/service_ids' node_kind=integer expected_node_kind=sequence",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -250,7 +250,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/service_ids\[0\]' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/methods/AAA/service_ids\[0\]' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -275,7 +275,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/summary' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/methods/AAA/summary' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -287,7 +287,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/methods/AAA/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -299,7 +299,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/params' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/methods/AAA/params' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -311,7 +311,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/params'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/methods/AAA/params'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -323,7 +323,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/results' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/methods/AAA/results' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -335,7 +335,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/results'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/methods/AAA/results'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -347,7 +347,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/methods/AAA/error_cases' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/methods/AAA/error_cases' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -359,7 +359,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/methods/AAA/error_cases'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/methods/AAA/error_cases'",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -441,7 +441,7 @@ methods:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/methods/AAA/error_cases/EEE/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/methods/AAA/error_cases/EEE/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -496,7 +496,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/type' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/type' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -519,7 +519,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -547,7 +547,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -559,7 +559,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models/MMM/fields'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/models/MMM/fields'",
             ),
         ]
         common.test(self, test_data_list)
@@ -619,7 +619,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=bool",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=floating-point expected_node_kind=boolean",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -634,7 +634,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=int",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=floating-point expected_node_kind=integer",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -649,7 +649,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=float expected_node_type=int",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=floating-point expected_node_kind=integer",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -664,7 +664,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=str expected_node_type=float",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=string expected_node_kind=floating-point",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -679,7 +679,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=str expected_node_type=float",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=string expected_node_kind=floating-point",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -694,7 +694,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -709,7 +709,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -724,7 +724,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=list",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=integer expected_node_kind=sequence",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -739,7 +739,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -754,7 +754,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_type=int expected_node_type=list",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=integer expected_node_kind=sequence",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -769,7 +769,265 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[0\]' node_kind=integer expected_node_kind=string",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{-1}
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid field type; node_uri='foo\.yaml#/models/MMM/fields/FFF/type' field_type='int32\{-1\}'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{0}
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid field type, count=0; node_uri='foo\.yaml#/models/MMM/fields/FFF/type' field_type='int32\{0\}'",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{0,1}
+        example: [1]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=sequence expected_node_kind=integer",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{1,0}
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid field type, min_count > max_count; node_uri='foo\.yaml#/models/MMM/fields/FFF/type' field_type='int32\{1,0\}' min_count=1 max_count=0",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{1,1}
+        example: [1]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' node_kind=sequence expected_node_kind=integer",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{0,2}
+        example: [1,2,3]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: sequence too long: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' sequence_length=3 max_sequence_length=2",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{2,2}
+        example: [1]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: sequence too short: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' sequence_length=1 min_sequence_length=2",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32{2,}
+        example: [1,2,"3"]
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/example\[2\]' node_kind=string expected_node_kind=integer",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      FFF:
+        type: int32+
+        example: []
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: sequence too short: node_uri='foo\.yaml#/models/MMM/fields/FFF/example' sequence_length=0 min_sequence_length=1",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      N:
+        type: int64
+        min: -1
+        max: -2
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid field, min > max: node_uri='foo\.yaml#/models/MMM/fields/N' min=-1 max=-2",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      N:
+        type: int64
+        min: 1
+        example: 0
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: number too small: node_uri='foo\.yaml#/models/MMM/fields/N/example' number=0 min_number=1",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      N:
+        type: int64
+        max: 1
+        example: 2
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: number too large: node_uri='foo\.yaml#/models/MMM/fields/N/example' number=2 max_number=1",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      S:
+        type: string
+        min_length: -10
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: number too small: node_uri='foo\.yaml#/models/MMM/fields/S/min_length' number=-10 min_number=0",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      S:
+        type: string
+        max_length: -10
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: number too small: node_uri='foo\.yaml#/models/MMM/fields/S/max_length' number=-10 min_number=0",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      S:
+        type: string
+        min_length: 10
+        max_length: 5
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: invalid field, min_length > max_length: node_uri='foo\.yaml#/models/MMM/fields/S' min_length=10 max_length=5",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      S:
+        type: string
+        min_length: 2
+        example: "a"
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: string too short: node_uri='foo\.yaml#/models/MMM/fields/S/example' string_length=1 min_string_length=2",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  MMM:
+    type: struct
+    fields:
+      S:
+        type: string
+        max_length: 2
+        example: "abc"
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_str=r"invalid specification: string too long: node_uri='foo\.yaml#/models/MMM/fields/S/example' string_length=3 max_string_length=2",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -804,7 +1062,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/models/MMM/fields/FFF/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/models/MMM/fields/FFF/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -859,7 +1117,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/constants' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -872,7 +1130,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: node should not be empty: node_uri='foo\.yaml#/models/MMM/constants'",
+                out_exception_str=r"invalid specification: non-empty mapping required: node_uri='foo\.yaml#/models/MMM/constants'",
             ),
         ]
         common.test(self, test_data_list)
@@ -920,7 +1178,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=float expected_node_type=int",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_kind=floating-point expected_node_kind=integer",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -935,7 +1193,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=str expected_node_type=int",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_kind=string expected_node_kind=integer",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -950,7 +1208,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/constants/CCC/value' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -966,7 +1224,7 @@ models:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/models/MMM/constants/CCC/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/models/MMM/constants/CCC/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1006,7 +1264,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors/EEE' node_type=int expected_node_type=dict",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/errors/EEE' node_kind=integer expected_node_kind=mapping",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1027,7 +1285,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid node type: node_uri='foo\.yaml#/errors/EEE/code' node_type=str expected_node_type=int",
+                out_exception_str=r"invalid node kind: node_uri='foo\.yaml#/errors/EEE/code' node_kind=string expected_node_kind=integer",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1039,7 +1297,7 @@ errors:
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_str=r"invalid specification: invalid node type: node_uri='foo\.yaml#/errors/EEE/description' node_type=int expected_node_type=str",
+                out_exception_str=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/errors/EEE/description' node_kind=integer expected_node_kind=string",
             ),
             common.TestData(
                 in_file_path_2_file_data={
