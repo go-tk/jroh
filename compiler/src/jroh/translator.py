@@ -5,15 +5,15 @@ import yaml
 
 from . import utils
 from .spec import (
+    BOOL,
     DEFAULT,
-    FIELD_BOOL,
-    FIELD_FLOAT32,
-    FIELD_FLOAT64,
-    FIELD_INT32,
-    FIELD_INT64,
-    FIELD_STRING,
+    FLOAT32,
+    FLOAT64,
+    INT32,
+    INT64,
     MODEL_ENUM,
     MODEL_STRUCT,
+    STRING,
     Constant,
     Enum,
     Error,
@@ -261,33 +261,35 @@ class _Translator:
             property["items"] = property2
         else:
             property2 = property
-        if (model_ref := field_type.model_ref) is None:
+        if (primitive_type := field_type.primitive_type) is not None:
             property2.update(
                 {
-                    FIELD_BOOL: {"type": "boolean"},
-                    FIELD_INT32: {"type": "integer", "format": "int32"},
-                    FIELD_INT64: {"type": "integer", "format": "int64"},
-                    FIELD_FLOAT32: {"type": "number", "format": "float"},
-                    FIELD_FLOAT64: {"type": "number", "format": "double"},
-                    FIELD_STRING: {"type": "string"},
-                }[field_type.value]
+                    BOOL: {"type": "boolean"},
+                    INT32: {"type": "integer", "format": "int32"},
+                    INT64: {"type": "integer", "format": "int64"},
+                    FLOAT32: {"type": "number", "format": "float"},
+                    FLOAT64: {"type": "number", "format": "double"},
+                    STRING: {"type": "string"},
+                }[primitive_type]
             )
-            if field_type.value in (
-                FIELD_INT32,
-                FIELD_INT64,
-                FIELD_FLOAT32,
-                FIELD_FLOAT64,
+            if primitive_type in (
+                INT32,
+                INT64,
+                FLOAT32,
+                FLOAT64,
             ):
                 if field.min is not None:
                     property2["minimum"] = field.min
                 if field.max is not None:
                     property2["maximum"] = field.max
-            elif field_type.value == FIELD_STRING:
+            elif primitive_type == STRING:
                 if field.min_length is not None:
                     property2["minLength"] = field.min_length
                 if field.max_length is not None:
                     property2["maxLength"] = field.max_length
         else:
+            model_ref = field_type.model_ref
+            assert model_ref is not None
             namespace = model_ref.namespace
             if namespace is None:
                 namespace = self._namespace
@@ -332,9 +334,9 @@ class _Translator:
     def _translate_enum(self, enum: Enum, schema: dict) -> None:
         schema.update(
             {
-                FIELD_INT32: {"type": "integer", "format": "int32"},
-                FIELD_INT64: {"type": "integer", "format": "int32"},
-                FIELD_STRING: {"type": "string"},
+                INT32: {"type": "integer", "format": "int32"},
+                INT64: {"type": "integer", "format": "int32"},
+                STRING: {"type": "string"},
             }[enum.underlying_type]
         )
         values = []

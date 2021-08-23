@@ -4,19 +4,19 @@ from typing import Optional, Type, TypeVar
 import yaml
 
 from .spec import (
+    BOOL,
     ENUM_UNDERLYING_TYPE_PATTERN,
-    FIELD_BOOL,
-    FIELD_FLOAT32,
-    FIELD_FLOAT64,
-    FIELD_INT32,
-    FIELD_INT64,
-    FIELD_STRING,
     FIELD_TYPE_PATTERN,
+    FLOAT32,
+    FLOAT64,
     ID_PATTERN,
+    INT32,
+    INT64,
     MODEL_ENUM,
     MODEL_STRUCT,
     MODEL_TYPE_PATTERN,
     REF_PATTERN,
+    STRING,
     Constant,
     Enum,
     Error,
@@ -263,15 +263,15 @@ class _Parser:
         _parse_raw_field_type(raw_field_type, field_type)
         field.type = field_type
         type = None
-        if field_type.model_ref is None:
+        if (primitive_type := field_type.primitive_type) is not None:
             type = {
-                FIELD_BOOL: bool,
-                FIELD_INT32: int,
-                FIELD_INT64: int,
-                FIELD_FLOAT32: float,
-                FIELD_FLOAT64: float,
-                FIELD_STRING: str,
-            }[field_type.value]
+                BOOL: bool,
+                INT32: int,
+                INT64: int,
+                FLOAT32: float,
+                FLOAT64: float,
+                STRING: str,
+            }[primitive_type]
             if type is int or type is float:
                 if (min := raw_field.pop("min", None)) is not None:
                     field.min = _ensure_node_kind(min, type, field.node_uri + "/min")
@@ -356,9 +356,9 @@ class _Parser:
         enum.underlying_type = enum_underlying_type
         if (raw_fields := raw_enum.pop("constants", None)) is not None:
             type = {
-                FIELD_INT32: int,
-                FIELD_INT64: int,
-                FIELD_STRING: str,
+                INT32: int,
+                INT64: int,
+                STRING: str,
             }[enum_underlying_type]
             self._parse_raw_constants(
                 raw_fields, enum.constants, node_uri + "/constants", type
@@ -520,7 +520,7 @@ def _parse_raw_field_type(raw_field_type: str, field_type: FieldType) -> None:
         field_type.max_count = max_count
     if (i := s.find(".")) < 0:
         if s[0].islower():
-            field_type.value = s
+            field_type.primitive_type = s
         else:
             field_type.model_ref = Ref(namespace=None, id=s)
     else:

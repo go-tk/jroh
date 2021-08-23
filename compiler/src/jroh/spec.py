@@ -13,25 +13,26 @@ REF_PATTERN = re.compile(
     r"({}\.)?{}".format(f"({ID_PATTERN.pattern})", f"({ID_PATTERN.pattern})")
 )
 
-FIELD_BOOL = "bool"
-FIELD_INT32 = "int32"
-FIELD_INT64 = "int64"
-FIELD_FLOAT32 = "float32"
-FIELD_FLOAT64 = "float64"
-FIELD_STRING = "string"
+BOOL = "bool"
+INT32 = "int32"
+INT64 = "int64"
+FLOAT32 = "float32"
+FLOAT64 = "float64"
+STRING = "string"
+
 FIELD_TYPE_PATTERN = re.compile(
-    r"({}|{})(\?|\+|\*|\{{\d+(,(\d+)?)?\}})?".format(
+    r"({})(\?|\+|\*|\{{\d+(,(\d+)?)?\}})?".format(
         r"|".join(
             (
-                FIELD_BOOL,
-                FIELD_INT32,
-                FIELD_INT64,
-                FIELD_FLOAT32,
-                FIELD_FLOAT64,
-                FIELD_STRING,
+                BOOL,
+                INT32,
+                INT64,
+                FLOAT32,
+                FLOAT64,
+                STRING,
+                f"({REF_PATTERN.pattern})",
             )
         ),
-        f"({REF_PATTERN.pattern})",
     )
 )
 
@@ -39,9 +40,7 @@ MODEL_STRUCT = "struct"
 MODEL_ENUM = "enum"
 MODEL_TYPE_PATTERN = re.compile(r"{}".format(r"|".join((MODEL_STRUCT, MODEL_ENUM))))
 
-ENUM_UNDERLYING_TYPE_PATTERN = re.compile(
-    r"|".join((FIELD_INT32, FIELD_INT64, FIELD_STRING))
-)
+ENUM_UNDERLYING_TYPE_PATTERN = re.compile(r"|".join((INT32, INT64, STRING)))
 
 
 class Spec:
@@ -164,8 +163,8 @@ class FieldType:
 
         self.min_count: int = 1
         self.max_count: Optional[int] = 1
+        self.primitive_type: Optional[str] = None
         self.model_ref: Optional[Ref] = None
-        self.value: str = ""
 
         # resolution
         self.model: Optional[Model] = None

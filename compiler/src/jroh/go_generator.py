@@ -332,9 +332,11 @@ import (
         else:
             if field_type.is_optional():
                 field_type_code += "*"
-        if (model_ref := field_type.model_ref) is None:
-            field_type_code += field_type.value
+        if (primitive_type := field_type.primitive_type) is not None:
+            field_type_code += primitive_type
         else:
+            model_ref = field_type.model_ref
+            assert model_ref is not None
             namespace = model_ref.namespace
             if namespace is None:
                 namespace = self._namespace
