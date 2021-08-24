@@ -1,0 +1,68 @@
+namespace: User
+
+services:
+  Profile-Bulk:
+    version: 0.0.1
+    description: Manages profiles in bulk.
+    rpc_path_template: /rpc/{service_id}.{method_id}
+
+methods:
+  Create-Profiles-In-Bulk:
+    service_ids:
+    - Profile-Bulk
+    summary: Creates profiles
+    description: Stores a bulk of new profiles.
+    params:
+      Profiles:
+        type: Profile
+        is_repeated: true
+        min_count: 1
+    results:
+      Profile-IDs:
+        type: Profile-ID
+        is_repeated: true
+
+  Get-Profiles-In-Bulk:
+    service_ids:
+    - Profile-Bulk
+    summary: Gets profiles
+    description: Retrieves a bulk of existing profiles.
+    params:
+      Profile-IDs:
+        type: Profile-ID
+        is_repeated: true
+        min_count: 1
+    results:
+      Profiles:
+        type: Profile
+        is_repeated: true
+
+  Update-Profiles-In-Bulk:
+    service_ids:
+    - Profile-Bulk
+    summary: Updates profiles
+    description: Modifies a bulk of existing profiles.
+    params:
+      Profile-Patches:
+        type: Profile-Patch
+        is_repeated: true
+        min_count: 1
+    results:
+      Updated-Profile-IDs:
+        type: Profile-ID
+        is_repeated: true
+
+  Delete-Profiles-In-Bulk:
+    service_ids:
+    - Profile-Bulk
+    summary: Deletes profiles
+    description: Purges a bulk of existing profiles.
+    params:
+      Profile-IDs:
+        type: Profile-ID
+        is_repeated: true
+        min_count: 1
+    results:
+      Deleted-Profile-IDs:
+        type: Profile-ID
+        is_repeated: true

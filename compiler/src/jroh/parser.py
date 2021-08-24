@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 import yaml
 
 from .spec import (
     BOOL,
+    ENUM,
     ENUM_UNDERLYING_TYPE_PATTERN,
     FIELD_TYPE_PATTERN,
     FLOAT32,
@@ -12,11 +13,11 @@ from .spec import (
     ID_PATTERN,
     INT32,
     INT64,
-    MODEL_ENUM,
-    MODEL_STRUCT,
     MODEL_TYPE_PATTERN,
     REF_PATTERN,
     STRING,
+    STRUCT,
+    XPRIMIT,
     Constant,
     Enum,
     Error,
@@ -26,11 +27,13 @@ from .spec import (
     Method,
     Model,
     Params,
+    PrimitiveConstraints,
     Ref,
     Results,
     Service,
     Spec,
     Struct,
+    Xprimit,
 )
 
 
@@ -214,25 +217,30 @@ class _Parser:
         raw_model = _ensure_node_kind(raw_model, dict, model.node_uri)
         raw_model = raw_model.copy()
         node_uri = model.node_uri + "/type"
-        model_type = _pop_node(raw_model, "type", node_uri)
-        model_type = _ensure_node_kind(model_type, str, node_uri)
-        _check_model_type(model_type, node_uri)
-        model.type = model_type
+        raw_model_type = _pop_node(raw_model, "type", node_uri)
+        raw_model_type = _ensure_node_kind(raw_model_type, str, node_uri)
+        _check_raw_model_type(raw_model_type, node_uri)
+        if raw_model_type == STRUCT:
+            struct = Struct()
+            self._parse_raw_struct(raw_model, struct, model.node_uri)
+            model.type = STRUCT
+            model.definition = struct
+        elif raw_model_type == ENUM:
+            enum = Enum()
+            self._parse_raw_enum(raw_model, enum, model.node_uri)
+            model.type = ENUM
+            model.definition = enum
+        else:
+            primitive_type = raw_model_type
+            xprimit = Xprimit(primitive_type)
+            self._parse_raw_xprimit(raw_model, xprimit, model.node_uri)
+            model.type = XPRIMIT
+            model.definition = xprimit
         if (description := raw_model.pop("description", None)) is not None:
             description = _ensure_node_kind(
                 description, str, model.node_uri + "/description"
             )
             model.description = description
-        if model_type == MODEL_STRUCT:
-            struct = Struct()
-            self._parse_raw_struct(raw_model, struct, model.node_uri)
-            model.definition = struct
-        elif model_type == MODEL_ENUM:
-            enum = Enum()
-            self._parse_raw_enum(raw_model, enum, model.node_uri)
-            model.definition = enum
-        else:
-            assert False, model_type
         for key in raw_model.keys():
             self._ignored_node_uris.append(model.node_uri + "/" + key)
 
@@ -259,91 +267,65 @@ class _Parser:
         node_uri = field.node_uri + "/type"
         raw_field_type = _pop_node(raw_field, "type", node_uri)
         raw_field_type = _ensure_node_kind(raw_field_type, str, node_uri)
-        field_type = FieldType(node_uri)
-        _parse_raw_field_type(raw_field_type, field_type)
-        field.type = field_type
-        type = None
-        if (primitive_type := field_type.primitive_type) is not None:
-            type = {
-                BOOL: bool,
-                INT32: int,
-                INT64: int,
-                FLOAT32: float,
-                FLOAT64: float,
-                STRING: str,
-            }[primitive_type]
-            if type is int or type is float:
-                if (min := raw_field.pop("min", None)) is not None:
-                    field.min = _ensure_node_kind(min, type, field.node_uri + "/min")
-                if (max := raw_field.pop("max", None)) is not None:
-                    field.max = _ensure_node_kind(max, type, field.node_uri + "/max")
-                if (
-                    field.min is not None
-                    and field.max is not None
-                    and field.min > field.max
-                ):
-                    raise InvalidSpecError(
-                        f"invalid field, min > max: node_uri={field.node_uri!r} min={field.min} max={field.max}"
-                    )
-            elif type is str:
-                if (min_length := raw_field.pop("min_length", None)) is not None:
-                    node_uri2 = field.node_uri + "/min_length"
-                    min_length = _ensure_node_kind(min_length, int, node_uri2)
-                    _check_number(min_length, 0, None, node_uri2)
-                    field.min_length = min_length
-                if (max_length := raw_field.pop("max_length", None)) is not None:
-                    node_uri2 = field.node_uri + "/max_length"
-                    max_length = _ensure_node_kind(max_length, int, node_uri2)
-                    _check_number(max_length, 0, None, node_uri2)
-                    field.max_length = max_length
-                if (
-                    field.min_length is not None
-                    and field.max_length is not None
-                    and field.min_length > field.max_length
-                ):
-                    raise InvalidSpecError(
-                        f"invalid field, min_length > max_length: node_uri={field.node_uri!r} min_length={field.min_length} max_length={field.max_length}"
-                    )
+        field_type = field.type
+        _parse_raw_field_type(raw_field_type, field_type, node_uri)
+        if field_type.is_primitive():
+            primitive_type = field_type.primitive_type()
+            _load_primitive_constraints(
+                primitive_type, raw_field, field, field.node_uri
+            )
+        if (is_optional := raw_field.pop("is_optional", None)) is not None:
+            is_optional = _ensure_node_kind(
+                is_optional, bool, field.node_uri + "/is_optional"
+            )
+            field.is_optional = is_optional
+        elif (is_repeated := raw_field.pop("is_repeated", False)) is not None:
+            is_repeated = _ensure_node_kind(
+                is_repeated, bool, field.node_uri + "/is_repeated"
+            )
+            field.is_repeated = is_repeated
+            min_count = raw_field.pop("min_count", None)
+            if min_count is not None:
+                node_uri2 = field.node_uri + "/min_count"
+                min_count = _ensure_node_kind(min_count, int, node_uri2)
+                _check_number(min_count, 0, None, node_uri2)
+                field.min_count = min_count
+            max_count = raw_field.pop("max_count", None)
+            if max_count is not None:
+                node_uri2 = field.node_uri + "/max_count"
+                max_count = _ensure_node_kind(max_count, int, node_uri2)
+                _check_number(max_count, 1, None, node_uri2)
+                field.max_count = max_count
+            if (
+                min_count is not None
+                and max_count is not None
+                and min_count > max_count
+            ):
+                raise InvalidSpecError(
+                    f"invalid field, min_count > max_count: node_uri={field.node_uri!r} min_count={field.min_count} max_count={field.max_count}"
+                )
         if (description := raw_field.pop("description", None)) is not None:
             description = _ensure_node_kind(
                 description, str, field.node_uri + "/description"
             )
             field.description = description
         if (
-            field_type.model_ref is None
+            field_type.is_primitive()
             and (example := raw_field.pop("example", None)) is not None
         ):
-            assert type is not None
+            primitive_type = field_type.primitive_type()
             node_uri2 = field.node_uri + "/example"
-            if field_type.is_repeated():
+            if field.is_repeated:
                 example = _ensure_node_kind(example, list, node_uri2)
                 _check_sequence_length(
-                    len(example), field_type.min_count, field_type.max_count, node_uri2
+                    len(example), field.min_count, field.max_count, node_uri2
                 )
                 for i, v in enumerate(example):
-                    _ensure_node_kind(v, type, node_uri2 + f"[{i}]")
-                if type is int or type is float:
-                    for i, v in enumerate(example):
-                        _check_number(v, field.min, field.max, node_uri2 + f"[{i}]")
-                elif type is str:
-                    for i, v in enumerate(example):
-                        _check_string_length(
-                            len(v.encode()),
-                            field.min_length,
-                            field.max_length,
-                            node_uri2 + f"[{i}]",
-                        )
-            else:
-                _ensure_node_kind(example, type, node_uri2)
-                if type is int or type is float:
-                    _check_number(example, field.min, field.max, node_uri2)
-                elif type is str:
-                    _check_string_length(
-                        len(example.encode()),
-                        field.min_length,
-                        field.max_length,
-                        node_uri2,
+                    _check_primitive_value(
+                        primitive_type, v, field, node_uri2 + f"[{i}]"
                     )
+            else:
+                _check_primitive_value(primitive_type, example, field, node_uri2)
             field.example = example
         for key in raw_field.keys():
             self._ignored_node_uris.append(field.node_uri + "/" + key)
@@ -391,6 +373,18 @@ class _Parser:
             constant.description = description
         for key in raw_constant.keys():
             self._ignored_node_uris.append(constant.node_uri + "/" + key)
+
+    def _parse_raw_xprimit(
+        self, raw_xprimit: dict, xprimit: Xprimit, node_uri: str
+    ) -> None:
+        _load_primitive_constraints(
+            xprimit.primitive_type, raw_xprimit, xprimit, node_uri
+        )
+        if (example := raw_xprimit.pop("example", None)) is not None:
+            _check_primitive_value(
+                xprimit.primitive_type, example, xprimit, node_uri + "/example"
+            )
+            xprimit.example = example
 
     def _parse_raw_errors(self, raw_errors, errors: list[Error], node_uri: str) -> None:
         raw_errors = _ensure_node_kind(raw_errors, dict, node_uri)
@@ -458,11 +452,6 @@ def _ensure_node_kind(node_value, expected_node_type: Type[_T], node_uri: str) -
     return node_value
 
 
-def _ensure_non_empty_mapping(mapping: dict, node_uri: str) -> None:
-    if len(mapping) == 0:
-        raise InvalidSpecError(f"non-empty mapping required: node_uri={node_uri!r}")
-
-
 def _check_id(id: str, node_uri: str) -> None:
     if ID_PATTERN.fullmatch(id) is None:
         raise InvalidSpecError(
@@ -470,61 +459,104 @@ def _check_id(id: str, node_uri: str) -> None:
         )
 
 
-def _check_model_type(model_type: str, node_uri: str) -> None:
-    if MODEL_TYPE_PATTERN.fullmatch(model_type) is None:
+def _ensure_non_empty_mapping(mapping: dict, node_uri: str) -> None:
+    if len(mapping) == 0:
+        raise InvalidSpecError(f"non-empty mapping required: node_uri={node_uri!r}")
+
+
+_T = TypeVar("_T", int, float)
+
+
+def _check_number(
+    number: _T,
+    min_number: Optional[_T],
+    max_number: Optional[_T],
+    node_uri: str,
+    *,
+    min_number_is_exclusive: bool = False,
+    max_number_is_exclusive: bool = False,
+) -> None:
+    if min_number is not None:
+        if min_number_is_exclusive:
+            if number <= min_number:
+                raise InvalidSpecError(
+                    f"number too small: node_uri={node_uri!r} number={number} exclusive_min_number={min_number}"
+                )
+        else:
+            if number < min_number:
+                raise InvalidSpecError(
+                    f"number too small: node_uri={node_uri!r} number={number} min_number={min_number}"
+                )
+    if max_number is not None:
+        if max_number_is_exclusive:
+            if number >= max_number:
+                raise InvalidSpecError(
+                    f"number too large: node_uri={node_uri!r} number={number} exclusive_max_number={max_number}"
+                )
+        else:
+            if number > max_number:
+                raise InvalidSpecError(
+                    f"number too large: node_uri={node_uri!r} number={number} max_number={max_number}"
+                )
+
+
+def _check_string_length(
+    string_length: int,
+    min_string_length: int,
+    max_string_length: Optional[int],
+    node_uri: str,
+) -> None:
+    _check_length(
+        "string", string_length, min_string_length, max_string_length, node_uri
+    )
+
+
+def _check_sequence_length(
+    sequence_length: int,
+    min_sequence_length: int,
+    max_sequence_length: Optional[int],
+    node_uri: str,
+) -> None:
+    _check_length(
+        "sequence", sequence_length, min_sequence_length, max_sequence_length, node_uri
+    )
+
+
+def _check_length(
+    kind: str,
+    length: int,
+    min_length: int,
+    max_length: Optional[int],
+    node_uri: str,
+) -> None:
+    if length < min_length:
         raise InvalidSpecError(
-            f"invalid model type; node_uri={node_uri!r} model_type={model_type!r} expected_pattern={MODEL_TYPE_PATTERN.pattern!r}"
+            f"{kind} too short: node_uri={node_uri!r} {kind}_length={length} min_{kind}_length={min_length}"
+        )
+    if max_length is not None and length > max_length:
+        raise InvalidSpecError(
+            f"{kind} too long: node_uri={node_uri!r} {kind}_length={length} max_{kind}_length={max_length}"
         )
 
 
-def _parse_raw_field_type(raw_field_type: str, field_type: FieldType) -> None:
-    _check_raw_field_type(raw_field_type, field_type.node_uri)
-    s = raw_field_type
-    if (c := s[-1]) in ("?", "+", "*", "}"):
-        if c == "?":
-            min_count = 0
-            max_count = 1
-            s = s[:-1]
-        elif c == "+":
-            min_count = 1
-            max_count = None
-            s = s[:-1]
-        elif c == "*":
-            min_count = 0
-            max_count = None
-            s = s[:-1]
-        elif c == "}":
-            i = s[:-1].rindex("{")
-            a = s[i + 1 : -1].split(",", 1)
-            min_count = int(a[0])
-            if len(a) == 1:
-                max_count = min_count
-            else:
-                if a[1] == "":
-                    max_count = None
-                else:
-                    max_count = int(a[1])
-            s = s[:i]
+def _check_raw_model_type(raw_model_type: str, node_uri: str) -> None:
+    if MODEL_TYPE_PATTERN.fullmatch(raw_model_type) is None:
+        raise InvalidSpecError(
+            f"invalid model type; node_uri={node_uri!r} model_type={raw_model_type!r} expected_pattern={MODEL_TYPE_PATTERN.pattern!r}"
+        )
+
+
+def _parse_raw_field_type(
+    raw_field_type: str, field_type: FieldType, node_uri: str
+) -> None:
+    _check_raw_field_type(raw_field_type, node_uri)
+    if (i := raw_field_type.find(".")) < 0:
+        if raw_field_type[0].islower():
+            field_type.value = raw_field_type
         else:
-            assert False, c
-        if max_count is not None:
-            if min_count == 0 and max_count == 0:
-                raise InvalidSpecError(
-                    f"invalid field type, count=0; node_uri={field_type.node_uri!r} field_type={raw_field_type!r}"
-                )
-            if min_count > max_count:
-                raise InvalidSpecError(
-                    f"invalid field type, min_count > max_count; node_uri={field_type.node_uri!r} field_type={raw_field_type!r} min_count={min_count} max_count={max_count}"
-                )
-        field_type.min_count = min_count
-        field_type.max_count = max_count
-    if (i := s.find(".")) < 0:
-        if s[0].islower():
-            field_type.primitive_type = s
-        else:
-            field_type.model_ref = Ref(namespace=None, id=s)
+            field_type.value = Ref(namespace=None, id=raw_field_type)
     else:
-        field_type.model_ref = Ref(namespace=s[:i], id=s[i + 1 :])
+        field_type.value = Ref(namespace=raw_field_type[:i], id=raw_field_type[i + 1 :])
 
 
 def _check_raw_field_type(raw_field_type: str, node_uri: str) -> None:
@@ -541,6 +573,155 @@ def _check_enum_underlying_type(enum_underlying_type: str, node_uri: str) -> Non
         )
 
 
+_MIN_INT32 = -(1 << 31)
+_MAX_INT32 = (1 << 31) - 1
+_MIN_INT64 = -(1 << 63)
+_MAX_INT64 = (1 << 63) - 1
+
+
+def _load_primitive_constraints(
+    primitive_type: str,
+    raw_object: dict,
+    primitive_constraints: PrimitiveConstraints,
+    node_uri: str,
+) -> None:
+    if primitive_type == BOOL:
+        pass
+    elif primitive_type in (INT32, INT64):
+        min = raw_object.pop("min", None)
+        if min is not None:
+            node_uri2 = node_uri + "/min"
+            min = _ensure_node_kind(min, int, node_uri2)
+            if primitive_type == INT32:
+                _check_number(min, _MIN_INT32, _MAX_INT32, node_uri2)
+            else:
+                _check_number(min, _MIN_INT64, _MAX_INT64, node_uri2)
+            primitive_constraints.min = min
+        max = raw_object.pop("max", None)
+        if max is not None:
+            node_uri2 = node_uri + "/max"
+            max = _ensure_node_kind(max, int, node_uri2)
+            if primitive_type == INT32:
+                _check_number(max, _MIN_INT32, _MAX_INT32, node_uri2)
+            else:
+                _check_number(max, _MIN_INT64, _MAX_INT64, node_uri2)
+            primitive_constraints.max = max
+        if min is not None and max is not None and min > max:
+            raise InvalidSpecError(
+                f"invalid primitive constraints, min > max: node_uri={node_uri!r} min={min} max={max}"
+            )
+    elif primitive_type in (FLOAT32, FLOAT64):
+        min = raw_object.pop("min", None)
+        if min is not None:
+            min = _ensure_node_kind(min, float, node_uri + "/min")
+            primitive_constraints.min = min
+            if (
+                min_is_exclusive := raw_object.pop("min_is_exclusive", None)
+            ) is not None:
+                min_is_exclusive = _ensure_node_kind(
+                    min_is_exclusive,
+                    bool,
+                    node_uri + "/min_is_exclusive",
+                )
+                primitive_constraints.min_is_exclusive = min_is_exclusive
+        max = raw_object.pop("max", None)
+        if max is not None:
+            max = _ensure_node_kind(max, float, node_uri + "/max")
+            primitive_constraints.max = max
+            if (
+                max_is_exclusive := raw_object.pop("max_is_exclusive", None)
+            ) is not None:
+                max_is_exclusive = _ensure_node_kind(
+                    max_is_exclusive,
+                    bool,
+                    node_uri + "/max_is_exclusive",
+                )
+                primitive_constraints.max_is_exclusive = max_is_exclusive
+        if min is not None and max is not None:
+            if min == max:
+                if (
+                    primitive_constraints.min_is_exclusive
+                    or primitive_constraints.max_is_exclusive
+                ):
+                    raise InvalidSpecError(
+                        f"invalid primitive constraints, min > max: node_uri={node_uri!r}"
+                        f" {'exclusive_' if primitive_constraints.min_is_exclusive else ''}min={min}"
+                        f" {'exclusive_' if primitive_constraints.max_is_exclusive else ''}max={max}"
+                    )
+            elif min > max:
+                raise InvalidSpecError(
+                    f"invalid primitive constraints, min > max: node_uri={node_uri!r} min={min} max={max}"
+                )
+    elif primitive_type == STRING:
+        min_length = raw_object.pop("min_length", None)
+        if min_length is not None:
+            node_uri2 = node_uri + "/min_length"
+            min_length = _ensure_node_kind(min_length, int, node_uri2)
+            _check_number(min_length, 0, None, node_uri2)
+            primitive_constraints.min_length = min_length
+        max_length = raw_object.pop("max_length", None)
+        if max_length is not None:
+            node_uri2 = node_uri + "/max_length"
+            max_length = _ensure_node_kind(max_length, int, node_uri2)
+            _check_number(max_length, 1, None, node_uri2)
+            primitive_constraints.max_length = max_length
+        if (
+            min_length is not None
+            and max_length is not None
+            and min_length > max_length
+        ):
+            raise InvalidSpecError(
+                f"invalid primitive constraints, min_length > max_length: node_uri={node_uri!r} min_length={min_length} max_length={max_length}"
+            )
+    else:
+        assert False, primitive_type
+
+
+def _check_primitive_value(
+    primitive_type: str,
+    primitive_value: Any,
+    primitive_constraints: PrimitiveConstraints,
+    node_uri: str,
+) -> None:
+    if primitive_type == BOOL:
+        _ensure_node_kind(primitive_value, bool, node_uri)
+    elif primitive_type in (INT32, INT64):
+        min = primitive_constraints.min
+        if min is None:
+            if primitive_type == INT32:
+                min = _MIN_INT32
+            else:
+                min = _MIN_INT64
+        max = primitive_constraints.max
+        if max is None:
+            if primitive_type == INT32:
+                max = _MAX_INT32
+            else:
+                max = _MAX_INT64
+        pv = _ensure_node_kind(primitive_value, int, node_uri)
+        _check_number(pv, min, max, node_uri)
+    elif primitive_type in (FLOAT32, FLOAT64):
+        pv = _ensure_node_kind(primitive_value, float, node_uri)
+        _check_number(
+            pv,
+            primitive_constraints.min,
+            primitive_constraints.max,
+            node_uri,
+            min_number_is_exclusive=primitive_constraints.min_is_exclusive,
+            max_number_is_exclusive=primitive_constraints.max_is_exclusive,
+        )
+    elif primitive_type == STRING:
+        pv = _ensure_node_kind(primitive_value, str, node_uri)
+        _check_string_length(
+            len(pv.encode()),
+            primitive_constraints.min_length,
+            primitive_constraints.max_length,
+            node_uri,
+        )
+    else:
+        assert False, primitive_type
+
+
 def _parse_raw_ref(raw_ref: str, node_uri: str) -> Ref:
     _check_raw_ref(raw_ref, node_uri)
     if (i := raw_ref.find(".")) < 0:
@@ -554,62 +735,4 @@ def _check_raw_ref(raw_ref: str, node_uri: str) -> None:
     if REF_PATTERN.fullmatch(raw_ref) is None:
         raise InvalidSpecError(
             f"invalid ref; node_uri={node_uri!r} ref={raw_ref!r} expected_pattern={REF_PATTERN.pattern!r}"
-        )
-
-
-_T = TypeVar("_T", int, float)
-
-
-def _check_number(
-    number: _T,
-    min_number: Optional[_T],
-    max_number: Optional[_T],
-    node_uri: str,
-) -> None:
-    if min_number is not None and number < min_number:
-        raise InvalidSpecError(
-            f"number too small: node_uri={node_uri!r} number={number} min_number={min_number}"
-        )
-    if max_number is not None and number > max_number:
-        raise InvalidSpecError(
-            f"number too large: node_uri={node_uri!r} number={number} max_number={max_number}"
-        )
-
-
-def _check_string_length(
-    string_length: int,
-    min_string_length: Optional[int],
-    max_string_length: Optional[int],
-    node_uri: str,
-) -> None:
-    _check_length(
-        "string", string_length, min_string_length, max_string_length, node_uri
-    )
-
-
-def _check_sequence_length(
-    sequence_length: int,
-    min_sequence_length: Optional[int],
-    max_sequence_length: Optional[int],
-    node_uri: str,
-) -> None:
-    _check_length(
-        "sequence", sequence_length, min_sequence_length, max_sequence_length, node_uri
-    )
-
-
-def _check_length(
-    kind: str,
-    length: int,
-    min_length: Optional[int],
-    max_length: Optional[int],
-    node_uri: str,
-) -> None:
-    if min_length is not None and length < min_length:
-        raise InvalidSpecError(
-            f"{kind} too short: node_uri={node_uri!r} {kind}_length={length} min_{kind}_length={min_length}"
-        )
-    if max_length is not None and length > max_length:
-        raise InvalidSpecError(
-            f"{kind} too long: node_uri={node_uri!r} {kind}_length={length} max_{kind}_length={max_length}"
         )

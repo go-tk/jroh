@@ -10,7 +10,7 @@ class TestData:
     in_file_path_2_file_data: dict[str, str] = field(default_factory=dict)
 
     out_exception_type: Optional[Type[BaseException]] = None
-    out_exception_str: str = ""
+    out_exception_re: str = ""
     out_ignored_node_uris: Optional[set[str]] = None
     out_unused_node_uris: Optional[set[str]] = None
     out_file_path_2_file_data: Optional[dict[str, str]] = None
@@ -41,7 +41,7 @@ def test(test_case: TestCase, test_data_list: list[TestData]) -> None:
                     )
             else:
                 with test_case.assertRaisesRegex(
-                    test_data.out_exception_type, test_data.out_exception_str
+                    test_data.out_exception_type, test_data.out_exception_re
                 ):
                     result1 = parser.parse_files(test_data.in_file_path_2_file_data)
                     result2 = resolver.resolve_specs(result1.specs)

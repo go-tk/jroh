@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from . import utils
 from .spec import (
-    MODEL_ENUM,
-    MODEL_STRUCT,
+    ENUM,
+    STRUCT,
     Constant,
     Error,
     ErrorCase,
@@ -74,7 +74,7 @@ class _Resolver:
             model.namespace = spec.namespace
             self._models[(spec.namespace, model.id)] = model
         for model in spec.models:
-            if model.type != MODEL_ENUM:
+            if model.type != ENUM:
                 continue
             for constant in model.enum().constants:
                 if (
@@ -148,9 +148,10 @@ class _Resolver:
             self._resolve_field(field)
 
     def _resolve_field(self, field: Field) -> None:
-        model_ref = field.type.model_ref
-        if model_ref is None:
+        field_type = field.type
+        if field_type.is_primitive():
             return
+        model_ref = field_type.model_ref()
         namespace = model_ref.namespace
         if namespace is None:
             namespace = self._namespace
@@ -161,13 +162,13 @@ class _Resolver:
             raise InvalidSpecError(
                 f"model not found; node_uri={node_uri!r} namespace={namespace!r} model_id={model_id!r}",
             )
-        field.type.model = model
+        field_type.model = model
         model.ref_count += 1
         if model.ref_count == 1:
             self._resolve_model(model)
 
     def _resolve_model(self, model: Model) -> None:
-        if model.type == MODEL_STRUCT:
+        if model.type == STRUCT:
             namespace = self._namespace
             self._namespace = model.namespace
             for field in model.struct().fields:

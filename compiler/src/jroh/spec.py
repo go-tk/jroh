@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 DEFAULT = "Default"
 
@@ -21,24 +21,18 @@ FLOAT64 = "float64"
 STRING = "string"
 
 FIELD_TYPE_PATTERN = re.compile(
-    r"({})(\?|\+|\*|\{{\d+(,(\d+)?)?\}})?".format(
-        r"|".join(
-            (
-                BOOL,
-                INT32,
-                INT64,
-                FLOAT32,
-                FLOAT64,
-                STRING,
-                f"({REF_PATTERN.pattern})",
-            )
-        ),
+    r"|".join(
+        (BOOL, INT32, INT64, FLOAT32, FLOAT64, STRING, f"({REF_PATTERN.pattern})")
     )
 )
 
-MODEL_STRUCT = "struct"
-MODEL_ENUM = "enum"
-MODEL_TYPE_PATTERN = re.compile(r"{}".format(r"|".join((MODEL_STRUCT, MODEL_ENUM))))
+STRUCT = "struct"
+ENUM = "enum"
+XPRIMIT = "xprimit"
+
+MODEL_TYPE_PATTERN = re.compile(
+    r"|".join((STRUCT, ENUM, INT32, INT64, FLOAT32, FLOAT64, STRING))
+)
 
 ENUM_UNDERLYING_TYPE_PATTERN = re.compile(r"|".join((INT32, INT64, STRING)))
 
@@ -134,6 +128,21 @@ class Model:
         assert isinstance(self.definition, Enum)
         return self.definition
 
+    def xprimit(self) -> "Xprimit":
+        assert isinstance(self.definition, Xprimit)
+        return self.definition
+
+
+class PrimitiveConstraints:
+    def __init__(self) -> None:
+        # parse
+        self.min: Any = None  # only used for INT32, INT64, FLOAT32, FLOAT64
+        self.min_is_exclusive: bool = False  # only used for FLOAT32, FLOAT64
+        self.max: Any = None  # only used for INT32, INT64, FLOAT32, FLOAT64
+        self.max_is_exclusive: bool = False  # only used for FLOAT32, FLOAT64
+        self.min_length: int = 0  # only used for STRING
+        self.max_length: Optional[int] = None  # only used for STRING
+
 
 class Struct:
     def __init__(self) -> None:
@@ -141,45 +150,47 @@ class Struct:
         self.fields: list[Field] = []
 
 
-class Field:
+class Field(PrimitiveConstraints):
     def __init__(self, node_uri: str, id: str) -> None:
+        super().__init__()
+
         # parse
         self.node_uri: str = node_uri
         self.id: str = id
 
-        self.type: FieldType = FieldType("")
-        self.min: Any = None
-        self.max: Any = None
-        self.min_length: Optional[int] = None
-        self.max_length: Optional[int] = None
+        self.type: FieldType = FieldType()
+        self.is_optional: bool = False
+        self.is_repeated: bool = False
+        self.min_count: int = 0  # only used if is_repeated
+        self.max_count: Optional[int] = None  # only used if is_repeated
         self.description: Optional[str] = None
         self.example: Any = None
 
 
 class FieldType:
-    def __init__(self, node_uri: str) -> None:
+    def __init__(self) -> None:
         # parse
-        self.node_uri = node_uri
-
-        self.min_count: int = 1
-        self.max_count: Optional[int] = 1
-        self.primitive_type: Optional[str] = None
-        self.model_ref: Optional[Ref] = None
+        self.value: Union[str, Ref, None] = None
 
         # resolution
         self.model: Optional[Model] = None
 
-    def is_optional(self) -> bool:
-        return self.min_count == 0
+    def is_primitive(self) -> bool:
+        return isinstance(self.value, str)
 
-    def is_repeated(self) -> bool:
-        return self.max_count is None or self.max_count >= 2
+    def primitive_type(self) -> str:
+        assert isinstance(self.value, str)
+        return self.value
+
+    def model_ref(self) -> "Ref":
+        assert isinstance(self.value, Ref)
+        return self.value
 
 
 class Enum:
     def __init__(self) -> None:
         # parse
-        self.underlying_type: str
+        self.underlying_type: str = ""
         self.constants: list[Constant] = []
 
 
@@ -191,6 +202,15 @@ class Constant:
 
         self.value: Any = None
         self.description: Optional[str] = None
+
+
+class Xprimit(PrimitiveConstraints):
+    def __init__(self, primitive_type: str) -> None:
+        super().__init__()
+
+        # parse
+        self.primitive_type = primitive_type
+        self.example: Any = None
 
 
 class Error:

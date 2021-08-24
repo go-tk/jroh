@@ -7,13 +7,14 @@ from . import utils
 from .spec import (
     BOOL,
     DEFAULT,
+    ENUM,
     FLOAT32,
     FLOAT64,
     INT32,
     INT64,
-    MODEL_ENUM,
-    MODEL_STRUCT,
     STRING,
+    STRUCT,
+    XPRIMIT,
     Constant,
     Enum,
     Error,
@@ -22,11 +23,13 @@ from .spec import (
     Method,
     Model,
     Params,
+    PrimitiveConstraints,
     Ref,
     Results,
     Service,
     Spec,
     Struct,
+    Xprimit,
 )
 
 
@@ -81,10 +84,10 @@ class _Translator:
             if len(schemas) >= 1:
                 open_api = {}
                 open_apis[_MODELS_YAML] = open_api
-                self._save_schemas(schemas, open_api)
+                _save_schemas(schemas, open_api)
             for file_name, open_api in open_apis.items():
                 file_path = utils.snake_case(spec.namespace) + "/" + file_name
-                self._fix_dollar_refs(open_api)
+                _fix_dollar_refs(open_api)
                 self._file_path_2_file_data[file_path] = yaml.dump(
                     open_api, sort_keys=False
                 )
@@ -221,10 +224,12 @@ class _Translator:
             schema_id = utils.camel_case(model.id)
             schema = {}
             schemas[schema_id] = schema
-            if model.type == MODEL_STRUCT:
+            if model.type == STRUCT:
                 self._translate_struct(model.struct(), schema)
-            elif model.type == MODEL_ENUM:
+            elif model.type == ENUM:
                 self._translate_enum(model.enum(), schema)
+            elif model.type == XPRIMIT:
+                self._translate_xprimit(model.xprimit(), schema)
             else:
                 assert False, model.type
 
@@ -240,56 +245,32 @@ class _Translator:
         required_property_ids = []
         for field in fields:
             property_id = utils.camel_case(field.id)
-            property = {}
-            properties[property_id] = property
-            self._translate_field(field, property)
-            field_type = field.type
-            if not field_type.is_optional():
+            schema2 = {}
+            properties[property_id] = schema2
+            self._translate_field(field, schema2)
+            if not (field.is_optional or (field.is_repeated and field.min_count == 0)):
                 required_property_ids.append(property_id)
         if len(required_property_ids) >= 1:
             schema["required"] = required_property_ids
 
-    def _translate_field(self, field: Field, property: dict) -> None:
+    def _translate_field(self, field: Field, schema: dict) -> None:
+        if field.is_repeated:
+            schema["type"] = "array"
+            if field.min_count >= 1:
+                schema["minItems"] = field.min_count
+            if field.max_count is not None:
+                schema["maxItems"] = field.max_count
+            schema2 = {}
+            schema["items"] = schema2
+        else:
+            schema2 = schema
         field_type = field.type
-        if field_type.is_repeated():
-            property["type"] = "array"
-            if field_type.min_count >= 1:
-                property["minItems"] = field_type.min_count
-            if field_type.max_count is not None:
-                property["maxItems"] = field_type.max_count
-            property2 = {}
-            property["items"] = property2
-        else:
-            property2 = property
-        if (primitive_type := field_type.primitive_type) is not None:
-            property2.update(
-                {
-                    BOOL: {"type": "boolean"},
-                    INT32: {"type": "integer", "format": "int32"},
-                    INT64: {"type": "integer", "format": "int64"},
-                    FLOAT32: {"type": "number", "format": "float"},
-                    FLOAT64: {"type": "number", "format": "double"},
-                    STRING: {"type": "string"},
-                }[primitive_type]
+        if field_type.is_primitive():
+            _translate_primitive_type_and_constraints(
+                field_type.primitive_type(), field, schema2
             )
-            if primitive_type in (
-                INT32,
-                INT64,
-                FLOAT32,
-                FLOAT64,
-            ):
-                if field.min is not None:
-                    property2["minimum"] = field.min
-                if field.max is not None:
-                    property2["maximum"] = field.max
-            elif primitive_type == STRING:
-                if field.min_length is not None:
-                    property2["minLength"] = field.min_length
-                if field.max_length is not None:
-                    property2["maxLength"] = field.max_length
         else:
-            model_ref = field_type.model_ref
-            assert model_ref is not None
+            model_ref = field_type.model_ref()
             namespace = model_ref.namespace
             if namespace is None:
                 namespace = self._namespace
@@ -299,12 +280,12 @@ class _Translator:
                 schemas_file_path = (
                     "../" + utils.snake_case(namespace) + "/" + _MODELS_YAML
                 )
-            property2["$ref"] = (
+            schema2["$ref"] = (
                 schemas_file_path
                 + "#/components/schemas/"
                 + utils.camel_case(model_ref.id)
             )
-        if field_type.model_ref is None:
+        if field_type.is_primitive():
             model = None
         else:
             model = field_type.model
@@ -314,22 +295,23 @@ class _Translator:
             if model is not None and model.description is not None:
                 description_parts.append(model.description)
         else:
-            description_parts.append(field.description)
+            description_part = field.description
+            if description_part.startswith("+"):
+                description_part = description_part[1:]
+                if model is not None and model.description is not None:
+                    description_part = model.description + description_part
+            description_parts.append(description_part)
         if (
             model is not None
-            and model.type == MODEL_ENUM
+            and model.type == ENUM
             and len(constants := model.enum().constants) >= 1
         ):
             markdown = _translate_constants(constants)
             description_parts.append("Constants:\n\n" + markdown)
         if len(description_parts) >= 1:
-            if field.description is None:
-                property3 = property2
-            else:
-                property3 = property
-            property3["description"] = "\n\n".join(description_parts)
+            schema2["description"] = "\n\n".join(description_parts)
         if field.example is not None:
-            property["example"] = field.example
+            schema["example"] = field.example
 
     def _translate_enum(self, enum: Enum, schema: dict) -> None:
         schema.update(
@@ -345,33 +327,12 @@ class _Translator:
         if len(values) >= 1:
             schema["enum"] = values
 
-    def _save_schemas(self, schemas: dict[str, dict], open_api: dict) -> None:
-        open_api["openapi"] = "3.0.0"
-        open_api["info"] = {
-            "title": "Models",
-            "version": "",
-        }
-        open_api["paths"] = {}
-        open_api["components"] = {"schemas": schemas}
-
-    def _fix_dollar_refs(self, open_api: dict) -> None:
-        def walk_mapping(m: dict) -> None:
-            for k, v in m.items():
-                if k == "$ref":
-                    continue
-                if isinstance(v, dict):
-                    walk_mapping(v)
-                elif isinstance(v, list):
-                    for v2 in v:
-                        if isinstance(v2, dict):
-                            walk_mapping(v2)
-            if "$ref" in m and len(m) >= 2:
-                dollar_ref = m["$ref"]
-                d2 = {k: v for k, v in m.items() if k != "$ref"}
-                m.clear()
-                m["allOf"] = [{"$ref": dollar_ref}, d2]
-
-        walk_mapping(open_api)
+    def _translate_xprimit(self, xprimit: Xprimit, schema: dict) -> None:
+        _translate_primitive_type_and_constraints(
+            xprimit.primitive_type, xprimit, schema
+        )
+        if xprimit.example is not None:
+            schema["example"] = xprimit.example
 
     def file_path_2_file_data(self) -> dict[str, str]:
         return self._file_path_2_file_data
@@ -436,6 +397,46 @@ _INTERNAL_ERROR_CASE.error.code = -32603
 _INTERNAL_ERROR_CASE.error.description = "Internal JSON-RPC error."
 
 
+def _translate_primitive_type_and_constraints(
+    primitive_type: str, primitive_constraints: PrimitiveConstraints, schema: dict
+) -> None:
+    schema.update(
+        {
+            BOOL: {"type": "boolean"},
+            INT32: {"type": "integer", "format": "int32"},
+            INT64: {"type": "integer", "format": "int64"},
+            FLOAT32: {"type": "number", "format": "float"},
+            FLOAT64: {"type": "number", "format": "double"},
+            STRING: {"type": "string"},
+        }[primitive_type]
+    )
+    if primitive_type in (
+        INT32,
+        INT64,
+        FLOAT32,
+        FLOAT64,
+    ):
+        if primitive_constraints.min is not None:
+            schema["minimum"] = primitive_constraints.min
+            if (
+                primitive_type in (FLOAT32, FLOAT64)
+                and primitive_constraints.min_is_exclusive
+            ):
+                schema["exclusiveMinimum"] = True
+        if primitive_constraints.max is not None:
+            schema["maximum"] = primitive_constraints.max
+            if (
+                primitive_type in (FLOAT32, FLOAT64)
+                and primitive_constraints.max_is_exclusive
+            ):
+                schema["exclusiveMaximum"] = True
+    elif primitive_type == STRING:
+        if primitive_constraints.min_length >= 1:
+            schema["minLength"] = primitive_constraints.min_length
+        if primitive_constraints.max_length is not None:
+            schema["maxLength"] = primitive_constraints.max_length
+
+
 def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
     lines = []
     lines.append("| Code | Message | Description |")
@@ -451,6 +452,10 @@ def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
                 description = error.description
         else:
             description = error_case.description
+            if description.startswith("+"):
+                description = description[1:]
+                if error.description is not None:
+                    description = error.description + description
         lines.append(f"| {error.code} | {message} | {description} |")
     return "\n".join(lines)
 
@@ -469,3 +474,33 @@ def _translate_constants(constants: list[Constant]) -> str:
             line += f": {constant.description}"
         lines.append(line)
     return "\n".join(lines)
+
+
+def _save_schemas(schemas: dict[str, dict], open_api: dict) -> None:
+    open_api["openapi"] = "3.0.0"
+    open_api["info"] = {
+        "title": "Models",
+        "version": "",
+    }
+    open_api["paths"] = {}
+    open_api["components"] = {"schemas": schemas}
+
+
+def _fix_dollar_refs(open_api: dict) -> None:
+    def walk_mapping(m: dict) -> None:
+        for k, v in m.items():
+            if k == "$ref":
+                continue
+            if isinstance(v, dict):
+                walk_mapping(v)
+            elif isinstance(v, list):
+                for v2 in v:
+                    if isinstance(v2, dict):
+                        walk_mapping(v2)
+        if "$ref" in m and len(m) >= 2:
+            dollar_ref = m["$ref"]
+            d2 = {k: v for k, v in m.items() if k != "$ref"}
+            m.clear()
+            m["allOf"] = [{"$ref": dollar_ref}, d2]
+
+    walk_mapping(open_api)

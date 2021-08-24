@@ -50,6 +50,7 @@ def main() -> None:
 
 
 def _compile_files(file_paths: list[str], out: str, go_out: Optional[str]) -> None:
+    file_paths.sort()
     file_path_2_file_data: dict[str, str] = {}
     for file_path in file_paths:
         with open(file_path, "r") as f:

@@ -22,10 +22,6 @@ type IncomingRPC struct {
 	WriteRespErr error
 }
 
-type Validator interface {
-	Validate() (err error)
-}
-
 func (ir *IncomingRPC) readParams(reader io.Reader) bool {
 	params := ir.Params()
 	if params == nil {
@@ -34,22 +30,21 @@ func (ir *IncomingRPC) readParams(reader io.Reader) bool {
 	if err := json.Unmarshal(ir.RawParams, params); err != nil {
 		switch err.(type) {
 		case *json.SyntaxError:
-			ir.Error = *ErrParse
+			ir.Error = *errParse
 			ir.Error.Details = err.Error()
 		case *json.UnmarshalTypeError:
-			ir.Error = *ErrInvalidParams
+			ir.Error = *errInvalidParams
 			ir.Error.Details = err.Error()
 		default:
 			ir.saveErr(err)
 		}
 		return false
 	}
-	if validator, ok := params.(Validator); ok {
-		if err := validator.Validate(); err != nil {
-			ir.Error = *ErrInvalidParams
-			ir.Error.Details = err.Error()
-			return false
-		}
+	validationContext := NewValidationContext()
+	if !params.(Validator).Validate(validationContext) {
+		ir.Error = *errInvalidParams
+		ir.Error.Details = validationContext.ErrorDetails()
+		return false
 	}
 	return true
 }
@@ -59,7 +54,7 @@ func (ir *IncomingRPC) saveErr(err error) {
 		ir.Error = *error
 		return
 	}
-	ir.Error = *ErrInternal
+	ir.Error = *errInternal
 	if DebugMode {
 		ir.Error.Details = err.Error()
 	}
@@ -67,7 +62,7 @@ func (ir *IncomingRPC) saveErr(err error) {
 }
 
 func (ir *IncomingRPC) savePanic(v interface{}) {
-	ir.Error = *ErrInternal
+	ir.Error = *errInternal
 	errStr := fmt.Sprintf("%v", v)
 	buffer := make([]byte, 4096)
 	n := runtime.Stack(buffer, false)
@@ -84,8 +79,9 @@ func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(http.StatusOK)
 	encoder := json.NewEncoder(responseWriter)
+	encoder.SetEscapeHTML(false)
 	if DebugMode {
-		encoder.SetIndent("", "    ")
+		encoder.SetIndent("", "  ")
 	}
 	if ir.Error.Code == 0 {
 		ir.WriteRespErr = encoder.Encode(struct {

@@ -8,7 +8,12 @@ import (
 
 const ErrorProfileNotFound apicommon.ErrorCode = 1
 
-var ErrProfileNotFound = &apicommon.Error{
-	Code:    ErrorProfileNotFound,
-	Message: "profile not found",
+func NewProfileNotFoundError() *apicommon.Error {
+	return &apicommon.Error{
+		Code:    ErrorProfileNotFound,
+		Message: "profile not found",
+	}
 }
+
+var errProfileNotFound *apicommon.Error = NewProfileNotFoundError()
+var ErrProfileNotFound error = errProfileNotFound

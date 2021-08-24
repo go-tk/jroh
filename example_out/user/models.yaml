@@ -6,6 +6,166 @@ info:
 paths: {}
 components:
   schemas:
+    createProfilesInBulkParams:
+      type: object
+      properties:
+        profiles:
+          type: array
+          minItems: 1
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profile'
+            - description: Details of the profile.
+      required:
+      - profiles
+    createProfilesInBulkResp:
+      type: object
+      properties:
+        traceID:
+          type: string
+          description: The identifier of the trace associated with the log entry.
+          example: 9m4e2mr0ui3e8a215n4g
+        error:
+          allOf:
+          - $ref: ../common.yaml#/components/schemas/error
+          - description: The error encountered. This field is mutually exclusive of
+              the `results` field.
+        results:
+          allOf:
+          - $ref: '#/components/schemas/createProfilesInBulkResults'
+          - description: The results returned. This field is mutually exclusive of
+              the `error` field.
+      required:
+      - traceID
+    createProfilesInBulkResults:
+      type: object
+      properties:
+        profileIDs:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profileID'
+            - description: The identifier of the profile.
+    getProfilesInBulkParams:
+      type: object
+      properties:
+        profileIDs:
+          type: array
+          minItems: 1
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profileID'
+            - description: The identifier of the profile.
+      required:
+      - profileIDs
+    getProfilesInBulkResp:
+      type: object
+      properties:
+        traceID:
+          type: string
+          description: The identifier of the trace associated with the log entry.
+          example: 9m4e2mr0ui3e8a215n4g
+        error:
+          allOf:
+          - $ref: ../common.yaml#/components/schemas/error
+          - description: The error encountered. This field is mutually exclusive of
+              the `results` field.
+        results:
+          allOf:
+          - $ref: '#/components/schemas/getProfilesInBulkResults'
+          - description: The results returned. This field is mutually exclusive of
+              the `error` field.
+      required:
+      - traceID
+    getProfilesInBulkResults:
+      type: object
+      properties:
+        profiles:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profile'
+            - description: Details of the profile.
+    updateProfilesInBulkParams:
+      type: object
+      properties:
+        profilePatches:
+          type: array
+          minItems: 1
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profilePatch'
+            - description: The patch to apply to the profile.
+      required:
+      - profilePatches
+    updateProfilesInBulkResp:
+      type: object
+      properties:
+        traceID:
+          type: string
+          description: The identifier of the trace associated with the log entry.
+          example: 9m4e2mr0ui3e8a215n4g
+        error:
+          allOf:
+          - $ref: ../common.yaml#/components/schemas/error
+          - description: The error encountered. This field is mutually exclusive of
+              the `results` field.
+        results:
+          allOf:
+          - $ref: '#/components/schemas/updateProfilesInBulkResults'
+          - description: The results returned. This field is mutually exclusive of
+              the `error` field.
+      required:
+      - traceID
+    updateProfilesInBulkResults:
+      type: object
+      properties:
+        updatedProfileIDs:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profileID'
+            - description: The identifier of the profile.
+    deleteProfilesInBulkParams:
+      type: object
+      properties:
+        profileIDs:
+          type: array
+          minItems: 1
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profileID'
+            - description: The identifier of the profile.
+      required:
+      - profileIDs
+    deleteProfilesInBulkResp:
+      type: object
+      properties:
+        traceID:
+          type: string
+          description: The identifier of the trace associated with the log entry.
+          example: 9m4e2mr0ui3e8a215n4g
+        error:
+          allOf:
+          - $ref: ../common.yaml#/components/schemas/error
+          - description: The error encountered. This field is mutually exclusive of
+              the `results` field.
+        results:
+          allOf:
+          - $ref: '#/components/schemas/deleteProfilesInBulkResults'
+          - description: The results returned. This field is mutually exclusive of
+              the `error` field.
+      required:
+      - traceID
+    deleteProfilesInBulkResults:
+      type: object
+      properties:
+        deletedProfileIDs:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/profileID'
+            - description: The identifier of the profile.
     createProfileParams:
       type: object
       properties:
@@ -38,20 +198,18 @@ components:
       type: object
       properties:
         profileID:
-          type: integer
-          format: int64
-          description: The identifier of the profile created.
-          example: 1000
+          allOf:
+          - $ref: '#/components/schemas/profileID'
+          - description: The identifier of the profile.
       required:
       - profileID
     getProfileParams:
       type: object
       properties:
         profileID:
-          type: integer
-          format: int64
-          description: The identifier of the profile to retrieve.
-          example: 1000
+          allOf:
+          - $ref: '#/components/schemas/profileID'
+          - description: The identifier of the profile.
       required:
       - profileID
     getProfileResp:
@@ -108,10 +266,9 @@ components:
       type: object
       properties:
         profileID:
-          type: integer
-          format: int64
-          description: The identifier of the profile to purge.
-          example: 1000
+          allOf:
+          - $ref: '#/components/schemas/profileID'
+          - description: The identifier of the profile.
       required:
       - profileID
     deleteProfileResp:
@@ -131,15 +288,14 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          description: The identifier of the profile. It's ignored while creating
-            a profile.
-          example: 1000
+          allOf:
+          - $ref: '#/components/schemas/profileID'
+          - description: The identifier of the profile. It's ignored while creating
+              a profile.
         nickname:
-          type: string
-          description: The nickname. Should not be empty string.
-          example: Lee
+          allOf:
+          - $ref: '#/components/schemas/nickname'
+          - description: The nickname.
         genderType:
           allOf:
           - $ref: '#/components/schemas/genderType'
@@ -152,43 +308,34 @@ components:
               - GENDER_MALE(2): The gender is male.
               - GENDER_OTHER(3): Other genders.
         weight:
-          type: number
-          format: double
-          description: The weight in kilograms.
-          example: 177.1
+          allOf:
+          - $ref: '#/components/schemas/weight'
+          - description: The weight in kilograms.
         height:
-          type: integer
-          format: int32
-          description: The height in centimeters.
-          example: 73
+          allOf:
+          - $ref: '#/components/schemas/height'
+          - description: The height in centimeters.
       required:
       - id
       - nickname
       - genderType
-    genderType:
-      type: integer
-      format: int32
-      enum:
-      - 1
-      - 2
-      - 3
     profilePatch:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          description: The identifier of the profile to update.
-          example: 1000
+          allOf:
+          - $ref: '#/components/schemas/profileID'
+          - description: The identifier of the profile to update.
         nickname:
-          type: string
-          description: The new nickname. Should not be empty string.
-          example: Lyn
+          allOf:
+          - $ref: '#/components/schemas/nickname'
+          - description: The nickname. This field should be given only if it needs
+              to be changed.
         genderType:
           allOf:
           - $ref: '#/components/schemas/genderType'
           - description: |-
-              The new type of gender.
+              The type of gender. This field should be given only if it needs to be changed.
 
               Constants:
 
@@ -196,14 +343,42 @@ components:
               - GENDER_MALE(2): The gender is male.
               - GENDER_OTHER(3): Other genders.
         weight:
-          type: number
-          format: double
-          description: The new weight in kilograms.
-          example: 70.8
+          allOf:
+          - $ref: '#/components/schemas/weight'
+          - description: The weight in kilograms. This field should be given only
+              if it needs to be changed.
         height:
-          type: integer
-          format: int32
-          description: The new height in centimeters.
-          example: 175
+          allOf:
+          - $ref: '#/components/schemas/height'
+          - description: The height in centimeters. This field should be given only
+              if it needs to be changed.
       required:
       - id
+    profileID:
+      type: integer
+      format: int64
+      minimum: 1
+      example: 1000
+    nickname:
+      type: string
+      minLength: 1
+      maxLength: 50
+      example: Lee
+    genderType:
+      type: integer
+      format: int32
+      enum:
+      - 1
+      - 2
+      - 3
+    weight:
+      type: number
+      format: double
+      minimum: 0.0
+      exclusiveMinimum: true
+      example: 60.5
+    height:
+      type: integer
+      format: int32
+      minimum: 1
+      example: 177

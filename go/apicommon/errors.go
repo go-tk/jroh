@@ -6,24 +6,39 @@ import (
 
 const ErrorParse ErrorCode = -32700
 
-var ErrParse = &Error{
-	Code:    ErrorParse,
-	Message: "parse error",
+func NewParseError() *Error {
+	return &Error{
+		Code:    ErrorParse,
+		Message: "parse error",
+	}
 }
+
+var errParse *Error = NewParseError()
+var ErrParse error = errParse
 
 const ErrorInvalidParams ErrorCode = -32602
 
-var ErrInvalidParams = &Error{
-	Code:    ErrorInvalidParams,
-	Message: "invalid params",
+func NewInvalidParamsError() *Error {
+	return &Error{
+		Code:    ErrorInvalidParams,
+		Message: "invalid params",
+	}
 }
+
+var errInvalidParams *Error = NewInvalidParamsError()
+var ErrInvalidParams error = errInvalidParams
 
 const ErrorInternal ErrorCode = -32603
 
-var ErrInternal = &Error{
-	Code:    ErrorInternal,
-	Message: "internal error",
+func NewInternalError() *Error {
+	return &Error{
+		Code:    ErrorInternal,
+		Message: "internal error",
+	}
 }
+
+var errInternal *Error = NewInternalError()
+var ErrInternal error = errInternal
 
 type ErrorCode int32
 

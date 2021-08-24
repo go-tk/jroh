@@ -15,12 +15,9 @@ methods:
     params:
       Profile:
         type: Profile
-        description: Details of the profile.
     results:
       Profile-ID:
-        type: int64
-        description: The identifier of the profile created.
-        example: 1000
+        type: Profile-ID
 
   Get-Profile:
     service_ids:
@@ -29,13 +26,10 @@ methods:
     description: Retrieves an existing profile.
     params:
       Profile-ID:
-        type: int64
-        description: The identifier of the profile to retrieve.
-        example: 1000
+        type: Profile-ID
     results:
       Profile:
         type: Profile
-        description: Details of the profile.
     error_cases:
       Profile-Not-Found: {}
 
@@ -47,7 +41,6 @@ methods:
     params:
       Profile-Patch:
         type: Profile-Patch
-        description: The patch to apply to the profile.
     error_cases:
       Profile-Not-Found: {}
 
@@ -58,72 +51,9 @@ methods:
     description: Purges an existing profile.
     params:
       Profile-ID:
-        type: int64
-        description: The identifier of the profile to purge.
-        example: 1000
+        type: Profile-ID
     error_cases:
       Profile-Not-Found: {}
-
-models:
-  Profile:
-    type: struct
-    fields:
-      ID:
-        type: int64
-        description: The identifier of the profile. It's ignored while creating a profile.
-        example: 1000
-      Nickname:
-        type: string
-        description: The nickname. Should not be empty string.
-        example: Lee
-      Gender-Type:
-        type: Gender-Type
-        description: The type of gender.
-      Weight:
-        type: float64?
-        description: The weight in kilograms.
-        example: 177.1
-      Height:
-        type: int32?
-        description: The height in centimeters.
-        example: 73
-
-  Gender-Type:
-    type: enum
-    underlying_type: int32
-    constants:
-      Gender-Female:
-        value: 1
-        description: The gender is female.
-      Gender-Male:
-        value: 2
-        description: The gender is male.
-      Gender-Other:
-        value: 3
-        description: Other genders.
-
-  Profile-Patch:
-    type: struct
-    fields:
-      ID:
-        type: int64
-        description: The identifier of the profile to update.
-        example: 1000
-      Nickname:
-        type: string?
-        description: The new nickname. Should not be empty string.
-        example: Lyn
-      Gender-Type:
-        type: Gender-Type?
-        description: The new type of gender.
-      Weight:
-        type: float64?
-        description: The new weight in kilograms.
-        example: 70.8
-      Height:
-        type: int32?
-        description: The new height in centimeters.
-        example: 175
 
 errors:
   Profile-Not-Found:

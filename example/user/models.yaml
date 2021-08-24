@@ -1,0 +1,85 @@
+namespace: User
+
+models:
+  Profile:
+    type: struct
+    fields:
+      ID:
+        type: Profile-ID
+        description: The identifier of the profile. It's ignored while creating a profile.
+      Nickname:
+        type: Nickname
+      Gender-Type:
+        type: Gender-Type
+      Weight:
+        type: Weight
+        is_optional: true
+      Height:
+        type: Height
+        is_optional: true
+    description: Details of the profile.
+
+  Profile-Patch:
+    type: struct
+    fields:
+      ID:
+        type: Profile-ID
+        description: The identifier of the profile to update.
+      Nickname:
+        type: Nickname
+        is_optional: true
+        description: + This field should be given only if it needs to be changed.
+      Gender-Type:
+        type: Gender-Type
+        is_optional: true
+        description: + This field should be given only if it needs to be changed.
+      Weight:
+        type: Weight
+        is_optional: true
+        description: + This field should be given only if it needs to be changed.
+      Height:
+        type: Height
+        is_optional: true
+        description: + This field should be given only if it needs to be changed.
+    description: The patch to apply to the profile.
+
+  Profile-ID:
+    type: int64
+    min: 1
+    description: The identifier of the profile.
+    example: 1000
+
+  Nickname:
+    type: string
+    min_length: 1
+    max_length: 50
+    description: The nickname.
+    example: Lee
+
+  Gender-Type:
+    type: enum
+    underlying_type: int32
+    constants:
+      Gender-Female:
+        value: 1
+        description: The gender is female.
+      Gender-Male:
+        value: 2
+        description: The gender is male.
+      Gender-Other:
+        value: 3
+        description: Other genders.
+    description: The type of gender.
+
+  Weight:
+    type: float64
+    min: 0.0
+    min_is_exclusive: true
+    description: The weight in kilograms.
+    example: 60.5
+
+  Height:
+    type: int32
+    min: 1
+    description: The height in centimeters.
+    example: 177

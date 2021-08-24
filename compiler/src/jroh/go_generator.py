@@ -5,7 +5,22 @@ from typing import Callable, Optional
 from mako.template import Template
 
 from . import utils
-from .spec import MODEL_ENUM, MODEL_STRUCT, Error, Field, Method, Model, Service, Spec
+from .spec import (
+    BOOL,
+    ENUM,
+    FLOAT32,
+    FLOAT64,
+    INT32,
+    INT64,
+    STRING,
+    STRUCT,
+    Error,
+    Field,
+    Method,
+    Model,
+    Service,
+    Spec,
+)
 
 
 @dataclass
@@ -76,12 +91,12 @@ type ${service_name}Service interface {
     method_name = utils.pascal_case(method.id)
 %>\
     ${method_name}(ctx ${context1()}.Context\
-% if method.params is not None:
+    % if method.params is not None:
 , params *${method_name}Params\
-% endif
-% if method.results is not None:
+    % endif
+    % if method.results is not None:
 , results *${method_name}Results\
-% endif
+    % endif
 ) (err error)
 % endfor
 }
@@ -95,12 +110,12 @@ var _ ${service_name}Service = Dummy${service_name}Service{}
     method_name = utils.pascal_case(method.id)
 %>\
 func (Dummy${service_name}Service) ${method_name}(${context1()}.Context\
-% if method.params is not None:
+    % if method.params is not None:
 , *${method_name}Params\
-% endif
-% if method.results is not None:
+    % endif
+    % if method.results is not None:
 , *${method_name}Results\
-% endif
+    % endif
 ) error { return nil }
 % endfor
 
@@ -117,21 +132,21 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
         incomingRPCFactory := func(traceID string) *${apicommon()}.IncomingRPC {
             var s struct {
                 IncomingRPC ${apicommon()}.IncomingRPC
-% if method.params is not None:
+    % if method.params is not None:
                 Params ${method_name}Params
-% endif
-% if method.results is not None:
+    % endif
+    % if method.results is not None:
                 Results ${method_name}Results
-% endif
+    % endif
             }
             rpcHandler := func(ctx ${context1()}.Context, rpc *${apicommon()}.RPC) error {
                 return service.${method_name}(ctx\
-% if method.params is not None:
+    % if method.params is not None:
 , rpc.Params().(*${method_name}Params)\
-% endif
-% if method.results is not None:
+    % endif
+    % if method.results is not None:
 , rpc.Results().(*${method_name}Results)\
-% endif
+    % endif
 )
             }
             s.IncomingRPC.Init(
@@ -139,16 +154,16 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
                 "${service_name}",
                 "${method_name}",
                 traceID,
-% if method.params is None:
+    % if method.params is None:
                 nil,
-% else:
+    % else:
                 &s.Params,
-% endif
-% if method.results is None:
+    % endif
+    % if method.results is None:
                 nil,
-% else:
+    % else:
                 &s.Results,
-% endif
+    % endif
                 rpcHandler,
                 rpcInterceptors,
             )
@@ -182,81 +197,274 @@ package {self._make_package_name()}
                 r"""\
 <%
     apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
+    strconv = g._import_package("strconv", "strconv")
+    fmt = g._import_package("fmt", "fmt")
 %>\
+<%def name="struct_validate_func(model_name, fields)">\
+func (m *${model_name}) Validate(validationContext *${apicommon()}.ValidationContext) bool {
+    % for field in fields:
+<%
+    field_name = utils.pascal_case(field.id)
+    field_type = field.type
+
+    indent = "    "
+    v = "m." + field_name
+    path_component = '"' + utils.camel_case(field.id) + '"'
+%>\
+        % if field.is_optional:
+${indent}if ${v} != nil {
+<%
+    indent += "    "
+%>\
+            % if field_type.is_primitive():
+${indent}v := *${v}
+<%
+    v = "v"
+%>\
+            % endif
+        % elif field.is_repeated:
+${indent}validationContext.Enter(${path_component})
+            % if field.min_count >= 1:
+${indent}if len(${v}) < ${field.min_count} {
+${indent}    validationContext.SetErrorDetails("length < ${field.min_count}")
+${indent}    return false
+${indent}}
+            % endif
+            % if field.max_count is not None:
+${indent}if len(${v}) > ${field.max_count} {
+${indent}    validationContext.SetErrorDetails("length > ${field.max_count}")
+${indent}    return false
+${indent}}
+            % endif
+${indent}for i := range ${v} {
+<%
+    indent += "    "
+%>\
+${indent}v := &${v}[i]
+<%
+    v = "v"
+    path_component = strconv() + ".Itoa(i)"
+%>\
+        % endif
+${indent}validationContext.Enter(${path_component})
+        % if field_type.is_primitive():
+${validate_primitive_value(indent, v, field_type.primitive_type(), field)}\
+        % else:
+${indent}if !${v}.Validate(validationContext) {
+${indent}    return false
+${indent}}
+${indent}validationContext.Leave()
+        % endif
+        % if field.is_repeated or field.is_optional:
+<%
+    indent = indent[:-4]
+%>\
+${indent}}
+        % endif
+        % if field.is_repeated:
+${indent}validationContext.Leave()
+        % endif
+    % endfor
+${indent}return true
+}
+</%def>\
+<%def name="validate_primitive_value(indent, v, primitive_type, primitive_constraints)">\
+    % if primitive_type in (INT32, INT64):
+        % if primitive_constraints.min is not None:
+${indent}if ${v} < ${primitive_constraints.min} {
+${indent}    validationContext.SetErrorDetails("value < ${primitive_constraints.min}")
+${indent}    return false
+${indent}}
+        % endif
+        % if primitive_constraints.max is not None:
+${indent}if ${v} > ${primitive_constraints.max} {
+${indent}    validationContext.SetErrorDetails("value > ${primitive_constraints.max}")
+${indent}    return false
+${indent}}
+        % endif
+    % elif primitive_type in (FLOAT32, FLOAT64):
+        % if primitive_constraints.min is not None:
+            % if primitive_constraints.min_is_exclusive:
+<%
+    min = str(primitive_constraints.min).removesuffix(".0")
+%>\
+${indent}if ${v} <= ${min} {
+${indent}    validationContext.SetErrorDetails("value <= ${min}")
+${indent}    return false
+${indent}}
+            % else:
+${indent}if ${v} < ${min} {
+${indent}    validationContext.SetErrorDetails("value < ${min}")
+${indent}    return false
+${indent}}
+            % endif
+        % endif
+        % if primitive_constraints.max is not None:
+<%
+    max = str(primitive_constraints.max).removesuffix(".0")
+%>\
+            % if primitive_constraints.max_is_exclusive:
+${indent}if ${v} >= ${max} {
+${indent}    validationContext.SetErrorDetails("value >= ${max}")
+${indent}    return false
+${indent}}
+            % else:
+${indent}if ${v} > ${max} {
+${indent}    validationContext.SetErrorDetails("value > ${max}")
+${indent}    return false
+${indent}}
+            % endif
+        % endif
+    % elif primitive_type == STRING:
+        % if primitive_constraints.min_length is not None:
+${indent}if len(${v}) < ${primitive_constraints.min_length} {
+${indent}    validationContext.SetErrorDetails("length < ${primitive_constraints.min_length}")
+${indent}    return false
+${indent}}
+        % endif
+        % if primitive_constraints.max_length is not None:
+${indent}if len(${v}) > ${primitive_constraints.max_length} {
+${indent}    validationContext.SetErrorDetails("length > ${primitive_constraints.max_length}")
+${indent}    return false
+${indent}}
+        % endif
+    % endif
+</%def>\
 % for method in methods:
 <%
     method_name = utils.pascal_case(method.id)
 %>\
-% if method.params is not None:
+    % if method.params is not None:
 
 type ${method_name}Params struct {
-% for field in method.params.fields:
+        % for field in method.params.fields:
     ${g._generate_field_code(field)}
-% endfor
+        % endfor
 }
-% endif
+
+var _ ${apicommon()}.Validator = (*${method_name}Params)(nil)
+
+${struct_validate_func(method_name + "Params", method.params.fields)}\
+    % endif
 
 type ${method_name}Resp struct {
     TraceID string `json:"traceID"`
     Error *${apicommon()}.Error `json:"error,omitempty"`
-% if method.results is not None:
+    % if method.results is not None:
     Results *${method_name}Results `json:"results,omitempty"`
-% endif
+    % endif
 }
-% if method.results is not None:
+    % if method.results is not None:
 
 type ${method_name}Results struct {
-% for field in method.results.fields:
+        % for field in method.results.fields:
     ${g._generate_field_code(field)}
-% endfor
+        % endfor
 }
-% endif
+
+var _ ${apicommon()}.Validator = (*${method_name}Results)(nil)
+
+${struct_validate_func(method_name + "Results", method.results.fields)}\
+    % endif
 % endfor
 % for model in models:
 <%
     model_name = utils.pascal_case(model.id)
 %>\
 
-% if model.type == MODEL_STRUCT:
+    % if model.type == STRUCT:
 <%
     struct = model.struct()
 %>\
 type ${model_name} struct {
-% for field in struct.fields:
+    % for field in struct.fields:
     ${g._generate_field_code(field)}
-% endfor
+    % endfor
 }
-% elif model.type == MODEL_ENUM:
+
+var _ ${apicommon()}.Validator = (*${model_name})(nil)
+
+${struct_validate_func(model_name, struct.fields)}\
+    % elif model.type == ENUM:
 <%
     enum = model.enum()
 %>\
 type ${model_name} ${enum.underlying_type}
 
 const (
-% for constant in enum.constants:
-        ${utils.pascal_case(constant.id)} ${model_name} = \
-% if isinstance(constant.value, int):
+        % for constant in enum.constants:
+    ${utils.pascal_case(constant.id)} ${model_name} = \
+            % if isinstance(constant.value, int):
 ${constant.value}
-% elif isinstance(constant.value, str):
+            % elif isinstance(constant.value, str):
 ${utils.quote(constant.value)}
-% else:
+            % else:
 <%
     assert False, type(constant.value)
 %>\
-% endif
-% endfor
+            % endif
+        % endfor
 )
-% else:
+
+var _ ${fmt()}.Stringer = ${model_name}(${primitive_zero_literals[enum.underlying_type]})
+
+func (m ${model_name}) String() string {
+    switch m {
+        % for constant in enum.constants:
+        case ${utils.pascal_case(constant.id)}:
+            return "${utils.pascal_case(constant.id)}"
+        % endfor
+        default:
+        % if enum.underlying_type in (INT32, INT64):
+            return "${model_name}(" + ${strconv()}.FormatInt(int64(m), 10) + ")"
+        % elif enum.underlying_type == STRING:
+            return "${model_name}(" + ${strconv()}.Quote(string(m)) + ")"
+        % else:
 <%
-    assert False, model.type
+    assert False, enum.underlying_type
 %>\
-% endif
+        % endif
+    }
+}
+
+var _ ${apicommon()}.Validator = ${model_name}(${primitive_zero_literals[enum.underlying_type]})
+
+func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationContext) bool {
+    switch m {
+        % for constant in enum.constants:
+        case ${utils.pascal_case(constant.id)}:
+            return true
+        % endfor
+        default:
+            validationContext.SetErrorDetails("invalid ${model_name}")
+            return false
+    }
+}
+    % else:
+<%
+    xprimit = model.xprimit()
+%>\
+type ${model_name} ${xprimit.primitive_type}
+
+var _ ${apicommon()}.Validator = ${model_name}(${primitive_zero_literals[xprimit.primitive_type]})
+
+func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationContext) bool {
+${validate_primitive_value("    ", "m", xprimit.primitive_type, xprimit)}\
+    return true
+}
+    % endif
 % endfor
 """
             ).render(
                 utils=utils,
-                MODEL_STRUCT=MODEL_STRUCT,
-                MODEL_ENUM=MODEL_ENUM,
+                STRUCT=STRUCT,
+                ENUM=ENUM,
+                INT32=INT32,
+                INT64=INT64,
+                FLOAT32=FLOAT32,
+                FLOAT64=FLOAT64,
+                STRING=STRING,
+                primitive_zero_literals=_primitive_zero_literals,
                 g=self,
                 methods=methods,
                 models=models,
@@ -285,10 +493,15 @@ package {self._make_package_name()}
 
 const Error${error_name} ${apicommon()}.ErrorCode = ${error.code}
 
-var Err${error_name} = &${apicommon()}.Error{
-    Code:    Error${error_name},
-    Message: "${error.id.lower().replace("-", " ")}",
+func New${error_name}Error() *${apicommon()}.Error {
+    return &${apicommon()}.Error{
+        Code: Error${error_name},
+        Message: "${error.id.lower().replace("-", " ")}",
+    }
 }
+
+var err${error_name} *${apicommon()}.Error = New${error_name}Error()
+var Err${error_name} error = err${error_name}
 % endfor
 """
             ).render(
@@ -327,16 +540,16 @@ import (
     def _generate_field_code(self, field: Field) -> str:
         field_type = field.type
         field_type_code = ""
-        if field_type.is_repeated():
+        if field.is_repeated:
             field_type_code += "[]"
         else:
-            if field_type.is_optional():
+            if field.is_optional:
                 field_type_code += "*"
-        if (primitive_type := field_type.primitive_type) is not None:
+        if field_type.is_primitive():
+            primitive_type = field_type.primitive_type()
             field_type_code += primitive_type
         else:
-            model_ref = field_type.model_ref
-            assert model_ref is not None
+            model_ref = field_type.model_ref()
             namespace = model_ref.namespace
             if namespace is None:
                 namespace = self._namespace
@@ -346,7 +559,7 @@ import (
                 field_type_code += import_name + "."
             field_type_code += utils.pascal_case(model_ref.id)
         json_tag = utils.camel_case(field.id)
-        if field_type.is_optional():
+        if field.is_optional or (field.is_repeated and field.min_count == 0):
             json_tag += ",omitempty"
         filed_code = (
             f'{utils.pascal_case(field.id)} {field_type_code} `json:"{json_tag}"`'
@@ -397,3 +610,13 @@ import (
 class _Import:
     package_path: str
     ref_count: int
+
+
+_primitive_zero_literals: dict[str, str] = {
+    BOOL: "false",
+    INT32: "0",
+    INT64: "0",
+    FLOAT32: "0",
+    FLOAT64: "0",
+    STRING: '""',
+}
