@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"unsafe"
@@ -14,15 +16,17 @@ func (r *RPC) OutgoingRPC() *OutgoingRPC { return (*OutgoingRPC)(unsafe.Pointer(
 type OutgoingRPC struct {
 	RPC
 
-	client    *http.Client
-	url       string
-	rawParams []byte
-	rawResp   []byte
-	error     Error
+	client     *http.Client
+	url        string
+	rawParams  []byte
+	statusCode int
+	rawResp    []byte
+	error      Error
 }
 
 func (or *OutgoingRPC) URL() string       { return or.url }
 func (or *OutgoingRPC) RawParams() []byte { return or.rawParams }
+func (or *OutgoingRPC) StatusCode() int   { return or.statusCode }
 func (or *OutgoingRPC) RawResp() []byte   { return or.rawResp }
 func (or *OutgoingRPC) Error() Error      { return or.error }
 
@@ -74,7 +78,9 @@ func (or *OutgoingRPC) readResp(responseBody io.ReadCloser) error {
 	return nil
 }
 
-func HandleOutgoingRPC(ctx context.Context, rpc *RPC) error {
+var ErrUnexpectedStatus = errors.New("api: unexpected status")
+
+func HandleRPC(ctx context.Context, rpc *RPC) error {
 	outgoingRPC := rpc.OutgoingRPC()
 	if err := outgoingRPC.encodeParams(); err != nil {
 		return err
@@ -91,6 +97,10 @@ func HandleOutgoingRPC(ctx context.Context, rpc *RPC) error {
 	if err != nil {
 		return err
 	}
+	outgoingRPC.statusCode = response.StatusCode
+	if outgoingRPC.statusCode != http.StatusOK {
+		return fmt.Errorf("%w: statusCode=%v", ErrUnexpectedStatus, outgoingRPC.statusCode)
+	}
 	if err := outgoingRPC.readResp(response.Body); err != nil {
 		return err
 	}
@@ -100,4 +110,4 @@ func HandleOutgoingRPC(ctx context.Context, rpc *RPC) error {
 	return nil
 }
 
-var _ RPCHandler = HandleOutgoingRPC
+var _ RPCHandler = HandleRPC

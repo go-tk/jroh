@@ -265,7 +265,7 @@ func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
     % else:
         &s.Results,
     % endif
-        ${apicommon()}.HandleOutgoingRPC,
+        ${apicommon()}.HandleRPC,
         rpcInterceptors,
     )
     error, err := c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})

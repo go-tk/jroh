@@ -30,7 +30,7 @@ func MakeHandler(
 	incomingRPCFactory IncomingRPCFactory,
 	traceIDGenerator TraceIDGenerator,
 ) http.Handler {
-	handler := http.Handler(http.HandlerFunc(handleIncomingHTTP))
+	handler := http.Handler(http.HandlerFunc(handleHTTP))
 	for i := len(middlewares) - 1; i >= 0; i-- {
 		middleware := middlewares[i]
 		handler = middleware(handler)

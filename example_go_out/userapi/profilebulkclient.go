@@ -41,7 +41,7 @@ func (c *profileBulkClient) CreateProfilesInBulk(ctx context.Context, params *Cr
 		"CreateProfilesInBulk",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/ProfileBulk.DeleteProfilesInBulk")
@@ -74,7 +74,7 @@ func (c *profileBulkClient) GetProfilesInBulk(ctx context.Context, params *GetPr
 		"GetProfilesInBulk",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/ProfileBulk.DeleteProfilesInBulk")
@@ -107,7 +107,7 @@ func (c *profileBulkClient) UpdateProfilesInBulk(ctx context.Context, params *Up
 		"UpdateProfilesInBulk",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/ProfileBulk.DeleteProfilesInBulk")
@@ -140,7 +140,7 @@ func (c *profileBulkClient) DeleteProfilesInBulk(ctx context.Context, params *De
 		"DeleteProfilesInBulk",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/ProfileBulk.DeleteProfilesInBulk")

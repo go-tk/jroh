@@ -41,7 +41,7 @@ func (c *profileClient) CreateProfile(ctx context.Context, params *CreateProfile
 		"CreateProfile",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Profile.DeleteProfile")
@@ -74,7 +74,7 @@ func (c *profileClient) GetProfile(ctx context.Context, params *GetProfileParams
 		"GetProfile",
 		&s.Params,
 		&s.Results,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Profile.DeleteProfile")
@@ -106,7 +106,7 @@ func (c *profileClient) UpdateProfile(ctx context.Context, params *UpdateProfile
 		"UpdateProfile",
 		&s.Params,
 		nil,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Profile.DeleteProfile")
@@ -137,7 +137,7 @@ func (c *profileClient) DeleteProfile(ctx context.Context, params *DeleteProfile
 		"DeleteProfile",
 		&s.Params,
 		nil,
-		apicommon.HandleOutgoingRPC,
+		apicommon.HandleRPC,
 		rpcInterceptors,
 	)
 	error, err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Profile.DeleteProfile")

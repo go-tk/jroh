@@ -124,7 +124,7 @@ func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
 	_, ir.writeRespErr = responseWriter.Write(ir.rawResp)
 }
 
-func handleIncomingHTTP(w http.ResponseWriter, r *http.Request) {
+func handleHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	incomingRPC := MustGetRPCFromContext(ctx).IncomingRPC()
 	defer func() {
@@ -141,4 +141,4 @@ func handleIncomingHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var _ http.HandlerFunc = handleIncomingHTTP
+var _ http.HandlerFunc = handleHTTP
