@@ -8,13 +8,6 @@ import (
 	http "net/http"
 )
 
-const (
-	ProfileService_CreateProfile apicommon.MethodIndex = 0
-	ProfileService_GetProfile    apicommon.MethodIndex = 1
-	ProfileService_UpdateProfile apicommon.MethodIndex = 2
-	ProfileService_DeleteProfile apicommon.MethodIndex = 3
-)
-
 type ProfileService interface {
 	CreateProfile(ctx context.Context, params *CreateProfileParams, results *CreateProfileResults) (err error)
 	GetProfile(ctx context.Context, params *GetProfileParams, results *GetProfileResults) (err error)
@@ -36,11 +29,15 @@ func (DummyProfileService) UpdateProfile(context.Context, *UpdateProfileParams) 
 func (DummyProfileService) DeleteProfile(context.Context, *DeleteProfileParams) error { return nil }
 
 func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.ServeMux, options apicommon.RegisterHandlersOptions) {
-	options.Normalize(4)
+	options.Sanitize()
+	var middlewareTable [4][]apicommon.Middleware
+	apicommon.FillMiddlewareTable(middlewareTable[:], options.Middlewares)
+	var rpcInterceptorTable [4][]apicommon.RPCHandler
+	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], options.RPCInterceptors)
 	{
-		middlewares := options.Middlewares[ProfileService_CreateProfile]
-		rpcInterceptors := options.RPCInterceptors[ProfileService_CreateProfile]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileService_CreateProfile]
+		rpcInterceptors := rpcInterceptorTable[ProfileService_CreateProfile]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      CreateProfileParams
@@ -53,7 +50,6 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 				"User",
 				"Profile",
 				"CreateProfile",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -61,13 +57,13 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/Profile.CreateProfile", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileService_GetProfile]
-		rpcInterceptors := options.RPCInterceptors[ProfileService_GetProfile]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileService_GetProfile]
+		rpcInterceptors := rpcInterceptorTable[ProfileService_GetProfile]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      GetProfileParams
@@ -80,7 +76,6 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 				"User",
 				"Profile",
 				"GetProfile",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -88,13 +83,13 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/Profile.GetProfile", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileService_UpdateProfile]
-		rpcInterceptors := options.RPCInterceptors[ProfileService_UpdateProfile]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileService_UpdateProfile]
+		rpcInterceptors := rpcInterceptorTable[ProfileService_UpdateProfile]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      UpdateProfileParams
@@ -106,7 +101,6 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 				"User",
 				"Profile",
 				"UpdateProfile",
-				traceID,
 				&s.Params,
 				nil,
 				rpcHandler,
@@ -114,13 +108,13 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/Profile.UpdateProfile", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileService_DeleteProfile]
-		rpcInterceptors := options.RPCInterceptors[ProfileService_DeleteProfile]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileService_DeleteProfile]
+		rpcInterceptors := rpcInterceptorTable[ProfileService_DeleteProfile]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      DeleteProfileParams
@@ -132,7 +126,6 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 				"User",
 				"Profile",
 				"DeleteProfile",
-				traceID,
 				&s.Params,
 				nil,
 				rpcHandler,
@@ -140,7 +133,7 @@ func RegisterHandlersOfProfileService(service ProfileService, serveMux *http.Ser
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/Profile.DeleteProfile", handler)
 	}
 }

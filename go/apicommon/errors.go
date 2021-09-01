@@ -49,6 +49,8 @@ type Error struct {
 	Data    ErrorData `json:"data,omitempty"`
 }
 
+var _ error = (*Error)(nil)
+
 func (e *Error) Error() string {
 	if e.Details == "" {
 		return "api: " + e.Message + " (" + strconv.FormatInt(int64(e.Code), 10) + ")"

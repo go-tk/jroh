@@ -8,13 +8,6 @@ import (
 	http "net/http"
 )
 
-const (
-	ProfileBulkService_CreateProfilesInBulk apicommon.MethodIndex = 0
-	ProfileBulkService_GetProfilesInBulk    apicommon.MethodIndex = 1
-	ProfileBulkService_UpdateProfilesInBulk apicommon.MethodIndex = 2
-	ProfileBulkService_DeleteProfilesInBulk apicommon.MethodIndex = 3
-)
-
 type ProfileBulkService interface {
 	CreateProfilesInBulk(ctx context.Context, params *CreateProfilesInBulkParams, results *CreateProfilesInBulkResults) (err error)
 	GetProfilesInBulk(ctx context.Context, params *GetProfilesInBulkParams, results *GetProfilesInBulkResults) (err error)
@@ -40,11 +33,15 @@ func (DummyProfileBulkService) DeleteProfilesInBulk(context.Context, *DeleteProf
 }
 
 func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *http.ServeMux, options apicommon.RegisterHandlersOptions) {
-	options.Normalize(4)
+	options.Sanitize()
+	var middlewareTable [4][]apicommon.Middleware
+	apicommon.FillMiddlewareTable(middlewareTable[:], options.Middlewares)
+	var rpcInterceptorTable [4][]apicommon.RPCHandler
+	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], options.RPCInterceptors)
 	{
-		middlewares := options.Middlewares[ProfileBulkService_CreateProfilesInBulk]
-		rpcInterceptors := options.RPCInterceptors[ProfileBulkService_CreateProfilesInBulk]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileBulkService_CreateProfilesInBulk]
+		rpcInterceptors := rpcInterceptorTable[ProfileBulkService_CreateProfilesInBulk]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      CreateProfilesInBulkParams
@@ -57,7 +54,6 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 				"User",
 				"ProfileBulk",
 				"CreateProfilesInBulk",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -65,13 +61,13 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/ProfileBulk.CreateProfilesInBulk", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileBulkService_GetProfilesInBulk]
-		rpcInterceptors := options.RPCInterceptors[ProfileBulkService_GetProfilesInBulk]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileBulkService_GetProfilesInBulk]
+		rpcInterceptors := rpcInterceptorTable[ProfileBulkService_GetProfilesInBulk]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      GetProfilesInBulkParams
@@ -84,7 +80,6 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 				"User",
 				"ProfileBulk",
 				"GetProfilesInBulk",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -92,13 +87,13 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/ProfileBulk.GetProfilesInBulk", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileBulkService_UpdateProfilesInBulk]
-		rpcInterceptors := options.RPCInterceptors[ProfileBulkService_UpdateProfilesInBulk]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileBulkService_UpdateProfilesInBulk]
+		rpcInterceptors := rpcInterceptorTable[ProfileBulkService_UpdateProfilesInBulk]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      UpdateProfilesInBulkParams
@@ -111,7 +106,6 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 				"User",
 				"ProfileBulk",
 				"UpdateProfilesInBulk",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -119,13 +113,13 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/ProfileBulk.UpdateProfilesInBulk", handler)
 	}
 	{
-		middlewares := options.Middlewares[ProfileBulkService_DeleteProfilesInBulk]
-		rpcInterceptors := options.RPCInterceptors[ProfileBulkService_DeleteProfilesInBulk]
-		incomingRPCFactory := func(traceID string) *apicommon.IncomingRPC {
+		middlewares := middlewareTable[ProfileBulkService_DeleteProfilesInBulk]
+		rpcInterceptors := rpcInterceptorTable[ProfileBulkService_DeleteProfilesInBulk]
+		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
 				Params      DeleteProfilesInBulkParams
@@ -138,7 +132,6 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 				"User",
 				"ProfileBulk",
 				"DeleteProfilesInBulk",
-				traceID,
 				&s.Params,
 				&s.Results,
 				rpcHandler,
@@ -146,7 +139,7 @@ func RegisterHandlersOfProfileBulkService(service ProfileBulkService, serveMux *
 			)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
 		serveMux.Handle("/rpc/ProfileBulk.DeleteProfilesInBulk", handler)
 	}
 }

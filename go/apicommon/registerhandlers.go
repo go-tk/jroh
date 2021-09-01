@@ -2,8 +2,6 @@ package apicommon
 
 import (
 	"bytes"
-	"encoding/base64"
-	"math/rand"
 	"net/http"
 )
 
@@ -13,43 +11,9 @@ type RegisterHandlersOptions struct {
 	TraceIDGenerator TraceIDGenerator
 }
 
-func (rho *RegisterHandlersOptions) Normalize(numberOfMethods int) {
-	if commonMiddlewares := rho.Middlewares[AnyMethod]; len(commonMiddlewares) >= 1 {
-		middlewares := make(map[MethodIndex][]Middleware, numberOfMethods)
-		for methodIndex := MethodIndex(0); methodIndex < MethodIndex(numberOfMethods); methodIndex++ {
-			oldMiddlewares := rho.Middlewares[methodIndex]
-			if len(oldMiddlewares) == 0 {
-				middlewares[methodIndex] = commonMiddlewares
-				continue
-			}
-			newMiddlewares := make([]Middleware, len(commonMiddlewares)+len(oldMiddlewares))
-			copy(newMiddlewares, commonMiddlewares)
-			copy(newMiddlewares[len(commonMiddlewares):], oldMiddlewares)
-			middlewares[methodIndex] = newMiddlewares
-		}
-		rho.Middlewares = middlewares
-	}
-	if commonRPCInterceptors := rho.RPCInterceptors[AnyMethod]; len(commonRPCInterceptors) >= 1 {
-		rpcInterceptors := make(map[MethodIndex][]RPCHandler, numberOfMethods)
-		for methodIndex := MethodIndex(0); methodIndex < MethodIndex(numberOfMethods); methodIndex++ {
-			oldRPCInterceptors := rho.RPCInterceptors[methodIndex]
-			if len(oldRPCInterceptors) == 0 {
-				rpcInterceptors[methodIndex] = commonRPCInterceptors
-			}
-			newRPCInterceptors := make([]RPCHandler, len(commonRPCInterceptors)+len(oldRPCInterceptors))
-			copy(newRPCInterceptors, commonRPCInterceptors)
-			copy(newRPCInterceptors[len(commonRPCInterceptors):], oldRPCInterceptors)
-			rpcInterceptors[methodIndex] = newRPCInterceptors
-		}
-		rho.RPCInterceptors = rpcInterceptors
-	}
+func (rho *RegisterHandlersOptions) Sanitize() {
 	if rho.TraceIDGenerator == nil {
-		rho.TraceIDGenerator = func() string {
-			var buffer [16]byte
-			rand.Read(buffer[:])
-			traceID := base64.RawURLEncoding.EncodeToString(buffer[:])
-			return traceID
-		}
+		rho.TraceIDGenerator = generateTraceID
 	}
 }
 
@@ -59,14 +23,14 @@ const AnyMethod MethodIndex = -1
 
 type Middleware func(oldHandler http.Handler) (newHandler http.Handler)
 type TraceIDGenerator func() (traceID string)
-type IncomingRPCFactory func(traceID string) (incomingRPC *IncomingRPC)
+type IncomingRPCFactory func() (incomingRPC *IncomingRPC)
 
 func MakeHandler(
 	middlewares []Middleware,
-	traceIDGenerator TraceIDGenerator,
 	incomingRPCFactory IncomingRPCFactory,
+	traceIDGenerator TraceIDGenerator,
 ) http.Handler {
-	handler := http.Handler(http.HandlerFunc(handleIncomingRPC))
+	handler := http.Handler(http.HandlerFunc(handleIncomingHTTP))
 	for i := len(middlewares) - 1; i >= 0; i-- {
 		middleware := middlewares[i]
 		handler = middleware(handler)
@@ -77,13 +41,14 @@ func MakeHandler(
 			if _, err := buffer.ReadFrom(r.Body); err != nil {
 				return
 			}
-			traceID := r.Header.Get("X-Trace-ID")
-			if traceID == "" {
-				traceID = traceIDGenerator()
+			incomingRPC := incomingRPCFactory()
+			if traceID := extractTraceID(r.Header); traceID == "" {
+				incomingRPC.traceID = traceIDGenerator()
+			} else {
+				incomingRPC.traceID = traceID
 			}
-			incomingRPC := incomingRPCFactory(traceID)
 			if buffer.Len() >= 1 {
-				incomingRPC.RawParams = buffer.Bytes()
+				incomingRPC.rawParams = buffer.Bytes()
 			}
 			ctx := makeContextWithRPC(r.Context(), &incomingRPC.RPC)
 			handler.ServeHTTP(w, r.WithContext(ctx))

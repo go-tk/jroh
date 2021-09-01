@@ -52,10 +52,14 @@ class _Generator:
         self._namespace = spec.namespace
         for service in spec.services:
             self._generate_service_code(service)
+        for service in spec.services:
+            self._generate_client_code(service)
         if len(spec.methods) + len(spec.models) >= 1:
             self._generate_models_code(spec.methods, spec.models)
         if len(spec.errors) >= 1:
             self._generate_errors_code(spec.errors)
+        if len(spec.services) >= 1:
+            self._generate_misc_code(spec.services)
 
     def _generate_service_code(self, service: Service) -> None:
         self._buffer.append(
@@ -76,15 +80,6 @@ package {self._make_package_name()}
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
 %>\
-const (
-% for i, method in enumerate(service.methods):
-<%
-    method_name = utils.pascal_case(method.id)
-%>\
-    ${service_name}Service_${method_name} ${apicommon()}.MethodIndex = ${i}
-% endfor
-)
-
 type ${service_name}Service interface {
 % for method in service.methods:
 <%
@@ -120,16 +115,20 @@ func (Dummy${service_name}Service) ${method_name}(${context1()}.Context\
 % endfor
 
 func RegisterHandlersOf${service_name}Service(service ${service_name}Service, serveMux *${http()}.ServeMux, options ${apicommon()}.RegisterHandlersOptions) {
-    options.Normalize(${len(service.methods)})
+    options.Sanitize()
+    var middlewareTable [${len(service.methods)}][]${apicommon()}.Middleware
+    ${apicommon()}.FillMiddlewareTable(middlewareTable[:], options.Middlewares)
+    var rpcInterceptorTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+    ${apicommon()}.FillRPCInterceptorTable(rpcInterceptorTable[:], options.RPCInterceptors)
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
     rpc_path = service.rpc_paths[i]
 %>\
     {
-        middlewares := options.Middlewares[${service_name}Service_${method_name}]
-        rpcInterceptors := options.RPCInterceptors[${service_name}Service_${method_name}]
-        incomingRPCFactory := func(traceID string) *${apicommon()}.IncomingRPC {
+        middlewares := middlewareTable[${service_name}Service_${method_name}]
+        rpcInterceptors := rpcInterceptorTable[${service_name}Service_${method_name}]
+        incomingRPCFactory := func() *${apicommon()}.IncomingRPC {
             var s struct {
                 IncomingRPC ${apicommon()}.IncomingRPC
     % if method.params is not None:
@@ -153,7 +152,6 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
                 "${namespace}",
                 "${service_name}",
                 "${method_name}",
-                traceID,
     % if method.params is None:
                 nil,
     % else:
@@ -169,7 +167,7 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
             )
             return &s.IncomingRPC
         }
-        handler := ${apicommon()}.MakeHandler(middlewares, options.TraceIDGenerator, incomingRPCFactory)
+        handler := ${apicommon()}.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
         serveMux.Handle(${utils.quote(rpc_path)}, handler)
     }
 % endfor
@@ -183,6 +181,120 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
         )
         self._buffer[1] = self._generate_imports_code()
         file_name = f"{utils.flat_case(service.id)}service.go"
+        self._flush(file_name)
+
+    def _generate_client_code(self, service: Service) -> None:
+        self._buffer.append(
+            f"""\
+package {self._make_package_name()}
+"""
+        )
+        self._buffer.append("")
+        self._buffer.append(
+            Template(
+                r"""\
+
+<%
+    context1 = g._import_package("context", "context")
+    apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
+
+    namespace = utils.pascal_case(g._namespace)
+    service_name = utils.pascal_case(service.id)
+    service_name2 = utils.camel_case(service.id)
+%>\
+type ${service_name}Client interface {
+% for i, method in enumerate(service.methods):
+<%
+    method_name = utils.pascal_case(method.id)
+    rpc_path = service.rpc_paths[i]
+%>\
+    ${method_name}(ctx ${context1()}.Context\
+    % if method.params is not None:
+, params *${method_name}Params\
+    % endif
+) (resp ${method_name}Resp, err error)
+% endfor
+}
+
+type ${service_name2}Client struct {
+    ${apicommon()}.Client
+
+    rpcInterceptorTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+}
+
+func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOptions) ${service_name}Client {
+    var c ${service_name2}Client
+    c.Init(rpcBaseURL, options)
+    ${apicommon()}.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+    return &c
+}
+% for method in service.methods:
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+
+func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
+    % if method.params is not None:
+, params *${method_name}Params\
+    % endif
+) (${method_name}Resp, error) {
+    var s struct {
+        OutgoingRPC ${apicommon()}.OutgoingRPC
+    % if method.params is not None:
+        Params ${method_name}Params
+    % endif
+    % if method.results is not None:
+        Results ${method_name}Results
+    % endif
+    }
+    % if method.params is not None:
+    s.Params = *params
+    % endif
+    rpcInterceptors := c.rpcInterceptorTable[${service_name}Service_${method_name}]
+    s.OutgoingRPC.Init(
+        "${namespace}",
+        "${service_name}",
+        "${method_name}",
+    % if method.params is None:
+        nil,
+    % else:
+        &s.Params,
+    % endif
+    % if method.results is None:
+        nil,
+    % else:
+        &s.Results,
+    % endif
+        ${apicommon()}.HandleOutgoingRPC,
+        rpcInterceptors,
+    )
+    error, err := c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})
+    if err != nil {
+        return ${method_name}Resp{}, err
+    }
+    if error != nil {
+        return ${method_name}Resp{
+            TraceID: s.OutgoingRPC.TraceID(),
+            Error: error,
+        }, nil
+    }
+    return ${method_name}Resp{
+        TraceID: s.OutgoingRPC.TraceID(),
+    % if method.results is not None:
+        Results: &s.Results,
+    % endif
+    }, nil
+}
+% endfor
+"""
+            ).render(
+                utils=utils,
+                g=self,
+                service=service,
+            )
+        )
+        self._buffer[1] = self._generate_imports_code()
+        file_name = f"{utils.flat_case(service.id)}client.go"
         self._flush(file_name)
 
     def _generate_models_code(self, methods: list[Method], models: list[Model]) -> None:
@@ -512,6 +624,47 @@ var Err${error_name} error = err${error_name}
         )
         self._buffer[1] = self._generate_imports_code()
         self._flush("errors.go")
+
+    def _generate_misc_code(self, services: list[Service]) -> None:
+        self._buffer.append(
+            f"""\
+package {self._make_package_name()}
+"""
+        )
+        self._buffer.append("")
+        self._buffer.append(
+            Template(
+                r"""\
+<%
+    apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
+%>\
+% for service in services:
+<%
+    service_name = utils.pascal_case(service.id)
+%>\
+
+const (
+    % for j, method in enumerate(service.methods):
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+        % if j == 0:
+    ${service_name}Service_${method_name} ${apicommon()}.MethodIndex = iota
+        % else:
+    ${service_name}Service_${method_name}
+        % endif
+    % endfor
+)
+% endfor
+"""
+            ).render(
+                utils=utils,
+                g=self,
+                services=services,
+            )
+        )
+        self._buffer[1] = self._generate_imports_code()
+        self._flush("misc.go")
 
     def _generate_imports_code(self) -> str:
         imports = [
