@@ -98,7 +98,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -111,7 +111,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -155,7 +155,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -306,7 +306,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -327,7 +327,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -340,7 +340,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -511,7 +511,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -671,7 +671,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -788,7 +788,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -986,7 +986,7 @@ components:
         traceID:
           type: string
           description: The identifier of the trace associated with the log entry.
-          example: 9m4e2mr0ui3e8a215n4g
+          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error

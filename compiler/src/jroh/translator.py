@@ -184,7 +184,7 @@ class _Translator:
             "traceID": {
                 "type": "string",
                 "description": "The identifier of the trace associated with the log entry.",
-                "example": "9m4e2mr0ui3e8a215n4g",
+                "example": "Uv38ByGCZU8WP18PmmIdcg",
             },
             "error": {
                 "$ref": self._common_file_path + "#/components/schemas/error",
