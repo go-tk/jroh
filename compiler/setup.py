@@ -9,6 +9,7 @@ setup(
     install_requires=[
         "PyYAML==5.4.1",
         "Mako==1.1.4",
+        "google-re2==0.2.20210901",
     ],
     entry_points={
         "console_scripts": [

@@ -22,7 +22,7 @@ namespace: XYZ
 services:
   Greeting:
     version: 10.1.1
-    rpc_path_template: 'test/{namespace}.{service_id}.{method_id}'
+    rpc_path_template: 'test/{namespace}-{service_id}-{method_id}'
 """,
                     "default/b.yaml": """
 methods:
@@ -45,7 +45,7 @@ info:
   title: Greeting Service
   version: 1.1.1
 paths:
-  /rpc/Greeting.SayHello:
+  /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
       responses:
@@ -68,7 +68,7 @@ info:
   version: 1.1.1
   description: Test
 paths:
-  /rpc/GreetingV2.SayHelloV2:
+  /rpc/Default.GreetingV2.SayHelloV2:
     post:
       operationId: sayHelloV2
       responses:
@@ -125,7 +125,7 @@ info:
   title: Greeting Service
   version: 10.1.1
 paths:
-  /test/XYZ.Greeting.SayHello:
+  /test/XYZ-Greeting-SayHello:
     post:
       operationId: sayHello
       responses:
@@ -425,7 +425,7 @@ info:
   title: Greeting Service
   version: 1.2.1
 paths:
-  /rpc/Greeting.SayHello:
+  /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
       requestBody:
@@ -570,6 +570,7 @@ models:
     type: string
     min_length: 1
     max_length: 100
+    pattern: '[a-z]+'
     description: The Nickname
     example: tommy
   Score:
@@ -605,7 +606,7 @@ info:
   title: Greeting Service
   version: 1.2.1
 paths:
-  /rpc/Greeting.SayHello:
+  /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
       requestBody:
@@ -682,6 +683,7 @@ components:
       type: string
       minLength: 1
       maxLength: 100
+      pattern: '[a-z]+'
       example: tommy
     score:
       type: number
@@ -755,7 +757,7 @@ info:
   title: Greeting Service
   version: 1.2.1
 paths:
-  /rpc/Greeting.SayHello:
+  /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
       responses:
@@ -914,7 +916,7 @@ info:
   title: Greeting Service
   version: 1.2.1
 paths:
-  /rpc/Greeting.SayHello:
+  /rpc/NS1.Greeting.SayHello:
     post:
       operationId: sayHello
       requestBody:

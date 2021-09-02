@@ -1581,6 +1581,43 @@ models:
                 out_exception_type=InvalidSpecError,
                 out_exception_re=r"invalid specification: string too long: node_uri='foo\.yaml#/models/PPP/example' string_length=3 max_string_length=2",
             ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  PPP:
+    type: string
+    pattern: ''
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: string too short: node_uri='foo\.yaml#/models/PPP/pattern' string_length=0 min_string_length=1",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  PPP:
+    type: string
+    pattern: (
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: invalid regular expression \(re2\): node_uri='foo\.yaml#/models/PPP' reg_exp='\('",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+models:
+  PPP:
+    type: string
+    pattern: '[0-9]+'
+    example: aaa
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: unexpected string: node_uri='foo\.yaml#/models/PPP/example' string='aaa' expected_pattern='\[0-9\]\+'",
+            ),
         ]
         common.test(self, test_data_list)
 

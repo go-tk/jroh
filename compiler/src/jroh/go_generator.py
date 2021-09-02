@@ -41,6 +41,7 @@ class _Generator:
         self._output_package_path: str = output_package_path
         self._namespace: str = ""
         self._imports: dict[str, _Import] = {}
+        self._patterns: list[str] = []
         self._buffer: list[str] = []
         self._file_path_2_file_data: dict[str, str] = {}
 
@@ -460,6 +461,15 @@ ${indent}    validationContext.SetErrorDetails("length > ${primitive_constraints
 ${indent}    return false
 ${indent}}
         % endif
+        % if primitive_constraints.pattern != "":
+<%
+    pattern_index = g._add_pattern(primitive_constraints.pattern)
+%>\
+${indent}if patterns[${pattern_index}].MatchString(${v}) {
+${indent}    validationContext.SetErrorDetails("not matched to pattern ${utils.quote(primitive_constraints.pattern)[1:-1]}")
+${indent}    return false
+${indent}}
+        % endif
     % endif
 </%def>\
 % for method in methods:
@@ -602,6 +612,7 @@ ${validate_primitive_value("    ", "m", xprimit.primitive_type, xprimit)}\
                 models=models,
             )
         )
+        self._buffer.append(self._generate_patterns_code())
         self._buffer[1] = self._generate_imports_code()
         self._flush("models.go")
 
@@ -710,6 +721,28 @@ import (
         )
         return imports_code
 
+    def _generate_patterns_code(self) -> str:
+        if len(self._patterns) == 0:
+            return ""
+        patterns_code = Template(
+            r"""\
+<%
+    regexp = g._import_package("regexp", "regexp")
+%>\
+
+var patterns = [...]*regexp.Regexp {
+% for i, pattern in enumerate(patterns):
+    ${i}: ${regexp()}.MustCompile(${utils.quote(pattern)}),
+% endfor
+}
+"""
+        ).render(
+            utils=utils,
+            g=self,
+            patterns=self._patterns,
+        )
+        return patterns_code
+
     def _generate_field_code(self, field: Field) -> str:
         field_type = field.type
         field_type_code = ""
@@ -768,11 +801,24 @@ import (
 
         return package
 
+    def _add_pattern(self, pattern: str) -> int:
+        if not pattern.startswith("^"):
+            pattern = "^" + pattern
+        if not pattern.endswith("$"):
+            pattern += "$"
+        for i, pattern2 in enumerate(self._patterns):
+            if pattern2 == pattern:
+                return i
+        i = len(self._patterns)
+        self._patterns.append(pattern)
+        return i
+
     def _flush(self, file_name: str) -> None:
         file_path = os.path.join(self._make_package_name(), file_name)
         file_data = "".join(self._buffer)
         self._file_path_2_file_data[file_path] = file_data
         self._imports.clear()
+        self._patterns.clear()
         self._buffer.clear()
 
     def file_path_2_file_data(self) -> dict[str, str]:

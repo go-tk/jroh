@@ -435,6 +435,8 @@ def _translate_primitive_type_and_constraints(
             schema["minLength"] = primitive_constraints.min_length
         if primitive_constraints.max_length is not None:
             schema["maxLength"] = primitive_constraints.max_length
+        if primitive_constraints.pattern != "":
+            schema["pattern"] = primitive_constraints.pattern
 
 
 def _translate_error_cases(error_cases: list[ErrorCase]) -> str:

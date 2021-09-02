@@ -57,7 +57,7 @@ class Service:
 
         self.version: str = ""
         self.description: Optional[str] = None
-        self.rpc_path_template: str = "/rpc/{service_id}.{method_id}"
+        self.rpc_path_template: str = "/rpc/{namespace}.{service_id}.{method_id}"
 
         # resolution
         self.methods: list[Method] = []
@@ -142,6 +142,7 @@ class PrimitiveConstraints:
         self.max_is_exclusive: bool = False  # only used for FLOAT32, FLOAT64
         self.min_length: int = 0  # only used for STRING
         self.max_length: Optional[int] = None  # only used for STRING
+        self.pattern: str = ""  # only used for STRING
 
     def is_limited(self) -> bool:
         return (
@@ -149,6 +150,7 @@ class PrimitiveConstraints:
             or self.max is not None
             or self.min_length >= 1
             or self.max_length is not None
+            or self.pattern != ""
         )
 
 

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional, Type, TypeVar
 
+import re2
 import yaml
 
 from .spec import (
@@ -501,6 +502,13 @@ def _check_number(
                 )
 
 
+def _check_string(string: str, pattern, node_uri: str) -> None:
+    if pattern.fullmatch(string) is None:
+        raise InvalidSpecError(
+            f"unexpected string: node_uri={node_uri!r} string={string!r} expected_pattern={pattern.pattern!r}"
+        )
+
+
 def _check_string_length(
     string_length: int,
     min_string_length: int,
@@ -674,6 +682,17 @@ def _load_primitive_constraints(
             raise InvalidSpecError(
                 f"invalid primitive constraints, min_length > max_length: node_uri={node_uri!r} min_length={min_length} max_length={max_length}"
             )
+        if (pattern := raw_object.pop("pattern", None)) is not None:
+            node_uri2 = node_uri + "/pattern"
+            pattern = _ensure_node_kind(pattern, str, node_uri2)
+            _check_string_length(len(pattern), 1, None, node_uri2)
+            try:
+                re2.compile(pattern)
+            except re2.error:
+                raise InvalidSpecError(
+                    f"invalid regular expression (re2): node_uri={node_uri!r} reg_exp={pattern!r}"
+                ) from None
+            primitive_constraints.pattern = pattern
     else:
         assert False, primitive_type
 
@@ -719,6 +738,8 @@ def _check_primitive_value(
             primitive_constraints.max_length,
             node_uri,
         )
+        if primitive_constraints.pattern != "":
+            _check_string(pv, re2.compile(primitive_constraints.pattern), node_uri)
     else:
         assert False, primitive_type
 
