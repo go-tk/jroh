@@ -15,7 +15,7 @@ format:
 
 .PHONY: test
 test:
-	coverage run --omit=src/tests/*,.venv/* -m unittest discover --start-directory=src/tests --top-level-directory=.
+	coverage run --include='src/jroh/*' -m unittest discover --start-directory=src/tests --top-level-directory=.
 	coverage report
 
 
