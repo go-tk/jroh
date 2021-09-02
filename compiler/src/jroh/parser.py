@@ -403,6 +403,7 @@ class _Parser:
         node_uri = error.node_uri + "/code"
         error_code = _pop_node(raw_error, "code", node_uri)
         error_code = _ensure_node_kind(error_code, int, node_uri)
+        _check_number(error_code, 1, None, node_uri)
         error.code = error_code
         if (description := raw_error.pop("description", None)) is not None:
             description = _ensure_node_kind(

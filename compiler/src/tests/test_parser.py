@@ -1644,6 +1644,17 @@ errors:
                     "foo.yaml": """
 errors:
   EEE:
+    code: -1
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: number too small: node_uri='foo\.yaml#/errors/EEE/code' number=-1 min_number=1",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": """
+errors:
+  EEE:
     code: 100
     xyz: 1
 """

@@ -319,65 +319,85 @@ func (m *${model_name}) Validate(validationContext *${apicommon()}.ValidationCon
     field_name = utils.pascal_case(field.id)
     field_type = field.type
 
-    indent = "    "
     v = "m." + field_name
-    path_component = '"' + utils.camel_case(field.id) + '"'
 %>\
         % if field.is_optional:
-${indent}if ${v} != nil {
-<%
-    indent += "    "
-%>\
-            % if field_type.is_primitive():
-${indent}v := *${v}
+            % if not field_type.is_primitive() or field.is_limited():
+    if ${v} != nil {
+                % if field_type.is_primitive():
+        v := *${v}
 <%
     v = "v"
 %>\
+                % endif
+        validationContext.Enter("${utils.camel_case(field.id)}")
+                % if field_type.is_primitive():
+${validate_primitive_value("        ", v, field_type.primitive_type(), field)}\
+                % else:
+        if !${v}.Validate(validationContext) {
+            return false
+        }
+                % endif
+        validationContext.Leave()
+    }
             % endif
         % elif field.is_repeated:
-${indent}validationContext.Enter(${path_component})
-            % if field.min_count >= 1:
-${indent}if len(${v}) < ${field.min_count} {
-${indent}    validationContext.SetErrorDetails("length < ${field.min_count}")
-${indent}    return false
-${indent}}
-            % endif
-            % if field.max_count is not None:
-${indent}if len(${v}) > ${field.max_count} {
-${indent}    validationContext.SetErrorDetails("length > ${field.max_count}")
-${indent}    return false
-${indent}}
-            % endif
-${indent}for i := range ${v} {
-<%
-    indent += "    "
-%>\
-${indent}v := &${v}[i]
+            % if field.count_is_limited() or not field_type.is_primitive() or field.is_limited():
+    {
+        validationContext.Enter("${utils.camel_case(field.id)}")
+                % if field.min_count >= 1:
+        if len(${v}) < ${field.min_count} {
+            validationContext.SetErrorDetails("length < ${field.min_count}")
+            return false
+        }
+                % endif
+                % if field.max_count is not None:
+        if len(${v}) > ${field.max_count} {
+            validationContext.SetErrorDetails("length > ${field.max_count}")
+            return false
+        }
+                % endif
+                % if not field_type.is_primitive() or field.is_limited():
+                    % if field_type.is_primitive():
+        for i, v := range ${v} {
+                    % else:
+        for i := range ${v} {
+            v := &${v}[i]
+                    % endif
 <%
     v = "v"
-    path_component = strconv() + ".Itoa(i)"
 %>\
-        % endif
-${indent}validationContext.Enter(${path_component})
-        % if field_type.is_primitive():
-${validate_primitive_value(indent, v, field_type.primitive_type(), field)}\
+            validationContext.Enter(${strconv()}.Itoa(i))
+                    % if field_type.is_primitive():
+${validate_primitive_value("            ", v, field_type.primitive_type(), field)}\
+                    % else:
+            if !${v}.Validate(validationContext) {
+                return false
+            }
+                    % endif
+            validationContext.Leave()
+        }
+                % endif
+        validationContext.Leave()
+    }
+            % endif
         % else:
-${indent}if !${v}.Validate(validationContext) {
-${indent}    return false
-${indent}}
-${indent}validationContext.Leave()
-        % endif
-        % if field.is_repeated or field.is_optional:
-<%
-    indent = indent[:-4]
-%>\
-${indent}}
-        % endif
-        % if field.is_repeated:
-${indent}validationContext.Leave()
+            % if not field_type.is_primitive() or field.is_limited():
+    {
+        validationContext.Enter("${utils.camel_case(field.id)}")
+                % if field_type.is_primitive():
+${validate_primitive_value("        ", v, field_type.primitive_type(), field)}\
+                % else:
+        if !${v}.Validate(validationContext) {
+            return false
+        }
+                % endif
+        validationContext.Leave()
+    }
+            % endif
         % endif
     % endfor
-${indent}return true
+    return true
 }
 </%def>\
 <%def name="validate_primitive_value(indent, v, primitive_type, primitive_constraints)">\
@@ -396,10 +416,10 @@ ${indent}}
         % endif
     % elif primitive_type in (FLOAT32, FLOAT64):
         % if primitive_constraints.min is not None:
-            % if primitive_constraints.min_is_exclusive:
 <%
     min = str(primitive_constraints.min).removesuffix(".0")
 %>\
+            % if primitive_constraints.min_is_exclusive:
 ${indent}if ${v} <= ${min} {
 ${indent}    validationContext.SetErrorDetails("value <= ${min}")
 ${indent}    return false
@@ -428,7 +448,7 @@ ${indent}}
             % endif
         % endif
     % elif primitive_type == STRING:
-        % if primitive_constraints.min_length is not None:
+        % if primitive_constraints.min_length >= 1:
 ${indent}if len(${v}) < ${primitive_constraints.min_length} {
 ${indent}    validationContext.SetErrorDetails("length < ${primitive_constraints.min_length}")
 ${indent}    return false

@@ -143,6 +143,14 @@ class PrimitiveConstraints:
         self.min_length: int = 0  # only used for STRING
         self.max_length: Optional[int] = None  # only used for STRING
 
+    def is_limited(self) -> bool:
+        return (
+            self.min is not None
+            or self.max is not None
+            or self.min_length >= 1
+            or self.max_length is not None
+        )
+
 
 class Struct:
     def __init__(self) -> None:
@@ -165,6 +173,9 @@ class Field(PrimitiveConstraints):
         self.max_count: Optional[int] = None  # only used if is_repeated
         self.description: Optional[str] = None
         self.example: Any = None
+
+    def count_is_limited(self) -> bool:
+        return self.min_count >= 1 or self.max_count is not None
 
 
 class FieldType:
