@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -44,6 +43,18 @@ func (or *OutgoingRPC) encodeParams() error {
 	return nil
 }
 
+func (or *OutgoingRPC) requestHTTP(ctx context.Context) (*http.Response, error) {
+	requestBody := bytes.NewReader(or.rawParams)
+	request, err := http.NewRequestWithContext(ctx, "POST", or.url, requestBody)
+	if err != nil {
+		return nil, err
+	}
+	if or.traceID != "" {
+		injectTraceID(or.traceID, request.Header)
+	}
+	return or.client.Do(request)
+}
+
 func (or *OutgoingRPC) readResp(responseBody io.ReadCloser) error {
 	var buffer bytes.Buffer
 	_, err := buffer.ReadFrom(responseBody)
@@ -78,34 +89,49 @@ func (or *OutgoingRPC) readResp(responseBody io.ReadCloser) error {
 	return nil
 }
 
-var ErrUnexpectedStatus = errors.New("api: unexpected status")
+type UnexpectedStatusCodeError struct {
+	StatusCode int
+
+	namespace   string
+	serviceName string
+	methodName  string
+	traceID     string
+}
+
+func (use *UnexpectedStatusCodeError) Error() string {
+	return fmt.Sprintf("apicommon: unexpected status code; namespace=%v serviceName=%v methodName=%v traceID=%v statusCode=%v",
+		use.namespace, use.serviceName, use.methodName, use.traceID, use.StatusCode)
+}
 
 func HandleRPC(ctx context.Context, rpc *RPC) error {
 	outgoingRPC := rpc.OutgoingRPC()
 	if err := outgoingRPC.encodeParams(); err != nil {
-		return err
+		return fmt.Errorf("apicommon: params encoding failed; namespace=%v serviceName=%v methodName=%v traceID=%v: %v",
+			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
 	}
-	requestBody := bytes.NewReader(outgoingRPC.rawParams)
-	request, err := http.NewRequestWithContext(ctx, "POST", outgoingRPC.url, requestBody)
+	response, err := outgoingRPC.requestHTTP(ctx)
 	if err != nil {
-		return err
-	}
-	if rpc.traceID != "" {
-		injectTraceID(rpc.traceID, request.Header)
-	}
-	response, err := outgoingRPC.client.Do(request)
-	if err != nil {
-		return err
+		return fmt.Errorf("apicommon: http request failed; namespace=%v serviceName=%v methodName=%v traceID=%v: %v",
+			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
 	}
 	outgoingRPC.statusCode = response.StatusCode
 	if outgoingRPC.statusCode != http.StatusOK {
-		return fmt.Errorf("%w: statusCode=%v", ErrUnexpectedStatus, outgoingRPC.statusCode)
+		return &UnexpectedStatusCodeError{
+			StatusCode: outgoingRPC.statusCode,
+
+			namespace:   rpc.namespace,
+			serviceName: rpc.serviceName,
+			methodName:  rpc.methodName,
+			traceID:     rpc.traceID,
+		}
 	}
 	if err := outgoingRPC.readResp(response.Body); err != nil {
-		return err
+		return fmt.Errorf("apicommon: resp read failed; namespace=%v serviceName=%v methodName=%v traceID=%v: %v",
+			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
 	}
 	if outgoingRPC.error.Code != 0 {
-		return &outgoingRPC.error
+		return fmt.Errorf("apicommon: rpc failed; namespace=%v serviceName=%v methodName=%v traceID=%v: %w",
+			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, &outgoingRPC.error)
 	}
 	return nil
 }

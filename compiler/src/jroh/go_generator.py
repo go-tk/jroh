@@ -213,7 +213,11 @@ type ${service_name}Client interface {
     % if method.params is not None:
 , params *${method_name}Params\
     % endif
-) (resp ${method_name}Resp, err error)
+) (\
+    % if method.results is not None:
+results *${method_name}Results,\
+    % endif
+err error)
 % endfor
 }
 
@@ -238,7 +242,11 @@ func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
     % if method.params is not None:
 , params *${method_name}Params\
     % endif
-) (${method_name}Resp, error) {
+) (\
+    % if method.results is not None:
+*${method_name}Results,\
+    % endif
+error) {
     var s struct {
         OutgoingRPC ${apicommon()}.OutgoingRPC
     % if method.params is not None:
@@ -269,22 +277,14 @@ func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
         ${apicommon()}.HandleRPC,
         rpcInterceptors,
     )
-    error, err := c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})
-    if err != nil {
-        return ${method_name}Resp{}, err
+    % if method.results is None:
+    return c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})
+    % else:
+    if err := c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)}); err != nil {
+        return nil, err
     }
-    if error != nil {
-        return ${method_name}Resp{
-            TraceID: s.OutgoingRPC.TraceID(),
-            Error: error,
-        }, nil
-    }
-    return ${method_name}Resp{
-        TraceID: s.OutgoingRPC.TraceID(),
-    % if method.results is not None:
-        Results: &s.Results,
+    return &s.Results, nil
     % endif
-    }, nil
 }
 % endfor
 """
@@ -488,14 +488,6 @@ var _ ${apicommon()}.Validator = (*${method_name}Params)(nil)
 
 ${struct_validate_func(method_name + "Params", method.params.fields)}\
     % endif
-
-type ${method_name}Resp struct {
-    TraceID string `json:"traceID"`
-    Error *${apicommon()}.Error `json:"error,omitempty"`
-    % if method.results is not None:
-    Results *${method_name}Results `json:"results,omitempty"`
-    % endif
-}
     % if method.results is not None:
 
 type ${method_name}Results struct {
