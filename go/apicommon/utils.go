@@ -53,7 +53,7 @@ func generateTraceID() string {
 	return traceID
 }
 
-const traceIDHeaderKey = "X-Trace-ID"
+const traceIDHeaderKey = "X-JROH-Trace-ID"
 
 func injectTraceID(traceID string, header http.Header) { header.Set(traceIDHeaderKey, traceID) }
 func extractTraceID(header http.Header) string         { return header.Get(traceIDHeaderKey) }

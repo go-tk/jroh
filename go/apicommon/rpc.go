@@ -3,18 +3,19 @@ package apicommon
 import "context"
 
 type RPC struct {
+	mark                 byte
 	namespace            string
 	serviceName          string
 	methodName           string
 	params               interface{}
 	results              interface{}
+	traceID              string
 	handler              RPCHandler
 	interceptors         []RPCHandler
 	nextInterceptorIndex int
-	traceID              string
 }
 
-func (r *RPC) Init(
+func (r *RPC) init(
 	namespace string,
 	serviceName string,
 	methodName string,

@@ -81,7 +81,7 @@ package {self._make_package_name()}
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
 %>\
-type ${service_name}Service interface {
+type ${service_name}Server interface {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
@@ -97,38 +97,20 @@ type ${service_name}Service interface {
 % endfor
 }
 
-type Dummy${service_name}Service struct {}
-
-var _ ${service_name}Service = Dummy${service_name}Service{}
-
-% for method in service.methods:
-<%
-    method_name = utils.pascal_case(method.id)
-%>\
-func (Dummy${service_name}Service) ${method_name}(${context1()}.Context\
-    % if method.params is not None:
-, *${method_name}Params\
-    % endif
-    % if method.results is not None:
-, *${method_name}Results\
-    % endif
-) error { return nil }
-% endfor
-
-func RegisterHandlersOf${service_name}Service(service ${service_name}Service, serveMux *${http()}.ServeMux, options ${apicommon()}.RegisterHandlersOptions) {
-    options.Sanitize()
+func Register${service_name}Server(server ${service_name}Server, serveMux *${http()}.ServeMux, serverOptions ${apicommon()}.ServerOptions) {
+    serverOptions.Sanitize()
     var middlewareTable [${len(service.methods)}][]${apicommon()}.Middleware
-    ${apicommon()}.FillMiddlewareTable(middlewareTable[:], options.Middlewares)
+    ${apicommon()}.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
     var rpcInterceptorTable [${len(service.methods)}][]${apicommon()}.RPCHandler
-    ${apicommon()}.FillRPCInterceptorTable(rpcInterceptorTable[:], options.RPCInterceptors)
+    ${apicommon()}.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
     rpc_path = service.rpc_paths[i]
 %>\
     {
-        middlewares := middlewareTable[${service_name}Service_${method_name}]
-        rpcInterceptors := rpcInterceptorTable[${service_name}Service_${method_name}]
+        middlewares := middlewareTable[${service_name}_${method_name}]
+        rpcInterceptors := rpcInterceptorTable[${service_name}_${method_name}]
         incomingRPCFactory := func() *${apicommon()}.IncomingRPC {
             var s struct {
                 IncomingRPC ${apicommon()}.IncomingRPC
@@ -140,7 +122,7 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
     % endif
             }
             rpcHandler := func(ctx ${context1()}.Context, rpc *${apicommon()}.RPC) error {
-                return service.${method_name}(ctx\
+                return server.${method_name}(ctx\
     % if method.params is not None:
 , rpc.Params().(*${method_name}Params)\
     % endif
@@ -168,11 +150,55 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
             )
             return &s.IncomingRPC
         }
-        handler := ${apicommon()}.MakeHandler(middlewares, incomingRPCFactory, options.TraceIDGenerator)
+        handler := ${apicommon()}.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
         serveMux.Handle(${utils.quote(rpc_path)}, handler)
     }
 % endfor
 }
+
+type ${service_name}ServerFuncs struct {
+% for method in service.methods:
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+    ${method_name}Func func(${context1()}.Context\
+    % if method.params is not None:
+, *${method_name}Params\
+    % endif
+    % if method.results is not None:
+, *${method_name}Results\
+    % endif
+) error
+% endfor
+}
+
+var _ ${service_name}Server = (*${service_name}ServerFuncs)(nil)
+% for method in service.methods:
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+
+func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
+    % if method.params is not None:
+, params *${method_name}Params\
+    % endif
+    % if method.results is not None:
+, results *${method_name}Results\
+    % endif
+) error {
+    if f := sf.${method_name}Func; f != nil {
+        return f(ctx\
+    % if method.params is not None:
+, params\
+    % endif
+    % if method.results is not None:
+, results\
+    % endif
+)
+    }
+    return nil
+}
+% endfor
 """
             ).render(
                 utils=utils,
@@ -181,7 +207,7 @@ func RegisterHandlersOf${service_name}Service(service ${service_name}Service, se
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        file_name = f"{utils.flat_case(service.id)}service.go"
+        file_name = f"{utils.flat_case(service.id)}server.go"
         self._flush(file_name)
 
     def _generate_client_code(self, service: Service) -> None:
@@ -233,9 +259,10 @@ func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOp
     ${apicommon()}.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
     return &c
 }
-% for method in service.methods:
+% for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
+    rpc_path = service.rpc_paths[i]
 %>\
 
 func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
@@ -259,7 +286,7 @@ error) {
     % if method.params is not None:
     s.Params = *params
     % endif
-    rpcInterceptors := c.rpcInterceptorTable[${service_name}Service_${method_name}]
+    rpcInterceptors := c.rpcInterceptorTable[${service_name}_${method_name}]
     s.OutgoingRPC.Init(
         "${namespace}",
         "${service_name}",
@@ -284,6 +311,55 @@ error) {
         return nil, err
     }
     return &s.Results, nil
+    % endif
+}
+% endfor
+
+type ${service_name}ClientFuncs struct {
+% for method in service.methods:
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+    ${method_name}Func func(${context1()}.Context\
+    % if method.params is not None:
+, *${method_name}Params\
+    % endif
+) \
+    % if method.results is None:
+error
+    % else:
+(*${method_name}Results, error)
+    % endif
+% endfor
+}
+
+var _ ${service_name}Client = (*${service_name}ClientFuncs)(nil)
+% for method in service.methods:
+<%
+    method_name = utils.pascal_case(method.id)
+%>\
+
+func (cf *${service_name}ClientFuncs) ${method_name}(ctx ${context1()}.Context\
+    % if method.params is not None:
+, params *${method_name}Params\
+    % endif
+) \
+    % if method.results is None:
+error {
+    % else:
+(*${method_name}Results, error) {
+    % endif
+    if f := cf.${method_name}Func; f != nil {
+        return f(ctx\
+    % if method.params is not None:
+, params\
+    % endif
+)
+    }
+    % if method.results is None:
+    return nil
+    % else:
+    return &${method_name}Results{}, nil
     % endif
 }
 % endfor
@@ -465,8 +541,14 @@ ${indent}}
 <%
     pattern_index = g._add_pattern(primitive_constraints.pattern)
 %>\
-${indent}if patterns[${pattern_index}].MatchString(${v}) {
-${indent}    validationContext.SetErrorDetails("not matched to pattern ${utils.quote(primitive_constraints.pattern)[1:-1]}")
+${indent}if !patterns[${pattern_index}].MatchString(\
+% if v == "m":
+string(${v})\
+% else:
+${v}\
+% endif
+) {
+${indent}    validationContext.SetErrorDetails("value not matched to ${utils.quote(utils.quote(primitive_constraints.pattern))[1:-1]}")
 ${indent}    return false
 ${indent}}
         % endif
@@ -570,7 +652,15 @@ func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationCont
             return true
         % endfor
         default:
-            validationContext.SetErrorDetails("invalid ${model_name}")
+        % if enum.underlying_type in (INT32, INT64):
+            validationContext.SetErrorDetails("value not in (${", ".join(str(constant.value) for constant in enum.constants)})")
+        % elif enum.underlying_type == STRING:
+            validationContext.SetErrorDetails("value not in (${", ".join(utils.quote(utils.quote(constant.value))[1:-1] for constant in enum.constants)})")
+        % else:
+<%
+    assert False, enum.underlying_type
+%>\
+        % endif
             return false
     }
 }
@@ -672,9 +762,9 @@ const (
     method_name = utils.pascal_case(method.id)
 %>\
         % if j == 0:
-    ${service_name}Service_${method_name} ${apicommon()}.MethodIndex = iota
+    ${service_name}_${method_name} ${apicommon()}.MethodIndex = iota
         % else:
-    ${service_name}Service_${method_name}
+    ${service_name}_${method_name}
         % endif
     % endfor
 )

@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
-type RegisterHandlersOptions struct {
+type ServerOptions struct {
 	Middlewares      map[MethodIndex][]Middleware
 	RPCInterceptors  map[MethodIndex][]RPCHandler
 	TraceIDGenerator TraceIDGenerator
 }
 
-func (rho *RegisterHandlersOptions) Sanitize() {
-	if rho.TraceIDGenerator == nil {
-		rho.TraceIDGenerator = generateTraceID
+func (so *ServerOptions) Sanitize() {
+	if so.TraceIDGenerator == nil {
+		so.TraceIDGenerator = generateTraceID
 	}
 }
 
@@ -39,6 +39,8 @@ func MakeHandler(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var buffer bytes.Buffer
 			if _, err := buffer.ReadFrom(r.Body); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(nil)
 				return
 			}
 			incomingRPC := incomingRPCFactory()
@@ -46,6 +48,7 @@ func MakeHandler(
 				incomingRPC.traceID = traceIDGenerator()
 			} else {
 				incomingRPC.traceID = traceID
+				incomingRPC.traceIDIsReceived = true
 			}
 			if buffer.Len() >= 1 {
 				incomingRPC.rawParams = buffer.Bytes()

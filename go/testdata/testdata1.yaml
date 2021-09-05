@@ -1,0 +1,657 @@
+namespace: Foo
+
+services:
+  Test:
+    version: 0.0.0
+
+methods:
+  Do-Something:
+    service_ids: [Test]
+    params:
+      My-Struct-Int32:
+        type: My-Struct-Int32
+        is_optional: true
+      My-Struct-Int64:
+        type: My-Struct-Int64
+        is_optional: true
+      My-Struct-Float32:
+        type: My-Struct-Float32
+        is_optional: true
+      My-Struct-Float64:
+        type: My-Struct-Float64
+        is_optional: true
+      My-Struct-String:
+        type: My-Struct-String
+        is_optional: true
+      My-On-Off:
+        type: bool
+    error_cases:
+      Something-Wrong: {}
+
+  Do-Something2:
+    service_ids: [Test]
+    params:
+      My-Struct-Int32:
+        type: My-Struct-Int32
+        is_optional: true
+      My-Struct-Int64:
+        type: My-Struct-Int64
+        is_optional: true
+      My-Struct-Float32:
+        type: My-Struct-Float32
+        is_optional: true
+      My-Struct-Float64:
+        type: My-Struct-Float64
+        is_optional: true
+      My-Struct-String:
+        type: My-Struct-String
+        is_optional: true
+      My-On-Off:
+        type: bool
+    results:
+      My-Struct-Int32:
+        type: My-Struct-Int32
+        is_optional: true
+      My-Struct-Int64:
+        type: My-Struct-Int64
+        is_optional: true
+      My-Struct-Float32:
+        type: My-Struct-Float32
+        is_optional: true
+      My-Struct-Float64:
+        type: My-Struct-Float64
+        is_optional: true
+      My-Struct-String:
+        type: My-Struct-String
+        is_optional: true
+      My-On-Off:
+        type: bool
+    error_cases:
+      Something-Wrong: {}
+
+  Do-Something3:
+    service_ids: [Test]
+
+models:
+  My-Struct-Int32:
+    type: struct
+    fields:
+      The-Int32-A:
+        type: int32
+      The-Optional-Int32-A:
+        type: int32
+        is_optional: true
+      The-Repeated-Int32-A:
+        type: int32
+        is_repeated: true
+      The-Count-Limited-Repeated-Int32-A:
+        type: int32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Int32-B:
+        type: Int32
+      The-Optional-Int32-B:
+        type: Int32
+        is_optional: true
+      The-Repeated-Int32-B:
+        type: Int32
+        is_repeated: true
+      The-Count-Limited-Repeated-Int32-B:
+        type: Int32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Int32-A:
+        type: int32
+        min: 100
+        max: 999
+      The-Optional-X-Int32-A:
+        type: int32
+        min: 100
+        max: 999
+        is_optional: true
+      The-Repeated-X-Int32-A:
+        type: int32
+        min: 100
+        max: 999
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Int32-A:
+        type: int32
+        min: 100
+        max: 999
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Int32-B:
+        type: X-Int32
+      The-Optional-X-Int32-B:
+        type: X-Int32
+        is_optional: true
+      The-Repeated-X-Int32-B:
+        type: X-Int32
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Int32-B:
+        type: X-Int32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Enum-Int32:
+        type: Enum-Int32
+      The-Optional-Enum-Int32:
+        type: Enum-Int32
+        is_optional: true
+      The-Repeated-Enum-Int32:
+        type: Enum-Int32
+        is_repeated: true
+      The-Count-Limited-Repeated-Enum-Int32:
+        type: Enum-Int32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      Other:
+        type: My-Struct-Int32
+        is_optional: true
+      Others:
+        type: My-Struct-Int32
+        is_repeated: true
+      Count-Limited-Others:
+        type: My-Struct-Int32
+        is_repeated: true
+        max_count: 3
+
+  My-Struct-Float32:
+    type: struct
+    fields:
+      The-Float32-A:
+        type: float32
+      The-Optional-Float32-A:
+        type: float32
+        is_optional: true
+      The-Repeated-Float32-A:
+        type: float32
+        is_repeated: true
+      The-Count-Limited-Repeated-Float32-A:
+        type: float32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Float32-B:
+        type: Float32
+      The-Optional-Float32-B:
+        type: Float32
+        is_optional: true
+      The-Repeated-Float32-B:
+        type: Float32
+        is_repeated: true
+      The-Count-Limited-Repeated-Float32-B:
+        type: Float32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Closed-Float32-A:
+        type: float32
+        min: 1.0
+        max: 100.0
+      The-Optional-X-Closed-Float32-A:
+        type: float32
+        min: 1.0
+        max: 100.0
+        is_optional: true
+      The-Repeated-X-Closed-Float32-A:
+        type: float32
+        min: 1.0
+        max: 100.0
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Closed-Float32-A:
+        type: float32
+        min: 1.0
+        max: 100.0
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Closed-Float32-B:
+        type: X-Closed-Float32
+      The-Optional-X-Closed-Float32-B:
+        type: X-Closed-Float32
+        is_optional: true
+      The-Repeated-X-Closed-Float32-B:
+        type: X-Closed-Float32
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Closed-Float32-B:
+        type: X-Closed-Float32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Open-Float32-A:
+        type: float32
+        min: 1.0
+        min_is_exclusive: true
+        max: 100.0
+        max_is_exclusive: true
+      The-Optional-X-Open-Float32-A:
+        type: float32
+        min: 1.0
+        min_is_exclusive: true
+        max: 100.0
+        max_is_exclusive: true
+        is_optional: true
+      The-Repeated-X-Open-Float32-A:
+        type: float32
+        min: 1.0
+        min_is_exclusive: true
+        max: 100.0
+        max_is_exclusive: true
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Open-Float32-A:
+        type: float32
+        min: 1.0
+        min_is_exclusive: true
+        max: 100.0
+        max_is_exclusive: true
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Open-Float32-B:
+        type: X-Open-Float32
+      The-Optional-X-Open-Float32-B:
+        type: X-Open-Float32
+        is_optional: true
+      The-Repeated-X-Open-Float32-B:
+        type: X-Open-Float32
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Open-Float32-B:
+        type: X-Open-Float32
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      Other:
+        type: My-Struct-Float32
+        is_optional: true
+      Others:
+        type: My-Struct-Float32
+        is_repeated: true
+      Count-Limited-Others:
+        type: My-Struct-Float32
+        is_repeated: true
+        max_count: 3
+
+  My-Struct-Float64:
+    type: struct
+    fields:
+      The-Float64-A:
+        type: float64
+      The-Optional-Float64-A:
+        type: float64
+        is_optional: true
+      The-Repeated-Float64-A:
+        type: float64
+        is_repeated: true
+      The-Count-Limited-Repeated-Float64-A:
+        type: float64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Float64-B:
+        type: Float64
+      The-Optional-Float64-B:
+        type: Float64
+        is_optional: true
+      The-Repeated-Float64-B:
+        type: Float64
+        is_repeated: true
+      The-Count-Limited-Repeated-Float64-B:
+        type: Float64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Closed-Float64-A:
+        type: float64
+        min: -100.0
+        max: -1.0
+      The-Optional-X-Closed-Float64-A:
+        type: float64
+        min: -100.0
+        max: -1.0
+        is_optional: true
+      The-Repeated-X-Closed-Float64-A:
+        type: float64
+        min: -100.0
+        max: -1.0
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Closed-Float64-A:
+        type: float64
+        min: -100.0
+        max: -1.0
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Closed-Float64-B:
+        type: X-Closed-Float64
+      The-Optional-X-Closed-Float64-B:
+        type: X-Closed-Float64
+        is_optional: true
+      The-Repeated-X-Closed-Float64-B:
+        type: X-Closed-Float64
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Closed-Float64-B:
+        type: X-Closed-Float64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Open-Float64-A:
+        type: float64
+        min: -100.0
+        min_is_exclusive: true
+        max: -1.0
+        max_is_exclusive: true
+      The-Optional-X-Open-Float64-A:
+        type: float64
+        min: -100.0
+        min_is_exclusive: true
+        max: -1.0
+        max_is_exclusive: true
+        is_optional: true
+      The-Repeated-X-Open-Float64-A:
+        type: float64
+        min: -100.0
+        min_is_exclusive: true
+        max: -1.0
+        max_is_exclusive: true
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Open-Float64-A:
+        type: float64
+        min: -100.0
+        min_is_exclusive: true
+        max: -1.0
+        max_is_exclusive: true
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Open-Float64-B:
+        type: X-Open-Float64
+      The-Optional-X-Open-Float64-B:
+        type: X-Open-Float64
+        is_optional: true
+      The-Repeated-X-Open-Float64-B:
+        type: X-Open-Float64
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Open-Float64-B:
+        type: X-Open-Float64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      Other:
+        type: My-Struct-Float64
+        is_optional: true
+      Others:
+        type: My-Struct-Float64
+        is_repeated: true
+      Count-Limited-Others:
+        type: My-Struct-Float64
+        is_repeated: true
+        max_count: 3
+
+  My-Struct-Int64:
+    type: struct
+    fields:
+      The-Int64-A:
+        type: int64
+      The-Optional-Int64-A:
+        type: int64
+        is_optional: true
+      The-Repeated-Int64-A:
+        type: int64
+        is_repeated: true
+      The-Count-Limited-Repeated-Int64-A:
+        type: int64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Int64-B:
+        type: Int64
+      The-Optional-Int64-B:
+        type: Int64
+        is_optional: true
+      The-Repeated-Int64-B:
+        type: Int64
+        is_repeated: true
+      The-Count-Limited-Repeated-Int64-B:
+        type: Int64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Int64-A:
+        type: int64
+        min: -999
+        max: -100
+      The-Optional-X-Int64-A:
+        type: int64
+        min: -999
+        max: -100
+        is_optional: true
+      The-Repeated-X-Int64-A:
+        type: int64
+        min: -999
+        max: -100
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Int64-A:
+        type: int64
+        min: -999
+        max: -100
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-Int64-B:
+        type: X-Int64
+      The-Optional-X-Int64-B:
+        type: X-Int64
+        is_optional: true
+      The-Repeated-X-Int64-B:
+        type: X-Int64
+        is_repeated: true
+      The-Count-Limited-Repeated-X-Int64-B:
+        type: X-Int64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Enum-Int64:
+        type: Enum-Int64
+      The-Optional-Enum-Int64:
+        type: Enum-Int64
+        is_optional: true
+      The-Repeated-Enum-Int64:
+        type: Enum-Int64
+        is_repeated: true
+      The-Count-Limited-Repeated-Enum-Int64:
+        type: Enum-Int64
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      Other:
+        type: My-Struct-Int64
+        is_optional: true
+      Others:
+        type: My-Struct-Int64
+        is_repeated: true
+      Count-Limited-Others:
+        type: My-Struct-Int64
+        is_repeated: true
+        max_count: 3
+
+  My-Struct-String:
+    type: struct
+    fields:
+      The-String-A:
+        type: string
+      The-Optional-String-A:
+        type: string
+        is_optional: true
+      The-Repeated-String-A:
+        type: string
+        is_repeated: true
+      The-Count-Limited-Repeated-String-A:
+        type: string
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-String-B:
+        type: String
+      The-Optional-String-B:
+        type: String
+        is_optional: true
+      The-Repeated-String-B:
+        type: String
+        is_repeated: true
+      The-Count-Limited-Repeated-String-B:
+        type: String
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-String-A:
+        type: string
+        min_length: 3
+        max_length: 9
+        pattern: '[a-zA-Z0-9]*'
+      The-Optional-X-String-A:
+        type: string
+        min_length: 3
+        max_length: 9
+        pattern: '[a-zA-Z0-9]*'
+        is_optional: true
+      The-Repeated-X-String-A:
+        type: string
+        min_length: 3
+        max_length: 9
+        pattern: '[a-zA-Z0-9]*'
+        is_repeated: true
+      The-Count-Limited-Repeated-X-String-A:
+        type: string
+        min_length: 3
+        max_length: 9
+        pattern: '[a-zA-Z0-9]*'
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-X-String-B:
+        type: X-String
+      The-Optional-X-String-B:
+        type: X-String
+        is_optional: true
+      The-Repeated-X-String-B:
+        type: X-String
+        is_repeated: true
+      The-Count-Limited-Repeated-X-String-B:
+        type: X-String
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      The-Enum-String:
+        type: Enum-String
+      The-Optional-Enum-String:
+        type: Enum-String
+        is_optional: true
+      The-Repeated-Enum-String:
+        type: Enum-String
+        is_repeated: true
+      The-Count-Limited-Repeated-Enum-String:
+        type: Enum-String
+        is_repeated: true
+        min_count: 3
+        max_count: 5
+      Other:
+        type: My-Struct-String
+        is_optional: true
+      Others:
+        type: My-Struct-String
+        is_repeated: true
+      Count-Limited-Others:
+        type: My-Struct-String
+        is_repeated: true
+        max_count: 3
+
+  Enum-Int32:
+    type: enum
+    underlying_type: int32
+    constants:
+      C321:
+        value: 100
+      C322:
+        value: 200
+
+  Enum-Int64:
+    type: enum
+    underlying_type: int64
+    constants:
+      C641:
+        value: 200
+      C642:
+        value: 400
+
+  Enum-String:
+    type: enum
+    underlying_type: string
+    constants:
+      S1:
+        value: abc
+      S2:
+        value: def
+
+  Int32:
+    type: int32
+
+  X-Int32:
+    type: int32
+    min: 100
+    max: 999
+
+  Int64:
+    type: int64
+
+  X-Int64:
+    type: int64
+    min: -999
+    max: -100
+
+  Float32:
+    type: float32
+
+  X-Closed-Float32:
+    type: float32
+    min: 1.0
+    max: 100.0
+
+  X-Open-Float32:
+    type: float32
+    min: 1.0
+    min_is_exclusive: true
+    max: 100.0
+    max_is_exclusive: true
+
+  Float64:
+    type: float64
+
+  X-Open-Float64:
+    type: float64
+    min: -100.0
+    min_is_exclusive: true
+    max: -1.0
+    max_is_exclusive: true
+
+  X-Closed-Float64:
+    type: float64
+    min: -100.0
+    max: -1.0
+
+  String:
+    type: string
+
+  X-String:
+    type: string
+    min_length: 3
+    max_length: 9
+    pattern: '[a-zA-Z0-9]*'
+
+errors:
+  Something-Wrong:
+    code: 1

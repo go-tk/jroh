@@ -2,6 +2,7 @@ package apicommon
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,17 +11,36 @@ import (
 	"unsafe"
 )
 
-func (r *RPC) IncomingRPC() *IncomingRPC { return (*IncomingRPC)(unsafe.Pointer(r)) }
+func (r *RPC) IncomingRPC() *IncomingRPC {
+	if r.mark != 'i' {
+		panic("not incoming rpc")
+	}
+	return (*IncomingRPC)(unsafe.Pointer(r))
+}
 
 type IncomingRPC struct {
 	RPC
 
-	rawParams    []byte
-	error        Error
-	internalErr  error
-	stackTrace   string
-	rawResp      []byte
-	writeRespErr error
+	traceIDIsReceived bool
+	rawParams         []byte
+	error             Error
+	internalErr       error
+	stackTrace        string
+	rawResp           []byte
+	writeRespErr      error
+}
+
+func (ir *IncomingRPC) Init(
+	namespace string,
+	serviceName string,
+	methodName string,
+	params interface{},
+	results interface{},
+	handler RPCHandler,
+	interceptors []RPCHandler,
+) {
+	ir.mark = 'i'
+	ir.init(namespace, serviceName, methodName, params, results, handler, interceptors)
 }
 
 func (ir *IncomingRPC) RawParams() []byte   { return ir.rawParams }
@@ -30,7 +50,7 @@ func (ir *IncomingRPC) StackTrace() string  { return ir.stackTrace }
 func (ir *IncomingRPC) RawResp() []byte     { return ir.rawResp }
 func (ir *IncomingRPC) WriteRespErr() error { return ir.writeRespErr }
 
-func (ir *IncomingRPC) readParams() bool {
+func (ir *IncomingRPC) readParams(ctx context.Context) bool {
 	if ir.params == nil {
 		return true
 	}
@@ -47,7 +67,7 @@ func (ir *IncomingRPC) readParams() bool {
 		}
 		return false
 	}
-	validationContext := NewValidationContext()
+	validationContext := NewValidationContext(ctx)
 	if !ir.params.(Validator).Validate(validationContext) {
 		ir.error = *errInvalidParams
 		ir.error.Details = validationContext.ErrorDetails()
@@ -89,34 +109,22 @@ func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
 	if DebugMode {
 		encoder.SetIndent("", "  ")
 	}
-	var error *Error
-	if ir.error.Code != 0 {
-		error = &ir.error
+	resp := struct {
+		TraceID *string     `json:"traceID,omitempty"`
+		Error   *Error      `json:"error,omitempty"`
+		Results interface{} `json:"results,omitempty"`
+	}{}
+	if !ir.traceIDIsReceived {
+		resp.TraceID = &ir.traceID
 	}
-	if ir.results == nil {
-		if err := encoder.Encode(struct {
-			TraceID string `json:"traceID"`
-			Error   *Error `json:"error,omitempty"`
-		}{
-			TraceID: ir.traceID,
-			Error:   error,
-		}); err != nil {
-			ir.writeRespErr = err
-			return
-		}
+	if ir.error.Code != 0 {
+		resp.Error = &ir.error
 	} else {
-		if err := encoder.Encode(struct {
-			TraceID string      `json:"traceID"`
-			Error   *Error      `json:"error,omitempty"`
-			Results interface{} `json:"results,omitempty"`
-		}{
-			TraceID: ir.traceID,
-			Error:   error,
-			Results: ir.results,
-		}); err != nil {
-			ir.writeRespErr = err
-			return
-		}
+		resp.Results = ir.results
+	}
+	if err := encoder.Encode(resp); err != nil {
+		ir.writeRespErr = err
+		return
 	}
 	ir.rawResp = buffer.Bytes()
 	responseWriter.Header().Set("Content-Type", "application/json")
@@ -133,7 +141,7 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		incomingRPC.writeResp(w)
 	}()
-	if !incomingRPC.readParams() {
+	if !incomingRPC.readParams(ctx) {
 		return
 	}
 	if err := incomingRPC.Do(ctx); err != nil {

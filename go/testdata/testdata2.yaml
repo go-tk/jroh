@@ -1,0 +1,27 @@
+namespace: Bar
+
+services:
+  Test:
+    version: 0.0.0
+
+methods:
+  Do-Something:
+    service_ids: [Test]
+    results:
+      My-Struct-Int32:
+        type: Foo.My-Struct-Int32
+        is_optional: true
+      My-Struct-Int64:
+        type: Foo.My-Struct-Int64
+        is_optional: true
+      My-Struct-Float32:
+        type: Foo.My-Struct-Float32
+        is_optional: true
+      My-Struct-Float64:
+        type: Foo.My-Struct-Float64
+        is_optional: true
+      My-Struct-String:
+        type: Foo.My-Struct-String
+        is_optional: true
+    error_cases:
+      Foo.Something-Wrong: {}

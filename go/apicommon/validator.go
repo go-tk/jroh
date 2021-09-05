@@ -1,8 +1,7 @@
 package apicommon
 
 import (
-	"bytes"
-	"unsafe"
+	"context"
 )
 
 type Validator interface {
@@ -10,11 +9,15 @@ type Validator interface {
 }
 
 type ValidationContext struct {
+	Ctx context.Context
+
 	path         []string
 	errorDetails string
 }
 
-func NewValidationContext() *ValidationContext { return new(ValidationContext) }
+func NewValidationContext(ctx context.Context) *ValidationContext {
+	return &ValidationContext{Ctx: ctx}
+}
 
 func (vc *ValidationContext) Enter(pathComponent string) {
 	vc.path = append(vc.path, pathComponent)
@@ -34,16 +37,22 @@ func (vc *ValidationContext) SetErrorDetails(errorDetails string) {
 		vc.errorDetails = vc.path[0] + ": " + errorDetails
 		return
 	}
-	var buffer bytes.Buffer
-	buffer.WriteString(vc.path[0])
-	for i := 1; i < n; i++ {
-		buffer.WriteByte('.')
-		buffer.WriteString(vc.path[i])
+	i := len(vc.path[0])
+	for j := 1; j < n; j++ {
+		i += 1
+		i += len(vc.path[j])
 	}
-	buffer.WriteString(": ")
-	buffer.WriteString(errorDetails)
-	data := buffer.Bytes()
-	vc.errorDetails = *(*string)(unsafe.Pointer(&data))
+	i += 2
+	i += len(errorDetails)
+	data := make([]byte, i)
+	i = copy(data, vc.path[0])
+	for j := 1; j < n; j++ {
+		i += copy(data[i:], ".")
+		i += copy(data[i:], vc.path[j])
+	}
+	i += copy(data[i:], ": ")
+	i += copy(data[i:], errorDetails)
+	vc.errorDetails = string(data)
 }
 
 func (vc *ValidationContext) ErrorDetails() string { return vc.errorDetails }

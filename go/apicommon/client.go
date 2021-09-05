@@ -31,18 +31,12 @@ func (c *Client) Init(rpcBaseURL string, options ClientOptions) {
 	c.c.Timeout = options.Timeout
 }
 
-func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, rpcPath string) (*Error, error) {
-	outgoingRPC.client = &c.c
-	outgoingRPC.url = c.rpcBaseURL + rpcPath
+func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, rpcPath string) error {
 	if rpc, ok := GetRPCFromContext(ctx); ok {
 		outgoingRPC.traceID = rpc.traceID
+		outgoingRPC.traceIDIsReceived = true
 	}
-	ctx = makeContextWithRPC(ctx, &outgoingRPC.RPC)
-	if err := outgoingRPC.Do(ctx); err != nil {
-		if error, ok := err.(*Error); ok {
-			return error, nil
-		}
-		return nil, err
-	}
-	return nil, nil
+	outgoingRPC.client = &c.c
+	outgoingRPC.url = c.rpcBaseURL + rpcPath
+	return outgoingRPC.Do(makeContextWithRPC(ctx, &outgoingRPC.RPC))
 }
