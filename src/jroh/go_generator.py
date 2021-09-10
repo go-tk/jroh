@@ -100,18 +100,15 @@ type ${service_name}Server interface {
 
 func Register${service_name}Server(server ${service_name}Server, serveMux *${http()}.ServeMux, serverOptions ${apicommon()}.ServerOptions) {
     serverOptions.Sanitize()
-    var middlewareTable [${len(service.methods)}][]${apicommon()}.Middleware
-    ${apicommon()}.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
-    var rpcInterceptorTable [${len(service.methods)}][]${apicommon()}.RPCHandler
-    ${apicommon()}.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
+    var rpcFiltersTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+    ${apicommon()}.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
     rpc_path = service.rpc_paths[i]
 %>\
     {
-        middlewares := middlewareTable[${service_name}_${method_name}]
-        rpcInterceptors := rpcInterceptorTable[${service_name}_${method_name}]
+        rpcFilters := rpcFiltersTable[${service_name}_${method_name}]
         incomingRPCFactory := func() *${apicommon()}.IncomingRPC {
             var s struct {
                 IncomingRPC ${apicommon()}.IncomingRPC
@@ -147,10 +144,10 @@ nil, \
 &s.Results, \
     % endif
 rpcHandler, \
-rpcInterceptors)
+rpcFilters)
             return &s.IncomingRPC
         }
-        handler := ${apicommon()}.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+        handler := ${apicommon()}.MakeHandler(serverOptions.Middlewares, ${service_name}_${method_name}, incomingRPCFactory, serverOptions.TraceIDGenerator)
         serveMux.Handle(${utils.quote(rpc_path)}, handler)
     }
 % endfor
@@ -196,7 +193,7 @@ func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
     % endif
 )
     }
-    return nil
+    return ${apicommon()}.ErrNotImplemented
 }
 % endfor
 """
@@ -224,6 +221,7 @@ package {self._make_package_name()}
 <%
     context1 = g._import_package("context", "context")
     apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
+    http = g._import_package("http", "net/http")
 
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
@@ -250,13 +248,16 @@ err error)
 type ${service_name2}Client struct {
     ${apicommon()}.Client
 
-    rpcInterceptorTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+    rpcFiltersTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+    transportTable [${len(service.methods)}]${http()}.RoundTripper
 }
 
 func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOptions) ${service_name}Client {
+    options.Sanitize()
     var c ${service_name2}Client
-    c.Init(rpcBaseURL, options)
-    ${apicommon()}.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+    c.Init(rpcBaseURL, options.Timeout)
+    ${apicommon()}.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+    ${apicommon()}.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
     return &c
 }
 % for i, method in enumerate(service.methods):
@@ -286,7 +287,7 @@ error) {
     % if method.params is not None:
     s.Params = *params
     % endif
-    rpcInterceptors := c.rpcInterceptorTable[${service_name}_${method_name}]
+    rpcFilters := c.rpcFiltersTable[${service_name}_${method_name}]
     s.OutgoingRPC.Init(\
 "${namespace}", \
 "${service_name}", \
@@ -302,11 +303,12 @@ nil, \
 &s.Results, \
     % endif
 ${apicommon()}.HandleRPC, \
-rpcInterceptors)
+rpcFilters)
+    transport := c.transportTable[${service_name}_${method_name}]
     % if method.results is None:
-    return c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})
+    return c.DoRPC(ctx, &s.OutgoingRPC, transport, ${utils.quote(rpc_path)})
     % else:
-    if err := c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)}); err != nil {
+    if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, ${utils.quote(rpc_path)}); err != nil {
         return nil, err
     }
     return &s.Results, nil
@@ -355,11 +357,11 @@ error {
     % endif
 )
     }
-    % if method.results is None:
-    return nil
-    % else:
-    return &${method_name}Results{}, nil
+    return \
+    % if method.results is not None:
+nil, \
     % endif
+${apicommon()}.ErrNotImplemented
 }
 % endfor
 """

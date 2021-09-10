@@ -5,6 +5,7 @@ package petstoreapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
+	http "net/http"
 )
 
 type UserClient interface {
@@ -17,13 +18,16 @@ type UserClient interface {
 type userClient struct {
 	apicommon.Client
 
-	rpcInterceptorTable [4][]apicommon.RPCHandler
+	rpcFiltersTable [4][]apicommon.RPCHandler
+	transportTable  [4]http.RoundTripper
 }
 
 func NewUserClient(rpcBaseURL string, options apicommon.ClientOptions) UserClient {
+	options.Sanitize()
 	var c userClient
-	c.Init(rpcBaseURL, options)
-	apicommon.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+	c.Init(rpcBaseURL, options.Timeout)
+	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
 }
 
@@ -33,9 +37,10 @@ func (c *userClient) CreateUser(ctx context.Context, params *CreateUserParams) e
 		Params      CreateUserParams
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[User_CreateUser]
-	s.OutgoingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.User.CreateUser")
+	rpcFilters := c.rpcFiltersTable[User_CreateUser]
+	s.OutgoingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[User_CreateUser]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.CreateUser")
 }
 
 func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
@@ -45,9 +50,10 @@ func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUs
 		Results     GetUserResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[User_GetUser]
-	s.OutgoingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.User.GetUser"); err != nil {
+	rpcFilters := c.rpcFiltersTable[User_GetUser]
+	s.OutgoingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[User_GetUser]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUser"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -60,9 +66,10 @@ func (c *userClient) GetUsers(ctx context.Context, params *GetUsersParams) (*Get
 		Results     GetUsersResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[User_GetUsers]
-	s.OutgoingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.User.GetUsers"); err != nil {
+	rpcFilters := c.rpcFiltersTable[User_GetUsers]
+	s.OutgoingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[User_GetUsers]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUsers"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -74,9 +81,10 @@ func (c *userClient) UpdateUser(ctx context.Context, params *UpdateUserParams) e
 		Params      UpdateUserParams
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[User_UpdateUser]
-	s.OutgoingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.User.UpdateUser")
+	rpcFilters := c.rpcFiltersTable[User_UpdateUser]
+	s.OutgoingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[User_UpdateUser]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.UpdateUser")
 }
 
 type UserClientFuncs struct {
@@ -92,26 +100,26 @@ func (cf *UserClientFuncs) CreateUser(ctx context.Context, params *CreateUserPar
 	if f := cf.CreateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
 	if f := cf.GetUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &GetUserResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) GetUsers(ctx context.Context, params *GetUsersParams) (*GetUsersResults, error) {
 	if f := cf.GetUsersFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &GetUsersResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
 	if f := cf.UpdateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

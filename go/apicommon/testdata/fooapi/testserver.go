@@ -16,13 +16,10 @@ type TestServer interface {
 
 func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var middlewareTable [3][]apicommon.Middleware
-	apicommon.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
-	var rpcInterceptorTable [3][]apicommon.RPCHandler
-	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
+	var rpcFiltersTable [3][]apicommon.RPCHandler
+	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
-		middlewares := middlewareTable[Test_DoSomething]
-		rpcInterceptors := rpcInterceptorTable[Test_DoSomething]
+		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -31,15 +28,14 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Params().(*DoSomethingParams))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Foo.Test.DoSomething", handler)
 	}
 	{
-		middlewares := middlewareTable[Test_DoSomething2]
-		rpcInterceptors := rpcInterceptorTable[Test_DoSomething2]
+		rpcFilters := rpcFiltersTable[Test_DoSomething2]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -49,15 +45,14 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething2(ctx, rpc.Params().(*DoSomething2Params), rpc.Results().(*DoSomething2Results))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething2, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Foo.Test.DoSomething2", handler)
 	}
 	{
-		middlewares := middlewareTable[Test_DoSomething3]
-		rpcInterceptors := rpcInterceptorTable[Test_DoSomething3]
+		rpcFilters := rpcFiltersTable[Test_DoSomething3]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -65,10 +60,10 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething3(ctx)
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething3, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Foo.Test.DoSomething3", handler)
 	}
 }
@@ -85,19 +80,19 @@ func (sf *TestServerFuncs) DoSomething(ctx context.Context, params *DoSomethingP
 	if f := sf.DoSomethingFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *TestServerFuncs) DoSomething2(ctx context.Context, params *DoSomething2Params, results *DoSomething2Results) error {
 	if f := sf.DoSomething2Func; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *TestServerFuncs) DoSomething3(ctx context.Context) error {
 	if f := sf.DoSomething3Func; f != nil {
 		return f(ctx)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

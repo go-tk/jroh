@@ -6,44 +6,63 @@ import (
 	"net/http"
 )
 
-func FillMiddlewareTable(middlewareTable [][]Middleware, middlewares map[MethodIndex][]Middleware) {
-	commonMiddlewares := middlewares[AnyMethod]
-	for i := range middlewareTable {
+type MethodIndex int
+
+const AnyMethod MethodIndex = -1
+
+func FillRPCFiltersTable(rpcFiltersTable [][]RPCHandler, rpcFilters map[MethodIndex][]RPCHandler) {
+	commonRPCFilters := rpcFilters[AnyMethod]
+	for i := range rpcFiltersTable {
 		methodIndex := MethodIndex(i)
-		oldRPCInterceptors := middlewares[methodIndex]
-		if len(oldRPCInterceptors) == 0 {
-			middlewareTable[i] = commonMiddlewares
+		oldRPCFilters := rpcFilters[methodIndex]
+		if len(oldRPCFilters) == 0 {
+			rpcFiltersTable[i] = commonRPCFilters
 			continue
 		}
-		if len(commonMiddlewares) == 0 {
-			middlewareTable[i] = oldRPCInterceptors
+		if len(commonRPCFilters) == 0 {
+			rpcFiltersTable[i] = oldRPCFilters
 			continue
 		}
-		newMiddlewares := make([]Middleware, len(commonMiddlewares)+len(oldRPCInterceptors))
-		copy(newMiddlewares, commonMiddlewares)
-		copy(newMiddlewares[len(commonMiddlewares):], oldRPCInterceptors)
-		middlewareTable[i] = newMiddlewares
+		newRPCFilters := make([]RPCHandler, len(commonRPCFilters)+len(oldRPCFilters))
+		copy(newRPCFilters, commonRPCFilters)
+		copy(newRPCFilters[len(commonRPCFilters):], oldRPCFilters)
+		rpcFiltersTable[i] = newRPCFilters
 	}
 }
 
-func FillRPCInterceptorTable(rpcInterceptorTable [][]RPCHandler, rpcInterceptors map[MethodIndex][]RPCHandler) {
-	commonRPCInterceptors := rpcInterceptors[AnyMethod]
-	for i := range rpcInterceptorTable {
-		methodIndex := MethodIndex(i)
-		oldRPCInterceptors := rpcInterceptors[methodIndex]
-		if len(oldRPCInterceptors) == 0 {
-			rpcInterceptorTable[i] = commonRPCInterceptors
-			continue
-		}
-		if len(commonRPCInterceptors) == 0 {
-			rpcInterceptorTable[i] = oldRPCInterceptors
-			continue
-		}
-		newRPCInterceptors := make([]RPCHandler, len(commonRPCInterceptors)+len(oldRPCInterceptors))
-		copy(newRPCInterceptors, commonRPCInterceptors)
-		copy(newRPCInterceptors[len(commonRPCInterceptors):], oldRPCInterceptors)
-		rpcInterceptorTable[i] = newRPCInterceptors
+func wrapHandler(handler http.Handler, serverMiddlewares map[MethodIndex][]ServerMiddleware, methodIndex MethodIndex) http.Handler {
+	serverMiddlewares2 := serverMiddlewares[methodIndex]
+	for i := len(serverMiddlewares2) - 1; i >= 0; i-- {
+		serverMiddleware := serverMiddlewares2[i]
+		handler = serverMiddleware(handler)
 	}
+	serverMiddlewares3 := serverMiddlewares[AnyMethod]
+	for i := len(serverMiddlewares3) - 1; i >= 0; i-- {
+		serverMiddleware := serverMiddlewares3[i]
+		handler = serverMiddleware(handler)
+	}
+	return handler
+}
+
+func FillTransportTable(transportTable []http.RoundTripper, transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware) {
+	for i := range transportTable {
+		methodIndex := MethodIndex(i)
+		transportTable[methodIndex] = wrapTransport(transport, clientMiddlewares, methodIndex)
+	}
+}
+
+func wrapTransport(transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware, methodIndex MethodIndex) http.RoundTripper {
+	clientMiddlewares2 := clientMiddlewares[methodIndex]
+	for i := len(clientMiddlewares2) - 1; i >= 0; i-- {
+		clientMiddleware := clientMiddlewares2[i]
+		transport = clientMiddleware(transport)
+	}
+	clientMiddlewares3 := clientMiddlewares[AnyMethod]
+	for i := len(clientMiddlewares3) - 1; i >= 0; i-- {
+		clientMiddleware := clientMiddlewares3[i]
+		transport = clientMiddleware(transport)
+	}
+	return transport
 }
 
 func generateTraceID() string {

@@ -5,6 +5,7 @@ package petstoreapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
+	http "net/http"
 )
 
 type PetClient interface {
@@ -18,13 +19,16 @@ type PetClient interface {
 type petClient struct {
 	apicommon.Client
 
-	rpcInterceptorTable [5][]apicommon.RPCHandler
+	rpcFiltersTable [5][]apicommon.RPCHandler
+	transportTable  [5]http.RoundTripper
 }
 
 func NewPetClient(rpcBaseURL string, options apicommon.ClientOptions) PetClient {
+	options.Sanitize()
 	var c petClient
-	c.Init(rpcBaseURL, options)
-	apicommon.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+	c.Init(rpcBaseURL, options.Timeout)
+	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
 }
 
@@ -34,9 +38,10 @@ func (c *petClient) AddPet(ctx context.Context, params *AddPetParams) error {
 		Params      AddPetParams
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Pet_AddPet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "AddPet", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Pet.AddPet")
+	rpcFilters := c.rpcFiltersTable[Pet_AddPet]
+	s.OutgoingRPC.Init("Petstore", "Pet", "AddPet", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Pet_AddPet]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.AddPet")
 }
 
 func (c *petClient) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
@@ -46,9 +51,10 @@ func (c *petClient) GetPet(ctx context.Context, params *GetPetParams) (*GetPetRe
 		Results     GetPetResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Pet_GetPet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "GetPet", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Pet.GetPet"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Pet_GetPet]
+	s.OutgoingRPC.Init("Petstore", "Pet", "GetPet", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Pet_GetPet]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.GetPet"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -61,9 +67,10 @@ func (c *petClient) GetPets(ctx context.Context, params *GetPetsParams) (*GetPet
 		Results     GetPetsResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Pet_GetPets]
-	s.OutgoingRPC.Init("Petstore", "Pet", "GetPets", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Pet.GetPets"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Pet_GetPets]
+	s.OutgoingRPC.Init("Petstore", "Pet", "GetPets", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Pet_GetPets]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.GetPets"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -75,9 +82,10 @@ func (c *petClient) UpdatePet(ctx context.Context, params *UpdatePetParams) erro
 		Params      UpdatePetParams
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Pet_UpdatePet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "UpdatePet", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Pet.UpdatePet")
+	rpcFilters := c.rpcFiltersTable[Pet_UpdatePet]
+	s.OutgoingRPC.Init("Petstore", "Pet", "UpdatePet", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Pet_UpdatePet]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.UpdatePet")
 }
 
 func (c *petClient) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
@@ -87,9 +95,10 @@ func (c *petClient) FindPets(ctx context.Context, params *FindPetsParams) (*Find
 		Results     FindPetsResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Pet_FindPets]
-	s.OutgoingRPC.Init("Petstore", "Pet", "FindPets", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Pet.FindPets"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Pet_FindPets]
+	s.OutgoingRPC.Init("Petstore", "Pet", "FindPets", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Pet_FindPets]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.FindPets"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -109,33 +118,33 @@ func (cf *PetClientFuncs) AddPet(ctx context.Context, params *AddPetParams) erro
 	if f := cf.AddPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
 	if f := cf.GetPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &GetPetResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
 	if f := cf.GetPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &GetPetsResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	if f := cf.UpdatePetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
 	if f := cf.FindPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &FindPetsResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }

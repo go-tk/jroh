@@ -5,6 +5,7 @@ package petstoreapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
+	http "net/http"
 )
 
 type StoreClient interface {
@@ -15,13 +16,16 @@ type StoreClient interface {
 type storeClient struct {
 	apicommon.Client
 
-	rpcInterceptorTable [2][]apicommon.RPCHandler
+	rpcFiltersTable [2][]apicommon.RPCHandler
+	transportTable  [2]http.RoundTripper
 }
 
 func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreClient {
+	options.Sanitize()
 	var c storeClient
-	c.Init(rpcBaseURL, options)
-	apicommon.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+	c.Init(rpcBaseURL, options.Timeout)
+	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
 }
 
@@ -32,9 +36,10 @@ func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams
 		Results     CreateOrderResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Store_CreateOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Store.CreateOrder"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Store_CreateOrder]
+	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Store_CreateOrder]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.CreateOrder"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -47,9 +52,10 @@ func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*Ge
 		Results     GetOrderResults
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Store_GetOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Petstore.Store.GetOrder"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Store_GetOrder]
+	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Store_GetOrder]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.GetOrder"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -66,12 +72,12 @@ func (cf *StoreClientFuncs) CreateOrder(ctx context.Context, params *CreateOrder
 	if f := cf.CreateOrderFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &CreateOrderResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *StoreClientFuncs) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
 	if f := cf.GetOrderFunc; f != nil {
 		return f(ctx, params)
 	}
-	return &GetOrderResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }

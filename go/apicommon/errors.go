@@ -40,6 +40,18 @@ func NewInternalError() *Error {
 var errInternal *Error = NewInternalError()
 var ErrInternal error = errInternal
 
+const ErrorNotImplemented ErrorCode = -32000
+
+func NewNotImplementedError() *Error {
+	return &Error{
+		Code:    ErrorNotImplemented,
+		Message: "not implemented",
+	}
+}
+
+var errNotImplemented *Error = NewNotImplementedError()
+var ErrNotImplemented error = errNotImplemented
+
 type ErrorCode int32
 
 type Error struct {

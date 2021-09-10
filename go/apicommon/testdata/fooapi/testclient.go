@@ -5,6 +5,7 @@ package fooapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
+	http "net/http"
 )
 
 type TestClient interface {
@@ -16,13 +17,16 @@ type TestClient interface {
 type testClient struct {
 	apicommon.Client
 
-	rpcInterceptorTable [3][]apicommon.RPCHandler
+	rpcFiltersTable [3][]apicommon.RPCHandler
+	transportTable  [3]http.RoundTripper
 }
 
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {
+	options.Sanitize()
 	var c testClient
-	c.Init(rpcBaseURL, options)
-	apicommon.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+	c.Init(rpcBaseURL, options.Timeout)
+	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
 }
 
@@ -32,9 +36,10 @@ func (c *testClient) DoSomething(ctx context.Context, params *DoSomethingParams)
 		Params      DoSomethingParams
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething")
+	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Test_DoSomething]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething")
 }
 
 func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Params) (*DoSomething2Results, error) {
@@ -44,9 +49,10 @@ func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Param
 		Results     DoSomething2Results
 	}
 	s.Params = *params
-	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething2]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething2"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Test_DoSomething2]
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Test_DoSomething2]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething2"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -56,9 +62,10 @@ func (c *testClient) DoSomething3(ctx context.Context) error {
 	var s struct {
 		OutgoingRPC apicommon.OutgoingRPC
 	}
-	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething3]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, apicommon.HandleRPC, rpcInterceptors)
-	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething3")
+	rpcFilters := c.rpcFiltersTable[Test_DoSomething3]
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Test_DoSomething3]
+	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething3")
 }
 
 type TestClientFuncs struct {
@@ -73,19 +80,19 @@ func (cf *TestClientFuncs) DoSomething(ctx context.Context, params *DoSomethingP
 	if f := cf.DoSomethingFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *TestClientFuncs) DoSomething2(ctx context.Context, params *DoSomething2Params) (*DoSomething2Results, error) {
 	if f := cf.DoSomething2Func; f != nil {
 		return f(ctx, params)
 	}
-	return &DoSomething2Results{}, nil
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *TestClientFuncs) DoSomething3(ctx context.Context) error {
 	if f := cf.DoSomething3Func; f != nil {
 		return f(ctx)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

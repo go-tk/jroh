@@ -17,13 +17,10 @@ type UserServer interface {
 
 func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var middlewareTable [4][]apicommon.Middleware
-	apicommon.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
-	var rpcInterceptorTable [4][]apicommon.RPCHandler
-	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
+	var rpcFiltersTable [4][]apicommon.RPCHandler
+	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
-		middlewares := middlewareTable[User_CreateUser]
-		rpcInterceptors := rpcInterceptorTable[User_CreateUser]
+		rpcFilters := rpcFiltersTable[User_CreateUser]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -32,15 +29,14 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.CreateUser(ctx, rpc.Params().(*CreateUserParams))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_CreateUser, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.User.CreateUser", handler)
 	}
 	{
-		middlewares := middlewareTable[User_GetUser]
-		rpcInterceptors := rpcInterceptorTable[User_GetUser]
+		rpcFilters := rpcFiltersTable[User_GetUser]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -50,15 +46,14 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetUser(ctx, rpc.Params().(*GetUserParams), rpc.Results().(*GetUserResults))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_GetUser, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.User.GetUser", handler)
 	}
 	{
-		middlewares := middlewareTable[User_GetUsers]
-		rpcInterceptors := rpcInterceptorTable[User_GetUsers]
+		rpcFilters := rpcFiltersTable[User_GetUsers]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -68,15 +63,14 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetUsers(ctx, rpc.Params().(*GetUsersParams), rpc.Results().(*GetUsersResults))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_GetUsers, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.User.GetUsers", handler)
 	}
 	{
-		middlewares := middlewareTable[User_UpdateUser]
-		rpcInterceptors := rpcInterceptorTable[User_UpdateUser]
+		rpcFilters := rpcFiltersTable[User_UpdateUser]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -85,10 +79,10 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.UpdateUser(ctx, rpc.Params().(*UpdateUserParams))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_UpdateUser, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.User.UpdateUser", handler)
 	}
 }
@@ -106,26 +100,26 @@ func (sf *UserServerFuncs) CreateUser(ctx context.Context, params *CreateUserPar
 	if f := sf.CreateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
 	if f := sf.GetUserFunc; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
 	if f := sf.GetUsersFunc; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
 	if f := sf.UpdateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

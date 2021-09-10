@@ -6,8 +6,8 @@ import (
 )
 
 type ServerOptions struct {
-	Middlewares      map[MethodIndex][]Middleware
-	RPCInterceptors  map[MethodIndex][]RPCHandler
+	Middlewares      map[MethodIndex][]ServerMiddleware
+	RPCFilters       map[MethodIndex][]RPCHandler
 	TraceIDGenerator TraceIDGenerator
 }
 
@@ -17,24 +17,17 @@ func (so *ServerOptions) Sanitize() {
 	}
 }
 
-type MethodIndex int
-
-const AnyMethod MethodIndex = -1
-
-type Middleware func(oldHandler http.Handler) (newHandler http.Handler)
-type TraceIDGenerator func() (traceID string)
+type ServerMiddleware func(oldHandler http.Handler) (newHandler http.Handler)
 type IncomingRPCFactory func() (incomingRPC *IncomingRPC)
+type TraceIDGenerator func() (traceID string)
 
 func MakeHandler(
-	middlewares []Middleware,
+	serverMiddlewares map[MethodIndex][]ServerMiddleware,
+	methodIndex MethodIndex,
 	incomingRPCFactory IncomingRPCFactory,
 	traceIDGenerator TraceIDGenerator,
 ) http.Handler {
-	handler := http.Handler(http.HandlerFunc(handleHTTP))
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		middleware := middlewares[i]
-		handler = middleware(handler)
-	}
+	handler := wrapHandler(http.HandlerFunc(handleHTTP), serverMiddlewares, methodIndex)
 	handler = func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var buffer bytes.Buffer
@@ -59,3 +52,22 @@ func MakeHandler(
 	}(handler)
 	return handler
 }
+
+func handleHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	incomingRPC := MustGetRPCFromContext(ctx).IncomingRPC()
+	defer func() {
+		if v := recover(); v != nil {
+			incomingRPC.savePanic(v)
+		}
+		incomingRPC.encodeAndWriteResp(w)
+	}()
+	if !incomingRPC.decodeParams(ctx) {
+		return
+	}
+	if err := incomingRPC.Do(ctx); err != nil {
+		incomingRPC.saveErr(err)
+	}
+}
+
+var _ http.HandlerFunc = handleHTTP

@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"io"
+	"errors"
 	"net/http"
 	"unsafe"
 )
@@ -22,6 +21,7 @@ type OutgoingRPC struct {
 
 	traceIDIsReceived bool
 	client            *http.Client
+	transport         http.RoundTripper
 	url               string
 	rawParams         []byte
 	statusCode        int
@@ -36,10 +36,10 @@ func (or *OutgoingRPC) Init(
 	params interface{},
 	results interface{},
 	handler RPCHandler,
-	interceptors []RPCHandler,
+	filters []RPCHandler,
 ) {
 	or.mark = 'o'
-	or.init(namespace, serviceName, methodName, params, results, handler, interceptors)
+	or.init(namespace, serviceName, methodName, params, results, handler, filters)
 }
 
 func (or *OutgoingRPC) URL() string       { return or.url }
@@ -78,14 +78,7 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) (*http.Response, error) 
 	return or.client.Do(request)
 }
 
-func (or *OutgoingRPC) readResp(responseBody io.ReadCloser) error {
-	var buffer bytes.Buffer
-	_, err := buffer.ReadFrom(responseBody)
-	responseBody.Close()
-	if err != nil {
-		return err
-	}
-	or.rawResp = buffer.Bytes()
+func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.results == nil {
 		resp := struct {
 			TraceID *string `json:"traceID"`
@@ -94,67 +87,25 @@ func (or *OutgoingRPC) readResp(responseBody io.ReadCloser) error {
 			TraceID: &or.traceID,
 			Error:   &or.error,
 		}
-		err = json.Unmarshal(or.rawResp, &resp)
-	} else {
-		resp := struct {
-			TraceID *string     `json:"traceID"`
-			Error   *Error      `json:"error"`
-			Results interface{} `json:"results"`
-		}{
-			TraceID: &or.traceID,
-			Error:   &or.error,
-			Results: or.results,
+		return json.Unmarshal(or.rawResp, &resp)
+	}
+	resp := struct {
+		TraceID *string     `json:"traceID"`
+		Error   *Error      `json:"error"`
+		Results interface{} `json:"results"`
+	}{
+		TraceID: &or.traceID,
+		Error:   &or.error,
+		Results: or.results,
+	}
+	if err := json.Unmarshal(or.rawResp, &resp); err != nil {
+		return err
+	}
+	if or.error.Code == 0 {
+		validationContext := NewValidationContext(ctx)
+		if !or.results.(Validator).Validate(validationContext) {
+			return errors.New("invalid results: " + validationContext.ErrorDetails())
 		}
-		err = json.Unmarshal(or.rawResp, &resp)
-	}
-	return err
-}
-
-type UnexpectedStatusCodeError struct {
-	StatusCode int
-
-	namespace   string
-	serviceName string
-	methodName  string
-	traceID     string
-}
-
-func (usce *UnexpectedStatusCodeError) Error() string {
-	return fmt.Sprintf("apicommon: unexpected status code; namespace=%q serviceName=%q methodName=%q traceID=%q statusCode=%q",
-		usce.namespace, usce.serviceName, usce.methodName, usce.traceID, usce.StatusCode)
-}
-
-func HandleRPC(ctx context.Context, rpc *RPC) error {
-	outgoingRPC := rpc.OutgoingRPC()
-	if err := outgoingRPC.encodeParams(); err != nil {
-		return fmt.Errorf("apicommon: params encoding failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
-			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
-	}
-	response, err := outgoingRPC.requestHTTP(ctx)
-	if err != nil {
-		return fmt.Errorf("apicommon: http request failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
-			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
-	}
-	outgoingRPC.statusCode = response.StatusCode
-	if outgoingRPC.statusCode != http.StatusOK {
-		return &UnexpectedStatusCodeError{
-			StatusCode: outgoingRPC.statusCode,
-
-			namespace:   rpc.namespace,
-			serviceName: rpc.serviceName,
-			methodName:  rpc.methodName,
-			traceID:     rpc.traceID,
-		}
-	}
-	if err := outgoingRPC.readResp(response.Body); err != nil {
-		return fmt.Errorf("apicommon: resp read failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
-			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
-	}
-	if outgoingRPC.error.Code != 0 {
-		return fmt.Errorf("apicommon: rpc failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %w",
-			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, &outgoingRPC.error)
 	}
 	return nil
 }
-
-var _ RPCHandler = HandleRPC

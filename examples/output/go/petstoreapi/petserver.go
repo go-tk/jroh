@@ -18,13 +18,10 @@ type PetServer interface {
 
 func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var middlewareTable [5][]apicommon.Middleware
-	apicommon.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
-	var rpcInterceptorTable [5][]apicommon.RPCHandler
-	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
+	var rpcFiltersTable [5][]apicommon.RPCHandler
+	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
-		middlewares := middlewareTable[Pet_AddPet]
-		rpcInterceptors := rpcInterceptorTable[Pet_AddPet]
+		rpcFilters := rpcFiltersTable[Pet_AddPet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -33,15 +30,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.AddPet(ctx, rpc.Params().(*AddPetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", &s.Params, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_AddPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.Pet.AddPet", handler)
 	}
 	{
-		middlewares := middlewareTable[Pet_GetPet]
-		rpcInterceptors := rpcInterceptorTable[Pet_GetPet]
+		rpcFilters := rpcFiltersTable[Pet_GetPet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -51,15 +47,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPet(ctx, rpc.Params().(*GetPetParams), rpc.Results().(*GetPetResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.Pet.GetPet", handler)
 	}
 	{
-		middlewares := middlewareTable[Pet_GetPets]
-		rpcInterceptors := rpcInterceptorTable[Pet_GetPets]
+		rpcFilters := rpcFiltersTable[Pet_GetPets]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -69,15 +64,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPets(ctx, rpc.Params().(*GetPetsParams), rpc.Results().(*GetPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPets, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.Pet.GetPets", handler)
 	}
 	{
-		middlewares := middlewareTable[Pet_UpdatePet]
-		rpcInterceptors := rpcInterceptorTable[Pet_UpdatePet]
+		rpcFilters := rpcFiltersTable[Pet_UpdatePet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -86,15 +80,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.UpdatePet(ctx, rpc.Params().(*UpdatePetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", &s.Params, nil, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_UpdatePet, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.Pet.UpdatePet", handler)
 	}
 	{
-		middlewares := middlewareTable[Pet_FindPets]
-		rpcInterceptors := rpcInterceptorTable[Pet_FindPets]
+		rpcFilters := rpcFiltersTable[Pet_FindPets]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -104,10 +97,10 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.FindPets(ctx, rpc.Params().(*FindPetsParams), rpc.Results().(*FindPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", &s.Params, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_FindPets, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Petstore.Pet.FindPets", handler)
 	}
 }
@@ -126,33 +119,33 @@ func (sf *PetServerFuncs) AddPet(ctx context.Context, params *AddPetParams) erro
 	if f := sf.AddPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *PetServerFuncs) GetPet(ctx context.Context, params *GetPetParams, results *GetPetResults) error {
 	if f := sf.GetPetFunc; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *PetServerFuncs) GetPets(ctx context.Context, params *GetPetsParams, results *GetPetsResults) error {
 	if f := sf.GetPetsFunc; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *PetServerFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	if f := sf.UpdatePetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *PetServerFuncs) FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) error {
 	if f := sf.FindPetsFunc; f != nil {
 		return f(ctx, params, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

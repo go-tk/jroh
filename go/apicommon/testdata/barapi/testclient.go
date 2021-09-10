@@ -5,6 +5,7 @@ package barapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
+	http "net/http"
 )
 
 type TestClient interface {
@@ -14,13 +15,16 @@ type TestClient interface {
 type testClient struct {
 	apicommon.Client
 
-	rpcInterceptorTable [1][]apicommon.RPCHandler
+	rpcFiltersTable [1][]apicommon.RPCHandler
+	transportTable  [1]http.RoundTripper
 }
 
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {
+	options.Sanitize()
 	var c testClient
-	c.Init(rpcBaseURL, options)
-	apicommon.FillRPCInterceptorTable(c.rpcInterceptorTable[:], options.RPCInterceptors)
+	c.Init(rpcBaseURL, options.Timeout)
+	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
+	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
 }
 
@@ -29,9 +33,10 @@ func (c *testClient) DoSomething(ctx context.Context) (*DoSomethingResults, erro
 		OutgoingRPC apicommon.OutgoingRPC
 		Results     DoSomethingResults
 	}
-	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, apicommon.HandleRPC, rpcInterceptors)
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Bar.Test.DoSomething"); err != nil {
+	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
+	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, apicommon.HandleRPC, rpcFilters)
+	transport := c.transportTable[Test_DoSomething]
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Bar.Test.DoSomething"); err != nil {
 		return nil, err
 	}
 	return &s.Results, nil
@@ -47,5 +52,5 @@ func (cf *TestClientFuncs) DoSomething(ctx context.Context) (*DoSomethingResults
 	if f := cf.DoSomethingFunc; f != nil {
 		return f(ctx)
 	}
-	return &DoSomethingResults{}, nil
+	return nil, apicommon.ErrNotImplemented
 }

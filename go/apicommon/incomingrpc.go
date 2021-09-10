@@ -26,6 +26,7 @@ type IncomingRPC struct {
 	error             Error
 	internalErr       error
 	stackTrace        string
+	encodeRespErr     error
 	rawResp           []byte
 	writeRespErr      error
 }
@@ -37,20 +38,21 @@ func (ir *IncomingRPC) Init(
 	params interface{},
 	results interface{},
 	handler RPCHandler,
-	interceptors []RPCHandler,
+	filters []RPCHandler,
 ) {
 	ir.mark = 'i'
-	ir.init(namespace, serviceName, methodName, params, results, handler, interceptors)
+	ir.init(namespace, serviceName, methodName, params, results, handler, filters)
 }
 
-func (ir *IncomingRPC) RawParams() []byte   { return ir.rawParams }
-func (ir *IncomingRPC) Error() Error        { return ir.error }
-func (ir *IncomingRPC) InternalErr() error  { return ir.internalErr }
-func (ir *IncomingRPC) StackTrace() string  { return ir.stackTrace }
-func (ir *IncomingRPC) RawResp() []byte     { return ir.rawResp }
-func (ir *IncomingRPC) WriteRespErr() error { return ir.writeRespErr }
+func (ir *IncomingRPC) RawParams() []byte    { return ir.rawParams }
+func (ir *IncomingRPC) Error() Error         { return ir.error }
+func (ir *IncomingRPC) InternalErr() error   { return ir.internalErr }
+func (ir *IncomingRPC) StackTrace() string   { return ir.stackTrace }
+func (ir *IncomingRPC) EncodeRespErr() error { return ir.encodeRespErr }
+func (ir *IncomingRPC) RawResp() []byte      { return ir.rawResp }
+func (ir *IncomingRPC) WriteRespErr() error  { return ir.writeRespErr }
 
-func (ir *IncomingRPC) readParams(ctx context.Context) bool {
+func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 	if ir.params == nil {
 		return true
 	}
@@ -102,7 +104,7 @@ func (ir *IncomingRPC) savePanic(v interface{}) {
 	ir.stackTrace = stackTrace
 }
 
-func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
+func (ir *IncomingRPC) encodeAndWriteResp(responseWriter http.ResponseWriter) {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
@@ -123,7 +125,7 @@ func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
 		resp.Results = ir.results
 	}
 	if err := encoder.Encode(resp); err != nil {
-		ir.writeRespErr = err
+		ir.encodeRespErr = err
 		return
 	}
 	ir.rawResp = buffer.Bytes()
@@ -131,22 +133,3 @@ func (ir *IncomingRPC) writeResp(responseWriter http.ResponseWriter) {
 	responseWriter.WriteHeader(http.StatusOK)
 	_, ir.writeRespErr = responseWriter.Write(ir.rawResp)
 }
-
-func handleHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	incomingRPC := MustGetRPCFromContext(ctx).IncomingRPC()
-	defer func() {
-		if v := recover(); v != nil {
-			incomingRPC.savePanic(v)
-		}
-		incomingRPC.writeResp(w)
-	}()
-	if !incomingRPC.readParams(ctx) {
-		return
-	}
-	if err := incomingRPC.Do(ctx); err != nil {
-		incomingRPC.saveErr(err)
-	}
-}
-
-var _ http.HandlerFunc = handleHTTP

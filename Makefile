@@ -20,12 +20,12 @@ test:
 
 .PHONY: go_vet
 go_vet:
+	python3 -m src.jroh.compiler --go_out go/apicommon/testdata:github.com/go-tk/jroh/go/apicommon/testdata go/apicommon/testdata/*.yaml
 	cd go
 	go vet ./...
 
 .PHONY: go_test
 go_test:
-	python3 -m src.jroh.compiler --go_out go/apicommon/testdata:github.com/go-tk/jroh/go/apicommon/testdata go/apicommon/testdata/*.yaml
 	cd go
 	go test -coverpkg=./apicommon/... ./apicommon
 
@@ -33,6 +33,7 @@ go_test:
 .PHONY: examples
 examples:
 	find examples -type d -path examples/output -prune -o -type f -name '*.yaml' -print |
-		xargs $(if $(value DEBUG),--verbose) python3 -m src.jroh.compiler \
+		xargs $(if $(value DEBUG),--verbose) \
+			python3 -m src.jroh.compiler \
 			--oapi3_out examples/output/oapi3 \
 			--go_out examples/output/go:github.com/go-tk/jroh/examples/output/go

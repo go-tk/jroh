@@ -14,13 +14,10 @@ type TestServer interface {
 
 func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var middlewareTable [1][]apicommon.Middleware
-	apicommon.FillMiddlewareTable(middlewareTable[:], serverOptions.Middlewares)
-	var rpcInterceptorTable [1][]apicommon.RPCHandler
-	apicommon.FillRPCInterceptorTable(rpcInterceptorTable[:], serverOptions.RPCInterceptors)
+	var rpcFiltersTable [1][]apicommon.RPCHandler
+	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
-		middlewares := middlewareTable[Test_DoSomething]
-		rpcInterceptors := rpcInterceptorTable[Test_DoSomething]
+		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
 				IncomingRPC apicommon.IncomingRPC
@@ -29,10 +26,10 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Results().(*DoSomethingResults))
 			}
-			s.IncomingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, rpcHandler, rpcInterceptors)
+			s.IncomingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)
 		serveMux.Handle("/rpc/Bar.Test.DoSomething", handler)
 	}
 }
@@ -47,5 +44,5 @@ func (sf *TestServerFuncs) DoSomething(ctx context.Context, results *DoSomething
 	if f := sf.DoSomethingFunc; f != nil {
 		return f(ctx, results)
 	}
-	return nil
+	return apicommon.ErrNotImplemented
 }

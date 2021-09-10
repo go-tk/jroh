@@ -3,16 +3,17 @@ package apicommon
 import "context"
 
 type RPC struct {
-	mark                 byte
-	namespace            string
-	serviceName          string
-	methodName           string
-	params               interface{}
-	results              interface{}
-	traceID              string
-	handler              RPCHandler
-	interceptors         []RPCHandler
-	nextInterceptorIndex int
+	mark byte
+
+	namespace       string
+	serviceName     string
+	methodName      string
+	params          interface{}
+	results         interface{}
+	traceID         string
+	handler         RPCHandler
+	filters         []RPCHandler
+	nextFilterIndex int
 }
 
 func (r *RPC) init(
@@ -22,7 +23,7 @@ func (r *RPC) init(
 	params interface{},
 	results interface{},
 	handler RPCHandler,
-	interceptors []RPCHandler,
+	filters []RPCHandler,
 ) {
 	r.namespace = namespace
 	r.serviceName = serviceName
@@ -30,7 +31,7 @@ func (r *RPC) init(
 	r.params = params
 	r.results = results
 	r.handler = handler
-	r.interceptors = interceptors
+	r.filters = filters
 }
 
 func (r *RPC) Namespace() string    { return r.namespace }
@@ -41,9 +42,9 @@ func (r *RPC) Results() interface{} { return r.results }
 func (r *RPC) TraceID() string      { return r.traceID }
 
 func (r *RPC) Do(ctx context.Context) error {
-	if i := r.nextInterceptorIndex; i < len(r.interceptors) {
-		r.nextInterceptorIndex++
-		return r.interceptors[i](ctx, r)
+	if i := r.nextFilterIndex; i < len(r.filters) {
+		r.nextFilterIndex++
+		return r.filters[i](ctx, r)
 	}
 	return r.handler(ctx, r)
 }
