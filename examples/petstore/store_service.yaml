@@ -1,0 +1,65 @@
+namespace: Petstore
+
+services:
+  Store:
+    version: 0.0.1
+
+methods:
+  Create-Order:
+    summary: Creates an order
+    description: TODO1
+    service_ids: [Store]
+    params:
+      Order:
+        type: Order
+    results:
+      Order-ID:
+        type: Order-ID
+
+  Get-Order:
+    summary: Get an order
+    description: TODO2
+    service_ids: [Store]
+    params:
+      Order-ID:
+        type: Order-ID
+    results:
+      Order:
+        type: Order
+
+models:
+  Order:
+    type: struct
+    fields:
+      ID:
+        type: Order-ID
+      Pet-ID:
+        type: Pet-ID
+      Quantity:
+        type: int32
+        min_count: 1
+        description: The quantity of pets.
+      Status:
+        type: Order-Status
+    description: Information of order.
+
+  Order-ID:
+    type: int64
+    min: 1
+    description: The identifier of order.
+    example: 202191010101011
+
+  Order-Status:
+    type: enum
+    underlying_type: int32
+    constants:
+      Order-Placed:
+        value: 1
+        description: Order is placed.
+      Order-Approved:
+        value: 2
+        description: Order is approved.
+      Order-Delivered:
+        value: 3
+        description: Order is delivered.
+    description: The status of order.

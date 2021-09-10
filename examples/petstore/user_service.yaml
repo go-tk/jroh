@@ -1,0 +1,154 @@
+namespace: Petstore
+
+services:
+  User:
+    version: 0.0.1
+
+methods:
+  Create-User:
+    summary: Creates an user
+    description: TODO1
+    service_ids: [User]
+    params:
+      User:
+        type: User
+    error_cases:
+      User-Already-Exists: {}
+
+  Get-User:
+    summary: Gets an user by ID
+    description: TODO2
+    service_ids: [User]
+    params:
+      User-ID:
+        type: User-ID
+    results:
+      User:
+        type: User
+    error_cases:
+      User-Not-Found: {}
+
+  Get-Users:
+    summary: Gets users by IDs
+    description: TODO3
+    service_ids: [User]
+    params:
+      User-IDs:
+        type: User-ID
+        is_repeated: true
+        min_count: 1
+        max_count: 30
+    results:
+      Users:
+        type: User
+        is_repeated: true
+
+  Update-User:
+    summary: Updates an user by ID
+    description: TODO4
+    service_ids: [User]
+    params:
+      User-Patch:
+        type: User-Patch
+    error_cases:
+      User-Not-Found: {}
+
+models:
+  User:
+    type: struct
+    fields:
+      ID:
+        type: User-ID
+      First-Name:
+        type: First-Name
+      Last-Name:
+        type: Last-Name
+      Email:
+        type: Email
+      Phone:
+        type: Phone
+        is_optional: true
+      Password:
+        type: Password
+    description: Information of user.
+
+  User-Patch:
+    type: struct
+    fields:
+      ID:
+        type: User-ID
+      First-Name:
+        type: First-Name
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+      Last-Name:
+        type: Last-Name
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+      Email:
+        type: Email
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+      Phone:
+        type: Phone
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+      Password:
+        type: Password
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+    description: Updated information of user.
+
+  User-ID:
+    type: string
+    min_length: 1
+    max_length: 31
+    pattern: '[a-z][a-z0-9]*'
+    description: The identifier of user.
+    example: tony1983
+
+  First-Name:
+    type: string
+    min_length: 1
+    max_length: 63
+    description: The first name of user.
+    example: Tony
+
+  Last-Name:
+    type: string
+    min_length: 1
+    max_length: 63
+    description: The last name of user.
+    example: Montana
+
+  Email:
+    type: string
+    min_length: 1
+    max_length: 127
+    pattern: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+    description: The email of user.
+    example: tony1983@gmail.com
+
+  Phone:
+    type: string
+    min_length: 1
+    max_length: 31
+    pattern: '\+[0-9]+ [0-9]+'
+    description: The phone of user.
+    example: +86 13333333333
+
+  Password:
+    type: string
+    min_length: 6
+    max_length: 31
+    description: The password of user.
+    example: 123abc
+
+errors:
+  User-Already-Exists:
+    code: 1001
+    description: The user ID is in use.
+
+  User-Not-Found:
+    code: 1002
+    description: Can't find the user.

@@ -1,0 +1,145 @@
+namespace: Petstore
+
+services:
+  Pet:
+    version: 0.0.1
+
+methods:
+  Add-Pet:
+    summary: Adds a pet
+    description: TODO1
+    service_ids: [Pet]
+    params:
+      Pet:
+        type: Pet
+    error_cases:
+      Pet-Already-Exists: {}
+
+  Get-Pet:
+    summary: Gets a pet by ID
+    description: TODO2
+    service_ids: [Pet]
+    params:
+      Pet-ID:
+        type: Pet-ID
+    results:
+      Pet:
+        type: Pet
+    error_cases:
+      Pet-Not-Found: {}
+
+  Get-Pets:
+    summary: Gets pets by IDs
+    description: TODO3
+    service_ids: [Pet]
+    params:
+      Pet-IDs:
+        type: Pet-ID
+        is_repeated: true
+        min_count: 1
+        max_count: 30
+    results:
+      Pets:
+        type: Pet
+        is_repeated: true
+
+  Update-Pet:
+    summary: Updates a pet by ID
+    description: TODO4
+    service_ids: [Pet]
+    params:
+      Pet-Patch:
+        type: Pet-Patch
+    error_cases:
+      Pet-Not-Found: {}
+
+  Find-Pets:
+    summary: Finds pets by status
+    description: TODO5
+    service_ids: [Pet]
+    params:
+      Pet-Status:
+        type: Pet-Status
+    results:
+      Pets:
+        type: Pet
+        is_repeated: true
+
+models:
+  Pet:
+    type: struct
+    fields:
+      ID:
+        type: Pet-ID
+      Name:
+        type: Pet-Name
+      Tags:
+        type: Pet-Tag
+        is_repeated: true
+        min_count: 1
+      Status:
+        type: Pet-Status
+    description: Information of pet.
+
+  Pet-Patch:
+    type: struct
+    fields:
+      ID:
+        type: Pet-ID
+      Name:
+        type: Pet-Name
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+      Tags:
+        type: Pet-Tag
+        is_repeated: true
+        description: + Provide it if it needs to be changed.
+      Status:
+        type: Pet-Status
+        is_optional: true
+        description: + Provide it if it needs to be changed.
+    description: Updated information of pet.
+
+  Pet-ID:
+    type: int64
+    min: 1
+    description: The identifier of pet.
+    example: 2020
+
+  Pet-Name:
+    type: string
+    min_length: 1
+    max_length: 63
+    description: The name of pet.
+    example: spike
+
+  Pet-Tag:
+    type: string
+    min_length: 1
+    max_length: 63
+    description: A tag of pet.
+    example: puppy
+
+  Pet-Status:
+    type: enum
+    underlying_type: int32
+    constants:
+      Pet-Available:
+        value: 1
+        description: Pet is available.
+      Pet-Pending:
+        value: 2
+        description: Pet is pending.
+      Pet-Sold:
+        value: 3
+        description: Pet is sold.
+    description: The status of pet.
+
+errors:
+  Pet-Already-Exists:
+    code: 2001
+    description: The pet ID is in use.
+
+  Pet-Not-Found:
+    code: 2002
+    description: Can't find the pet.
