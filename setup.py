@@ -6,6 +6,7 @@ setup(
     description="JSON-RPC over HTTP",
     packages=["jroh"],
     package_dir={"jroh": "src/jroh"},
+    python_requires=">3.9",
     install_requires=[
         "PyYAML==5.4.1",
         "Mako==1.1.4",
