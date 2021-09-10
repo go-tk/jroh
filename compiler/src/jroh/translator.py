@@ -373,6 +373,9 @@ _COMMON_OPEN_API = {
                         "type": "object",
                         "additionalProperties": True,
                         "description": "Additional information about the error.",
+                        "example": {
+                            "key": "value",
+                        },
                     },
                 },
                 "required": ["code", "message"],

@@ -33,15 +33,7 @@ func (c *testClient) DoSomething(ctx context.Context, params *DoSomethingParams)
 	}
 	s.Params = *params
 	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething]
-	s.OutgoingRPC.Init(
-		"Foo",
-		"Test",
-		"DoSomething",
-		&s.Params,
-		nil,
-		apicommon.HandleRPC,
-		rpcInterceptors,
-	)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcInterceptors)
 	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething")
 }
 
@@ -53,15 +45,7 @@ func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Param
 	}
 	s.Params = *params
 	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething2]
-	s.OutgoingRPC.Init(
-		"Foo",
-		"Test",
-		"DoSomething2",
-		&s.Params,
-		&s.Results,
-		apicommon.HandleRPC,
-		rpcInterceptors,
-	)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcInterceptors)
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething2"); err != nil {
 		return nil, err
 	}
@@ -73,15 +57,7 @@ func (c *testClient) DoSomething3(ctx context.Context) error {
 		OutgoingRPC apicommon.OutgoingRPC
 	}
 	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething3]
-	s.OutgoingRPC.Init(
-		"Foo",
-		"Test",
-		"DoSomething3",
-		nil,
-		nil,
-		apicommon.HandleRPC,
-		rpcInterceptors,
-	)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, apicommon.HandleRPC, rpcInterceptors)
 	return c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Foo.Test.DoSomething3")
 }
 

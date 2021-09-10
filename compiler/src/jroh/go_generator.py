@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 from mako.template import Template
 
-from . import utils
+from . import VERSION, utils
 from .spec import (
     BOOL,
     ENUM,
@@ -61,6 +61,7 @@ class _Generator:
             self._generate_errors_code(spec.errors)
         if len(spec.services) >= 1:
             self._generate_misc_code(spec.services)
+        self._generate_module_example()
 
     def _generate_service_code(self, service: Service) -> None:
         self._buffer.append(
@@ -131,23 +132,22 @@ func Register${service_name}Server(server ${service_name}Server, serveMux *${htt
     % endif
 )
             }
-            s.IncomingRPC.Init(
-                "${namespace}",
-                "${service_name}",
-                "${method_name}",
+            s.IncomingRPC.Init(\
+"${namespace}", \
+"${service_name}", \
+"${method_name}", \
     % if method.params is None:
-                nil,
+nil, \
     % else:
-                &s.Params,
+&s.Params, \
     % endif
     % if method.results is None:
-                nil,
+nil, \
     % else:
-                &s.Results,
+&s.Results, \
     % endif
-                rpcHandler,
-                rpcInterceptors,
-            )
+rpcHandler, \
+rpcInterceptors)
             return &s.IncomingRPC
         }
         handler := ${apicommon()}.MakeHandler(middlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -287,23 +287,22 @@ error) {
     s.Params = *params
     % endif
     rpcInterceptors := c.rpcInterceptorTable[${service_name}_${method_name}]
-    s.OutgoingRPC.Init(
-        "${namespace}",
-        "${service_name}",
-        "${method_name}",
+    s.OutgoingRPC.Init(\
+"${namespace}", \
+"${service_name}", \
+"${method_name}", \
     % if method.params is None:
-        nil,
+nil, \
     % else:
-        &s.Params,
+&s.Params, \
     % endif
     % if method.results is None:
-        nil,
+nil, \
     % else:
-        &s.Results,
+&s.Results, \
     % endif
-        ${apicommon()}.HandleRPC,
-        rpcInterceptors,
-    )
+${apicommon()}.HandleRPC, \
+rpcInterceptors)
     % if method.results is None:
     return c.DoRPC(ctx, &s.OutgoingRPC, ${utils.quote(rpc_path)})
     % else:
@@ -902,6 +901,17 @@ var patterns = [...]*regexp.Regexp {
         self._imports.clear()
         self._patterns.clear()
         self._buffer.clear()
+
+    def _generate_module_example(self) -> None:
+        self._file_path_2_file_data[
+            "go.mod.example"
+        ] = f"""\
+module {self._output_package_path}
+
+go 1.15
+
+require github.com/go-tk/jroh/go/apicommon v{VERSION}
+"""
 
     def file_path_2_file_data(self) -> dict[str, str]:
         return self._file_path_2_file_data

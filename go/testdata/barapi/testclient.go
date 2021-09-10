@@ -30,15 +30,7 @@ func (c *testClient) DoSomething(ctx context.Context) (*DoSomethingResults, erro
 		Results     DoSomethingResults
 	}
 	rpcInterceptors := c.rpcInterceptorTable[Test_DoSomething]
-	s.OutgoingRPC.Init(
-		"Bar",
-		"Test",
-		"DoSomething",
-		nil,
-		&s.Results,
-		apicommon.HandleRPC,
-		rpcInterceptors,
-	)
+	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, apicommon.HandleRPC, rpcInterceptors)
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, "/rpc/Bar.Test.DoSomething"); err != nil {
 		return nil, err
 	}
