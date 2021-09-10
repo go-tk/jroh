@@ -4,7 +4,7 @@ package barapi
 
 import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	fooapi "github.com/go-tk/jroh/go/testdata/fooapi"
+	fooapi "github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
 )
 
 type DoSomethingResults struct {

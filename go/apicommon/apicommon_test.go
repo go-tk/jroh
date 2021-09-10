@@ -1,4 +1,4 @@
-package go_test
+package apicommon_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-tk/jroh/go/apicommon"
-	"github.com/go-tk/jroh/go/testdata/fooapi"
+	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
 	"github.com/stretchr/testify/assert"
 )
 
