@@ -912,7 +912,7 @@ module {self._output_package_path}
 
 go 1.16
 
-require github.com/go-tk/jroh/go/apicommon v{VERSION}
+require github.com/go-tk/jroh/go v{VERSION}
 """
 
     def file_path_2_file_data(self) -> dict[str, str]:
