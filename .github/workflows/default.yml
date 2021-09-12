@@ -27,4 +27,4 @@ jobs:
     - run: DEBUG=1 make envrc
     - run: source .envrc && DEBUG=1 make
     - run: git diff --exit-code
-    - run: source .envrc && DEBUG=1 make image
+    - run: source .envrc && DEBUG=1 PUSHIMAGE=1 make image
