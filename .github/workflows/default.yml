@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: '[[ ${GITHUB_REF} = refs/tags/* ]] && git fetch origin "+${GITHUB_REF}:${GITHUB_REF}" || true'
+    - run: '[[ ${GITHUB_REF} != refs/tags/* ]] || git fetch origin "+${GITHUB_REF}:${GITHUB_REF}"'
     - uses: actions/setup-python@v2
       with:
         python-version: '3.9'

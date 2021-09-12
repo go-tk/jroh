@@ -50,7 +50,11 @@ image:
 		TAG=latest
 	fi
 	IMAGE="ghcr.io/go-tk/jrohc"
-	docker build --tag "$${IMAGE}:$${TAG}" .
+	if [[ $${TAG} = latest ]]; then
+		docker build --tag "$${IMAGE}:latest" --build-arg="VERSION=$$(git rev-parse HEAD)" .
+	else
+		docker build --tag "$${IMAGE}:$${TAG}" .
+	fi
 ifdef PUSHIMAGE
 	docker push "$${IMAGE}:$${TAG}"
 endif

@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 from mako.template import Template
 
-from . import VERSION, utils
+from . import utils
 from .spec import (
     BOOL,
     ENUM,
@@ -21,6 +21,7 @@ from .spec import (
     Service,
     Spec,
 )
+from .version import VERSION
 
 
 @dataclass
