@@ -19,6 +19,12 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: '1.16'
-    - run: make envrc
+    - uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - run: DEBUG=1 make envrc
     - run: source .envrc && DEBUG=1 make
     - run: git diff --exit-code
+    - run: source .envrc && DEBUG=1 make image

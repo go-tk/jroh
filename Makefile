@@ -39,3 +39,16 @@ examples:
 			python3 -m src.jroh.compiler \
 			--oapi3_out examples/output/oapi3 \
 			--go_out examples/output/go:$$(cd examples/output/go; go list -m)
+
+.PHONY: image
+image:
+	TAG=$$(git tag --points-at)
+	if [[ -z $${TAG} ]]; then
+		if [[ $$(git branch --show-current) != master ]]; then
+			exit 0
+		fi
+		TAG=latest
+	fi
+	IMAGE="ghcr.io/go-tk/jrohc:$${TAG}"
+	docker build --tag "$${IMAGE}" .
+	docker push "$${IMAGE}"
