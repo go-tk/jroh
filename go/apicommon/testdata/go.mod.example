@@ -4,4 +4,4 @@ module github.com/go-tk/jroh/go/apicommon/testdata
 
 go 1.16
 
-require github.com/go-tk/jroh/go v0.0.0
+require github.com/go-tk/jroh/go v0.1.0
