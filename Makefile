@@ -5,7 +5,16 @@ override .SHELLFLAGS := -eu$(if $(value DEBUG),x)o pipefail -c
 .ONESHELL:
 
 .PHONY: all
-all: format test go_vet go_test examples
+all: format test go examples
+
+.PHONY: envrc
+envrc:
+	python3 -m venv .venv
+	.venv/bin/pip3 install .
+	.venv/bin/pip3 install --requirement requirements-dev.txt
+	cat >.envrc <<EOF
+	source .venv/bin/activate
+	EOF
 
 .PHONY: format
 format:
@@ -18,16 +27,9 @@ test:
 	coverage run --include='src/jroh/*' -m unittest discover --start-directory=src/tests --top-level-directory=.
 	coverage report
 
-.PHONY: go_vet
-go_vet:
-	python3 -m src.jroh.compiler --go_out go/apicommon/testdata:github.com/go-tk/jroh/go/apicommon/testdata go/apicommon/testdata/*.yaml
-	cd go
-	go vet ./...
-
-.PHONY: go_test
-go_test:
-	cd go
-	go test -coverpkg=./apicommon/... ./apicommon
+.PHONY: go
+go:
+	$(MAKE) --directory=go
 
 
 .PHONY: examples
@@ -36,4 +38,4 @@ examples:
 		xargs $(if $(value DEBUG),--verbose) \
 			python3 -m src.jroh.compiler \
 			--oapi3_out examples/output/oapi3 \
-			--go_out examples/output/go:github.com/go-tk/jroh/examples/output/go
+			--go_out examples/output/go:$$(cd examples/output/go; go list -m)
