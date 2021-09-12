@@ -910,7 +910,7 @@ var patterns = [...]*regexp.Regexp {
         ] = f"""\
 module {self._output_package_path}
 
-go 1.15
+go 1.16
 
 require github.com/go-tk/jroh/go/apicommon v{VERSION}
 """

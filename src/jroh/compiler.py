@@ -41,7 +41,7 @@ def main() -> None:
         "--go_out",
         metavar="DIR:PACKAGE",
         type=go_out,
-        help="output go code to the directory as a package",
+        help="output Go code to the directory as a package",
     )
     args, file = arg_parser.parse_known_args(sys.argv[1:])
     _compile_files(args.files, args.oapi3_out, args.go_out)
