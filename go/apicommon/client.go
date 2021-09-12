@@ -25,6 +25,10 @@ func (co *ClientOptions) Sanitize() {
 		if err != nil {
 			return nil, err
 		}
+		if response.StatusCode != http.StatusOK {
+			response.Body.Close()
+			return response, nil
+		}
 		var buffer bytes.Buffer
 		_, err = buffer.ReadFrom(response.Body)
 		response.Body.Close()

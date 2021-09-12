@@ -280,7 +280,7 @@ class _Parser:
                 is_optional, bool, field.node_uri + "/is_optional"
             )
             field.is_optional = is_optional
-        elif (is_repeated := raw_field.pop("is_repeated", False)) is not None:
+        elif (is_repeated := raw_field.pop("is_repeated", None)) is not None:
             is_repeated = _ensure_node_kind(
                 is_repeated, bool, field.node_uri + "/is_repeated"
             )

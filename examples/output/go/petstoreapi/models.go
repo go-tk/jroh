@@ -560,6 +560,14 @@ func (m *Order) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.Leave()
 	}
 	{
+		validationContext.Enter("quantity")
+		if m.Quantity < 1 {
+			validationContext.SetErrorDetails("value < 1")
+			return false
+		}
+		validationContext.Leave()
+	}
+	{
 		validationContext.Enter("status")
 		if !m.Status.Validate(validationContext) {
 			return false

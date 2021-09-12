@@ -37,7 +37,7 @@ models:
         type: Pet-ID
       Quantity:
         type: int32
-        min_count: 1
+        min: 1
         description: The quantity of pets.
       Status:
         type: Order-Status
