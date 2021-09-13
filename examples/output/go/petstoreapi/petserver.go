@@ -116,36 +116,41 @@ type PetServerFuncs struct {
 var _ PetServer = (*PetServerFuncs)(nil)
 
 func (sf *PetServerFuncs) AddPet(ctx context.Context, params *AddPetParams) error {
-	if f := sf.AddPetFunc; f != nil {
-		return f(ctx, params)
+	f := sf.AddPetFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (sf *PetServerFuncs) GetPet(ctx context.Context, params *GetPetParams, results *GetPetResults) error {
-	if f := sf.GetPetFunc; f != nil {
-		return f(ctx, params, results)
+	f := sf.GetPetFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params, results)
 }
 
 func (sf *PetServerFuncs) GetPets(ctx context.Context, params *GetPetsParams, results *GetPetsResults) error {
-	if f := sf.GetPetsFunc; f != nil {
-		return f(ctx, params, results)
+	f := sf.GetPetsFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params, results)
 }
 
 func (sf *PetServerFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
-	if f := sf.UpdatePetFunc; f != nil {
-		return f(ctx, params)
+	f := sf.UpdatePetFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (sf *PetServerFuncs) FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) error {
-	if f := sf.FindPetsFunc; f != nil {
-		return f(ctx, params, results)
+	f := sf.FindPetsFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params, results)
 }

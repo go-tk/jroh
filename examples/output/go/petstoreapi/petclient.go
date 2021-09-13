@@ -115,36 +115,41 @@ type PetClientFuncs struct {
 var _ PetClient = (*PetClientFuncs)(nil)
 
 func (cf *PetClientFuncs) AddPet(ctx context.Context, params *AddPetParams) error {
-	if f := cf.AddPetFunc; f != nil {
-		return f(ctx, params)
+	f := cf.AddPetFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
-	if f := cf.GetPetFunc; f != nil {
-		return f(ctx, params)
+	f := cf.GetPetFunc
+	if f == nil {
+		return nil, apicommon.ErrNotImplemented
 	}
-	return nil, apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
-	if f := cf.GetPetsFunc; f != nil {
-		return f(ctx, params)
+	f := cf.GetPetsFunc
+	if f == nil {
+		return nil, apicommon.ErrNotImplemented
 	}
-	return nil, apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
-	if f := cf.UpdatePetFunc; f != nil {
-		return f(ctx, params)
+	f := cf.UpdatePetFunc
+	if f == nil {
+		return apicommon.ErrNotImplemented
 	}
-	return apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
-	if f := cf.FindPetsFunc; f != nil {
-		return f(ctx, params)
+	f := cf.FindPetsFunc
+	if f == nil {
+		return nil, apicommon.ErrNotImplemented
 	}
-	return nil, apicommon.ErrNotImplemented
+	return f(ctx, params)
 }

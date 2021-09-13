@@ -69,15 +69,17 @@ type StoreClientFuncs struct {
 var _ StoreClient = (*StoreClientFuncs)(nil)
 
 func (cf *StoreClientFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams) (*CreateOrderResults, error) {
-	if f := cf.CreateOrderFunc; f != nil {
-		return f(ctx, params)
+	f := cf.CreateOrderFunc
+	if f == nil {
+		return nil, apicommon.ErrNotImplemented
 	}
-	return nil, apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
 
 func (cf *StoreClientFuncs) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
-	if f := cf.GetOrderFunc; f != nil {
-		return f(ctx, params)
+	f := cf.GetOrderFunc
+	if f == nil {
+		return nil, apicommon.ErrNotImplemented
 	}
-	return nil, apicommon.ErrNotImplemented
+	return f(ctx, params)
 }
