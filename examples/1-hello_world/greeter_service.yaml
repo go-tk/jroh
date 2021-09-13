@@ -1,0 +1,30 @@
+namespace: Hello-World
+
+services:
+  Greeter:
+    description: The service of greetings.
+    version: 1.0.0
+
+methods:
+  Say-Hello:
+    service_ids: [Greeter]
+    summary: Sends a greeting
+    description: Sends a greeting on behalf of someone.
+    params:
+      Name:
+        type: string
+        min_length: 1
+        description: The user's name.
+    results:
+      Message:
+        type: string
+        min_length: 1
+        description: The greeting returned.
+    error_cases:
+      User-Not-Allowed: {}
+
+
+errors:
+  User-Not-Allowed:
+    code: 1001
+    description: The user is in the blacklist.
