@@ -7,7 +7,7 @@ services:
 
 methods:
   Say-Hello:
-    service_ids: [Greeter]
+    service_id: Greeter
     summary: Sends a greeting
     description: Sends a greeting on behalf of someone.
     params:

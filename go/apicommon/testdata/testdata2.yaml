@@ -6,7 +6,7 @@ services:
 
 methods:
   Do-Something:
-    service_ids: [Test]
+    service_id: Test
     results:
       My-Struct-Int32:
         type: Foo.My-Struct-Int32

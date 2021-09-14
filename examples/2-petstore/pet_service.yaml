@@ -6,9 +6,9 @@ services:
 
 methods:
   Add-Pet:
+    service_id: Pet
     summary: Adds a pet
     description: TODO1
-    service_ids: [Pet]
     params:
       Pet:
         type: Pet
@@ -16,9 +16,9 @@ methods:
       Pet-Already-Exists: {}
 
   Get-Pet:
+    service_id: Pet
     summary: Gets a pet by ID
     description: TODO2
-    service_ids: [Pet]
     params:
       Pet-ID:
         type: Pet-ID
@@ -29,9 +29,9 @@ methods:
       Pet-Not-Found: {}
 
   Get-Pets:
+    service_id: Pet
     summary: Gets pets by IDs
     description: TODO3
-    service_ids: [Pet]
     params:
       Pet-IDs:
         type: Pet-ID
@@ -44,9 +44,9 @@ methods:
         is_repeated: true
 
   Update-Pet:
+    service_id: Pet
     summary: Updates a pet by ID
     description: TODO4
-    service_ids: [Pet]
     params:
       Pet-Patch:
         type: Pet-Patch
@@ -54,9 +54,9 @@ methods:
       Pet-Not-Found: {}
 
   Find-Pets:
+    service_id: Pet
     summary: Finds pets by status
     description: TODO5
-    service_ids: [Pet]
     params:
       Pet-Status:
         type: Pet-Status

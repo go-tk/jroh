@@ -6,7 +6,7 @@ services:
 
 methods:
   Do-Something:
-    service_ids: [Test]
+    service_id: Test
     params:
       My-Struct-Int32:
         type: My-Struct-Int32
@@ -29,7 +29,7 @@ methods:
       Something-Wrong: {}
 
   Do-Something2:
-    service_ids: [Test]
+    service_id: Test
     params:
       My-Struct-Int32:
         type: My-Struct-Int32
@@ -70,7 +70,7 @@ methods:
       Something-Wrong: {}
 
   Do-Something3:
-    service_ids: [Test]
+    service_id: Test
 
 models:
   My-Struct-Int32:

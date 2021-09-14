@@ -28,12 +28,12 @@ services:
                     "foo.yaml": """
 methods:
   Hello:
-    service_ids: [World]
+    service_id: World
 """,
                     "foo2.yaml": """
 methods:
   Hello:
-    service_ids: [World]
+    service_id: World
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -104,7 +104,7 @@ services:
     version: 1.1.1
 methods:
   Hello:
-    service_ids: [World]
+    service_id: World
 models:
   Test:
     type: struct
@@ -119,7 +119,7 @@ services:
     version: 1.1.1
 methods:
   Hello:
-    service_ids: [World]
+    service_id: World
 models:
   Test:
     type: struct
@@ -178,7 +178,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Foo: {}
       New.Bar: {}
@@ -206,7 +206,7 @@ errors:
                     "foo.yaml": """
 methods:
   World:
-    service_ids: [Hello1]
+    service_id: Hello1
 """
                 },
                 out_exception_type=InvalidSpecError,
@@ -220,7 +220,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
 """
                 },
             ),
@@ -232,7 +232,9 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello, Hello1]
+    service_ids:
+    - Hello
+    - Hello1
 """
                 },
                 out_exception_type=InvalidSpecError,
@@ -249,7 +251,7 @@ services:
                     "bar.yaml": """
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -267,7 +269,9 @@ services:
                     "bar.yaml": """
 methods:
   World:
-    service_ids: [Hello, World]
+    service_ids:
+    - Hello
+    - World
 """,
                 },
             ),
@@ -284,7 +288,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       New.Something-Wrong: {}
 """
@@ -300,7 +304,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Something-Wrong: {}
 errors:
@@ -318,7 +322,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Something-Wrong: {}
 """,
@@ -339,7 +343,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Something-Wrong: {}
 """,
@@ -361,7 +365,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Something-Wrong: {}
 """,
@@ -381,7 +385,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       Default.Something-Wrong: {}
 """,
@@ -400,7 +404,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     error_cases:
       New.Something-Wrong: {}
 """,
@@ -425,7 +429,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     params:
       Bar:
         type: Bar
@@ -442,7 +446,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     params:
       Bar:
         type: Bar
@@ -461,7 +465,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     results:
       Bar:
         type: Bar
@@ -485,7 +489,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     params:
       Bar:
         type: Bar
@@ -506,7 +510,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     params:
       Bar:
         type: Default.Bar
@@ -526,7 +530,7 @@ services:
     version: 1.1.1
 methods:
   World:
-    service_ids: [Hello]
+    service_id: Hello
     params:
       Bar:
         type: New.Bar

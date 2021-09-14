@@ -6,9 +6,9 @@ services:
 
 methods:
   Create-Order:
+    service_id: Store
     summary: Creates an order
     description: TODO1
-    service_ids: [Store]
     params:
       Order:
         type: Order
@@ -17,9 +17,9 @@ methods:
         type: Order-ID
 
   Get-Order:
+    service_id: Store
     summary: Get an order
     description: TODO2
-    service_ids: [Store]
     params:
       Order-ID:
         type: Order-ID

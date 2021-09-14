@@ -142,14 +142,20 @@ class _Parser:
     def _parse_raw_method(self, raw_method, method: Method) -> None:
         raw_method = _ensure_node_kind(raw_method, dict, method.node_uri)
         raw_method = raw_method.copy()
-        node_uri = method.node_uri + "/service_ids"
-        service_ids = _pop_node(raw_method, "service_ids", node_uri)
-        service_ids = _ensure_node_kind(service_ids, list, node_uri)
-        for i, service_id in enumerate(service_ids):
-            node_uri2 = node_uri + f"[{i}]"
-            service_id = _ensure_node_kind(service_id, str, node_uri2)
-            _check_id(service_id, node_uri2)
-        method.service_ids = service_ids
+        if (service_ids := raw_method.pop("service_ids", None)) is None:
+            node_uri = method.node_uri + "/service_id"
+            service_id = _pop_node(raw_method, "service_id", node_uri)
+            service_id = _ensure_node_kind(service_id, str, node_uri)
+            _check_id(service_id, node_uri)
+            method.service_ids = [service_id]
+        else:
+            node_uri = method.node_uri + "/service_ids"
+            service_ids = _ensure_node_kind(service_ids, list, node_uri)
+            for i, service_id in enumerate(service_ids):
+                node_uri2 = node_uri + f"[{i}]"
+                service_id = _ensure_node_kind(service_id, str, node_uri2)
+                _check_id(service_id, node_uri2)
+            method.service_ids = service_ids
         if (summary := raw_method.pop("summary", None)) is not None:
             summary = _ensure_node_kind(summary, str, method.node_uri + "/summary")
             method.summary = summary

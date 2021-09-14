@@ -6,9 +6,9 @@ services:
 
 methods:
   Create-User:
+    service_id: User
     summary: Creates an user
     description: TODO1
-    service_ids: [User]
     params:
       User:
         type: User
@@ -16,9 +16,9 @@ methods:
       User-Already-Exists: {}
 
   Get-User:
+    service_id: User
     summary: Gets an user by ID
     description: TODO2
-    service_ids: [User]
     params:
       User-ID:
         type: User-ID
@@ -29,9 +29,9 @@ methods:
       User-Not-Found: {}
 
   Get-Users:
+    service_id: User
     summary: Gets users by IDs
     description: TODO3
-    service_ids: [User]
     params:
       User-IDs:
         type: User-ID
@@ -44,9 +44,9 @@ methods:
         is_repeated: true
 
   Update-User:
+    service_id: User
     summary: Updates an user by ID
     description: TODO4
-    service_ids: [User]
     params:
       User-Patch:
         type: User-Patch

@@ -27,15 +27,15 @@ services:
                     "default/b.yaml": """
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
   Say-Hello-V2:
-    service_ids: [Greeting-V2]
+    service_id: Greeting-V2
 """,
                     "default/b2.yaml": """
 namespace: XYZ
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
 """,
                 },
                 out_file_path_2_file_data={
@@ -185,15 +185,17 @@ services:
                     "default/b.yaml": """
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
   Say-Hello-V2:
-    service_ids: [Greeting, Greeting-X]
+    service_ids:
+    - Greeting
+    - Greeting-X
     summary: Haha
     params:
       Foo:
         type: int32
   Say-Hello-V3:
-    service_ids: [Greeting]
+    service_id: Greeting
     description: Test
     results:
       Bar:
@@ -377,7 +379,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
     params:
       Color:
         type: Color
@@ -546,7 +548,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
     params:
       Nickname:
         type: Nickname
@@ -726,7 +728,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
     error_cases:
       Fail:
         description: Failed
@@ -815,7 +817,7 @@ services:
     version: 1.2.1
 methods:
   Say-Hello:
-    service_ids: [Greeting]
+    service_id: Greeting
     params:
       F:
         type: Foo
