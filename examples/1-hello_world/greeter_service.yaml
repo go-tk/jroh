@@ -4,6 +4,7 @@ services:
   Greeter:
     description: The service of greetings.
     version: 1.0.0
+    rpc_path_template: /rpc/{namespace}.{service_id}.{method_id}
 
 methods:
   Say-Hello:

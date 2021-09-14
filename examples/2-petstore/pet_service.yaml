@@ -3,6 +3,7 @@ namespace: Petstore
 services:
   Pet:
     version: 0.0.1
+    rpc_path_template: /rpc/{namespace}.{service_id}.{method_id}
 
 methods:
   Add-Pet:
