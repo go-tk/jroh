@@ -57,7 +57,7 @@ type ErrorCode int32
 type Error struct {
 	Code    ErrorCode `json:"code"`
 	Message string    `json:"message"`
-	Details string    `json:"details"`
+	Details string    `json:"details,omitempty"`
 	Data    ErrorData `json:"data,omitempty"`
 }
 
