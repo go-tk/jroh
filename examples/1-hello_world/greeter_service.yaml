@@ -15,14 +15,15 @@ methods:
         type: string
         min_length: 1
         description: The user's name.
+        example: Roy
     results:
       Message:
         type: string
         min_length: 1
         description: The greeting returned.
+        example: Hi, Roy!
     error_cases:
       User-Not-Allowed: {}
-
 
 errors:
   User-Not-Allowed:

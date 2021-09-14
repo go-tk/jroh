@@ -13,6 +13,7 @@ components:
           type: string
           minLength: 1
           description: The user's name.
+          example: Roy
       required:
       - name
     sayHelloResp:
@@ -41,5 +42,6 @@ components:
           type: string
           minLength: 1
           description: The greeting returned.
+          example: Hi, Roy!
       required:
       - message
