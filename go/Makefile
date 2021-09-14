@@ -9,7 +9,7 @@ all: testdata fmt vet test
 
 .PHONY: testdata
 testdata:
-	PYTHONPATH=.. python3 -m src.jroh.compiler --go_out apicommon/testdata:$$(go list -m)/apicommon/testdata apicommon/testdata/*.yaml
+	PYTHONPATH=.. python3 -m src.jroh.compiler --go_out apicommon/testdata:github.com/go-tk/jroh/go/apicommon/testdata apicommon/testdata/*.yaml
 
 .PHONY: fmt
 fmt:

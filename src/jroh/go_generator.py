@@ -1,4 +1,6 @@
 import os
+import subprocess
+import sys
 from dataclasses import dataclass
 from typing import Callable, Optional
 
@@ -62,7 +64,6 @@ class _Generator:
             self._generate_errors_code(spec.errors)
         if len(spec.services) >= 1:
             self._generate_misc_code(spec.services)
-        self._generate_module_example()
 
     def _generate_service_code(self, service: Service) -> None:
         self._buffer.append(
@@ -907,17 +908,6 @@ var patterns = [...]*regexp.Regexp {
         self._patterns.clear()
         self._buffer.clear()
 
-    def _generate_module_example(self) -> None:
-        self._file_path_2_file_data[
-            "go.mod.example"
-        ] = f"""\
-module {self._output_package_path}
-
-go 1.16
-
-require github.com/go-tk/jroh/go v{VERSION}
-"""
-
     def file_path_2_file_data(self) -> dict[str, str]:
         return self._file_path_2_file_data
 
@@ -936,3 +926,36 @@ _primitive_zero_literals: dict[str, str] = {
     FLOAT64: "0",
     STRING: '""',
 }
+
+
+def format_go_code(output_file_paths: list[str]) -> None:
+    try:
+        subprocess.run(["gofmt", "-w", *output_file_paths])
+    except Exception as e:
+        print(f"WARNING: go code formatting failed: {e}", file=sys.stderr)
+
+
+def update_go_mod_file(output_dir_path: str, output_package_path: str) -> None:
+    if output_package_path.startswith("github.com/go-tk/jroh/"):
+        return
+    try:
+        go_mod_file_exists = (
+            subprocess.run(
+                ["go", "mod", "edit", "-print"],
+                cwd=output_dir_path,
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+            ).returncode
+            == 0
+        )
+        if not go_mod_file_exists:
+            subprocess.run(
+                ["go", "mod", "init", output_package_path],
+                cwd=output_dir_path,
+            )
+        subprocess.run(
+            ["go", "mod", "edit", "-require", "github.com/go-tk/jroh/go@v" + VERSION],
+            cwd=output_dir_path,
+        )
+    except Exception as e:
+        print(f"WARNING: go.mod update failed: {e}", file=sys.stderr)

@@ -38,29 +38,19 @@ examples:
 		xargs $(if $(value DEBUG),--verbose) \
 			python3 -m src.jroh.compiler \
 			--oapi3_out examples/output/oapi3 \
-			--go_out examples/output/go:$$(cd examples/output/go; go list -m)
+			--go_out examples/output/go:github.com/go-tk/jroh/examples/output/go
 
 .PHONY: image
 image:
-	TAG=$$(git tag --points-at)
+	TAG=$$(git tag --points-at | sed --silent --regexp-extended '/^v/p')
 	if [[ -z $${TAG} ]]; then
 		if [[ $$(git branch --show-current) != master ]]; then
-			exit 0
+			exit
 		fi
 		TAG=latest
 	fi
-	IMAGE="ghcr.io/go-tk/jrohc"
-	if [[ $${TAG} = latest ]]; then
-		docker build --tag "$${IMAGE}:latest" --build-arg="VERSION=$$(git rev-parse HEAD)" .
-	else
-		docker build --tag "$${IMAGE}:$${TAG}" .
-	fi
+	IMAGE=ghcr.io/go-tk/jrohc:$${TAG}
+	docker build --tag "$${IMAGE}" .
 ifdef PUSHIMAGE
-	docker push "$${IMAGE}:$${TAG}"
+	docker push "$${IMAGE}"
 endif
-	if [[ $${TAG} != latest ]]; then
-		docker tag "$${IMAGE}:$${TAG}" "$${IMAGE}:latest"
-ifdef PUSHIMAGE
-		docker push "$${IMAGE}:latest"
-endif
-	fi
