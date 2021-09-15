@@ -2,21 +2,32 @@
 
 Solution & Framework for **J**SON-**R**PC **o**ver **H**TTP
 
+## Why Not OpenAPI?
+
+OpenAPI addresses the definition of RESTful APIs, when it comes to JSON-RPCs, some important elements for defining RPCs is missing, e.g., service name, method name and RPC error code.
+
 ## The User Story
 
 1. Users shall define JSON-RPCs in **YAML**.
 2. Users can compile the YAML files into stub (client-side) code and skeleton (server-side) code in **Go**.
-3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to browse JSON-RPCs via **Swagger UI**.
+3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to leverage
+**Swagger UI** as a browser for JSON-RPCs.
+
+## Installation
+
+No installation required, we run the toolchain in Docker containers.
 
 ## Getting started
 
-1. Create a temporary directory as workspace
+**1. Create a temporary directory as workspace**
 
 ```sh
 $ mkdir temp && cd temp
 ```
 
-2. Define JSON-RPC(s)
+---
+
+**2. Define JSON-RPC(s)**
 
 ```sh
 $ mkdir -p ./jroh/hello_world
@@ -59,7 +70,9 @@ errors:
 EOF
 ```
 
-3. Generate Go code and OpenAPI 3.0 specification(s)
+---
+
+**3. Generate Go code and OpenAPI 3.0 specification(s)**
 
 ```sh
 $ go mod init pkg.go.test
@@ -72,10 +85,12 @@ $ docker run --rm \
     --oapi3_out=./oapi3 \
     ./jroh/hello_world/greeter_service.yaml
 
-$ ls -l ./api ./oapi3
+$ ls --recursive -l ./api ./oapi3
 ```
 
-4. Start up an RPC server
+---
+
+**4. Start up an RPC server**
 
 ```sh
 $ mkdir ./server
@@ -123,7 +138,9 @@ EOF
 $ go run ./server/server.go
 ```
 
-5.a. Send RPC requests with `curl`
+---
+
+**5.a. Send RPC requests with `curl`**
 
 ```sh
 $ curl --data '{"name": "Roy"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
@@ -146,7 +163,9 @@ $ curl --data '{"name": "God"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.Say
 # }
 ```
 
-5.b. Send RPC requests with Go client
+---
+
+**5.b. Send RPC requests with Go client**
 
 ```sh
 $ mkdir ./client
@@ -191,3 +210,17 @@ $ go run ./client/client.go
 # 1 - helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
 # 2 - apicommon: rpc failed; namespace="HelloWorld" serviceName="Greeter" methodName="SayHello" traceID="lWbHTRADfE17uwQH0eLGSQ": api: user not allowed (1001)
 ```
+
+---
+
+**6. Browse  JSON-RPC(s) with Swagger UI**
+
+```sh
+$ docker run --rm \
+  --volume="${PWD}:/usr/share/nginx/html/data" \
+  --env=SWAGGER_JSON_URL=./data/oapi3/hello_world/greeter_service.yaml \
+  --publish=2333:8080 \
+  swaggerapi/swagger-ui:latest
+```
+
+Open http://127.0.0.1:2333 in the browser.
