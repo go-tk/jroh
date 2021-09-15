@@ -18,7 +18,7 @@ type DoSomethingParams struct {
 	MyOnOff         bool             `json:"myOnOff"`
 }
 
-var _ apicommon.Validator = (*DoSomethingParams)(nil)
+var _ apicommon.Model = (*DoSomethingParams)(nil)
 
 func (m *DoSomethingParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m.MyStructInt32 != nil {
@@ -56,7 +56,11 @@ func (m *DoSomethingParams) Validate(validationContext *apicommon.ValidationCont
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomethingParams
+	}{DoSomethingParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type DoSomething2Params struct {
@@ -68,7 +72,7 @@ type DoSomething2Params struct {
 	MyOnOff         bool             `json:"myOnOff"`
 }
 
-var _ apicommon.Validator = (*DoSomething2Params)(nil)
+var _ apicommon.Model = (*DoSomething2Params)(nil)
 
 func (m *DoSomething2Params) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m.MyStructInt32 != nil {
@@ -106,7 +110,11 @@ func (m *DoSomething2Params) Validate(validationContext *apicommon.ValidationCon
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomething2Params
+	}{DoSomething2Params: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type DoSomething2Results struct {
@@ -118,7 +126,7 @@ type DoSomething2Results struct {
 	MyOnOff         bool             `json:"myOnOff"`
 }
 
-var _ apicommon.Validator = (*DoSomething2Results)(nil)
+var _ apicommon.Model = (*DoSomething2Results)(nil)
 
 func (m *DoSomething2Results) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m.MyStructInt32 != nil {
@@ -156,7 +164,11 @@ func (m *DoSomething2Results) Validate(validationContext *apicommon.ValidationCo
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomething2Results
+	}{DoSomething2Results: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type MyStructInt32 struct {
@@ -185,7 +197,7 @@ type MyStructInt32 struct {
 	CountLimitedOthers               []MyStructInt32 `json:"countLimitedOthers,omitempty"`
 }
 
-var _ apicommon.Validator = (*MyStructInt32)(nil)
+var _ apicommon.Model = (*MyStructInt32)(nil)
 
 func (m *MyStructInt32) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -438,7 +450,11 @@ func (m *MyStructInt32) Validate(validationContext *apicommon.ValidationContext)
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*MyStructInt32
+	}{MyStructInt32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type MyStructFloat32 struct {
@@ -471,7 +487,7 @@ type MyStructFloat32 struct {
 	CountLimitedOthers                     []MyStructFloat32 `json:"countLimitedOthers,omitempty"`
 }
 
-var _ apicommon.Validator = (*MyStructFloat32)(nil)
+var _ apicommon.Model = (*MyStructFloat32)(nil)
 
 func (m *MyStructFloat32) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -789,7 +805,11 @@ func (m *MyStructFloat32) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*MyStructFloat32
+	}{MyStructFloat32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type MyStructFloat64 struct {
@@ -822,7 +842,7 @@ type MyStructFloat64 struct {
 	CountLimitedOthers                     []MyStructFloat64 `json:"countLimitedOthers,omitempty"`
 }
 
-var _ apicommon.Validator = (*MyStructFloat64)(nil)
+var _ apicommon.Model = (*MyStructFloat64)(nil)
 
 func (m *MyStructFloat64) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -1140,7 +1160,11 @@ func (m *MyStructFloat64) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*MyStructFloat64
+	}{MyStructFloat64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type MyStructInt64 struct {
@@ -1169,7 +1193,7 @@ type MyStructInt64 struct {
 	CountLimitedOthers               []MyStructInt64 `json:"countLimitedOthers,omitempty"`
 }
 
-var _ apicommon.Validator = (*MyStructInt64)(nil)
+var _ apicommon.Model = (*MyStructInt64)(nil)
 
 func (m *MyStructInt64) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -1422,7 +1446,11 @@ func (m *MyStructInt64) Validate(validationContext *apicommon.ValidationContext)
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*MyStructInt64
+	}{MyStructInt64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type MyStructString struct {
@@ -1451,7 +1479,7 @@ type MyStructString struct {
 	CountLimitedOthers                []MyStructString `json:"countLimitedOthers,omitempty"`
 }
 
-var _ apicommon.Validator = (*MyStructString)(nil)
+var _ apicommon.Model = (*MyStructString)(nil)
 
 func (m *MyStructString) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -1720,7 +1748,11 @@ func (m *MyStructString) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*MyStructString
+	}{MyStructString: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type EnumInt32 int32
@@ -1743,7 +1775,7 @@ func (m EnumInt32) String() string {
 	}
 }
 
-var _ apicommon.Validator = EnumInt32(0)
+var _ apicommon.Model = EnumInt32(0)
 
 func (m EnumInt32) Validate(validationContext *apicommon.ValidationContext) bool {
 	switch m {
@@ -1777,7 +1809,7 @@ func (m EnumInt64) String() string {
 	}
 }
 
-var _ apicommon.Validator = EnumInt64(0)
+var _ apicommon.Model = EnumInt64(0)
 
 func (m EnumInt64) Validate(validationContext *apicommon.ValidationContext) bool {
 	switch m {
@@ -1811,7 +1843,7 @@ func (m EnumString) String() string {
 	}
 }
 
-var _ apicommon.Validator = EnumString("")
+var _ apicommon.Model = EnumString("")
 
 func (m EnumString) Validate(validationContext *apicommon.ValidationContext) bool {
 	switch m {
@@ -1827,15 +1859,19 @@ func (m EnumString) Validate(validationContext *apicommon.ValidationContext) boo
 
 type Int32 int32
 
-var _ apicommon.Validator = Int32(0)
+var _ apicommon.Model = Int32(0)
 
 func (m Int32) Validate(validationContext *apicommon.ValidationContext) bool {
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Int32
+	}{Int32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XInt32 int32
 
-var _ apicommon.Validator = XInt32(0)
+var _ apicommon.Model = XInt32(0)
 
 func (m XInt32) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < 100 {
@@ -1846,20 +1882,28 @@ func (m XInt32) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value > 999")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XInt32
+	}{XInt32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Int64 int64
 
-var _ apicommon.Validator = Int64(0)
+var _ apicommon.Model = Int64(0)
 
 func (m Int64) Validate(validationContext *apicommon.ValidationContext) bool {
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Int64
+	}{Int64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XInt64 int64
 
-var _ apicommon.Validator = XInt64(0)
+var _ apicommon.Model = XInt64(0)
 
 func (m XInt64) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < -999 {
@@ -1870,20 +1914,28 @@ func (m XInt64) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value > -100")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XInt64
+	}{XInt64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Float32 float32
 
-var _ apicommon.Validator = Float32(0)
+var _ apicommon.Model = Float32(0)
 
 func (m Float32) Validate(validationContext *apicommon.ValidationContext) bool {
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Float32
+	}{Float32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XClosedFloat32 float32
 
-var _ apicommon.Validator = XClosedFloat32(0)
+var _ apicommon.Model = XClosedFloat32(0)
 
 func (m XClosedFloat32) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < 1 {
@@ -1894,12 +1946,16 @@ func (m XClosedFloat32) Validate(validationContext *apicommon.ValidationContext)
 		validationContext.SetErrorDetails("value > 100")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XClosedFloat32
+	}{XClosedFloat32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XOpenFloat32 float32
 
-var _ apicommon.Validator = XOpenFloat32(0)
+var _ apicommon.Model = XOpenFloat32(0)
 
 func (m XOpenFloat32) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m <= 1 {
@@ -1910,20 +1966,28 @@ func (m XOpenFloat32) Validate(validationContext *apicommon.ValidationContext) b
 		validationContext.SetErrorDetails("value >= 100")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XOpenFloat32
+	}{XOpenFloat32: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Float64 float64
 
-var _ apicommon.Validator = Float64(0)
+var _ apicommon.Model = Float64(0)
 
 func (m Float64) Validate(validationContext *apicommon.ValidationContext) bool {
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Float64
+	}{Float64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XOpenFloat64 float64
 
-var _ apicommon.Validator = XOpenFloat64(0)
+var _ apicommon.Model = XOpenFloat64(0)
 
 func (m XOpenFloat64) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m <= -100 {
@@ -1934,12 +1998,16 @@ func (m XOpenFloat64) Validate(validationContext *apicommon.ValidationContext) b
 		validationContext.SetErrorDetails("value >= -1")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XOpenFloat64
+	}{XOpenFloat64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XClosedFloat64 float64
 
-var _ apicommon.Validator = XClosedFloat64(0)
+var _ apicommon.Model = XClosedFloat64(0)
 
 func (m XClosedFloat64) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < -100 {
@@ -1950,20 +2018,28 @@ func (m XClosedFloat64) Validate(validationContext *apicommon.ValidationContext)
 		validationContext.SetErrorDetails("value > -1")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XClosedFloat64
+	}{XClosedFloat64: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type String string
 
-var _ apicommon.Validator = String("")
+var _ apicommon.Model = String("")
 
 func (m String) Validate(validationContext *apicommon.ValidationContext) bool {
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		String
+	}{String: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type XString string
 
-var _ apicommon.Validator = XString("")
+var _ apicommon.Model = XString("")
 
 func (m XString) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 3 {
@@ -1978,7 +2054,11 @@ func (m XString) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value not matched to \"[a-zA-Z0-9]*\"")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		XString
+	}{XString: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 var patterns = [...]*regexp.Regexp{

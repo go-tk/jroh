@@ -35,8 +35,8 @@ func (ir *IncomingRPC) Init(
 	namespace string,
 	serviceName string,
 	methodName string,
-	params interface{},
-	results interface{},
+	params Model,
+	results Model,
 	handler RPCHandler,
 	filters []RPCHandler,
 ) {
@@ -70,7 +70,7 @@ func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 		return false
 	}
 	validationContext := NewValidationContext(ctx)
-	if !ir.params.(Validator).Validate(validationContext) {
+	if !ir.params.Validate(validationContext) {
 		ir.error = *errInvalidParams
 		ir.error.Details = validationContext.ErrorDetails()
 		return false

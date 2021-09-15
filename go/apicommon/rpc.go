@@ -8,8 +8,8 @@ type RPC struct {
 	namespace       string
 	serviceName     string
 	methodName      string
-	params          interface{}
-	results         interface{}
+	params          Model
+	results         Model
 	traceID         string
 	handler         RPCHandler
 	filters         []RPCHandler
@@ -20,8 +20,8 @@ func (r *RPC) init(
 	namespace string,
 	serviceName string,
 	methodName string,
-	params interface{},
-	results interface{},
+	params Model,
+	results Model,
 	handler RPCHandler,
 	filters []RPCHandler,
 ) {
@@ -34,12 +34,12 @@ func (r *RPC) init(
 	r.filters = filters
 }
 
-func (r *RPC) Namespace() string    { return r.namespace }
-func (r *RPC) ServiceName() string  { return r.serviceName }
-func (r *RPC) MethodName() string   { return r.methodName }
-func (r *RPC) Params() interface{}  { return r.params }
-func (r *RPC) Results() interface{} { return r.results }
-func (r *RPC) TraceID() string      { return r.traceID }
+func (r *RPC) Namespace() string   { return r.namespace }
+func (r *RPC) ServiceName() string { return r.serviceName }
+func (r *RPC) MethodName() string  { return r.methodName }
+func (r *RPC) Params() Model       { return r.params }
+func (r *RPC) Results() Model      { return r.results }
+func (r *RPC) TraceID() string     { return r.traceID }
 
 func (r *RPC) Do(ctx context.Context) error {
 	if i := r.nextFilterIndex; i < len(r.filters) {

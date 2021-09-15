@@ -10,7 +10,7 @@ type SayHelloParams struct {
 	Name string `json:"name"`
 }
 
-var _ apicommon.Validator = (*SayHelloParams)(nil)
+var _ apicommon.Model = (*SayHelloParams)(nil)
 
 func (m *SayHelloParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -21,14 +21,18 @@ func (m *SayHelloParams) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*SayHelloParams
+	}{SayHelloParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type SayHelloResults struct {
 	Message string `json:"message"`
 }
 
-var _ apicommon.Validator = (*SayHelloResults)(nil)
+var _ apicommon.Model = (*SayHelloResults)(nil)
 
 func (m *SayHelloResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -39,5 +43,9 @@ func (m *SayHelloResults) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*SayHelloResults
+	}{SayHelloResults: m}
+	return mm.FurtherValidate(validationContext)
 }

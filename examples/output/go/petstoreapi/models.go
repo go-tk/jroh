@@ -13,7 +13,7 @@ type AddPetParams struct {
 	Pet Pet `json:"pet"`
 }
 
-var _ apicommon.Validator = (*AddPetParams)(nil)
+var _ apicommon.Model = (*AddPetParams)(nil)
 
 func (m *AddPetParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -23,14 +23,18 @@ func (m *AddPetParams) Validate(validationContext *apicommon.ValidationContext) 
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*AddPetParams
+	}{AddPetParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetPetParams struct {
 	PetID PetID `json:"petID"`
 }
 
-var _ apicommon.Validator = (*GetPetParams)(nil)
+var _ apicommon.Model = (*GetPetParams)(nil)
 
 func (m *GetPetParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -40,14 +44,18 @@ func (m *GetPetParams) Validate(validationContext *apicommon.ValidationContext) 
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetPetParams
+	}{GetPetParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetPetResults struct {
 	Pet Pet `json:"pet"`
 }
 
-var _ apicommon.Validator = (*GetPetResults)(nil)
+var _ apicommon.Model = (*GetPetResults)(nil)
 
 func (m *GetPetResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -57,14 +65,18 @@ func (m *GetPetResults) Validate(validationContext *apicommon.ValidationContext)
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetPetResults
+	}{GetPetResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetPetsParams struct {
 	PetIDs []PetID `json:"petIDs"`
 }
 
-var _ apicommon.Validator = (*GetPetsParams)(nil)
+var _ apicommon.Model = (*GetPetsParams)(nil)
 
 func (m *GetPetsParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -87,14 +99,18 @@ func (m *GetPetsParams) Validate(validationContext *apicommon.ValidationContext)
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetPetsParams
+	}{GetPetsParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetPetsResults struct {
 	Pets []Pet `json:"pets,omitempty"`
 }
 
-var _ apicommon.Validator = (*GetPetsResults)(nil)
+var _ apicommon.Model = (*GetPetsResults)(nil)
 
 func (m *GetPetsResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -109,14 +125,18 @@ func (m *GetPetsResults) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetPetsResults
+	}{GetPetsResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type UpdatePetParams struct {
 	PetPatch PetPatch `json:"petPatch"`
 }
 
-var _ apicommon.Validator = (*UpdatePetParams)(nil)
+var _ apicommon.Model = (*UpdatePetParams)(nil)
 
 func (m *UpdatePetParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -126,14 +146,18 @@ func (m *UpdatePetParams) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*UpdatePetParams
+	}{UpdatePetParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type FindPetsParams struct {
 	PetStatus PetStatus `json:"petStatus"`
 }
 
-var _ apicommon.Validator = (*FindPetsParams)(nil)
+var _ apicommon.Model = (*FindPetsParams)(nil)
 
 func (m *FindPetsParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -143,14 +167,18 @@ func (m *FindPetsParams) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*FindPetsParams
+	}{FindPetsParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type FindPetsResults struct {
 	Pets []Pet `json:"pets,omitempty"`
 }
 
-var _ apicommon.Validator = (*FindPetsResults)(nil)
+var _ apicommon.Model = (*FindPetsResults)(nil)
 
 func (m *FindPetsResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -165,14 +193,18 @@ func (m *FindPetsResults) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*FindPetsResults
+	}{FindPetsResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type CreateOrderParams struct {
 	Order Order `json:"order"`
 }
 
-var _ apicommon.Validator = (*CreateOrderParams)(nil)
+var _ apicommon.Model = (*CreateOrderParams)(nil)
 
 func (m *CreateOrderParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -182,14 +214,18 @@ func (m *CreateOrderParams) Validate(validationContext *apicommon.ValidationCont
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*CreateOrderParams
+	}{CreateOrderParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type CreateOrderResults struct {
 	OrderID OrderID `json:"orderID"`
 }
 
-var _ apicommon.Validator = (*CreateOrderResults)(nil)
+var _ apicommon.Model = (*CreateOrderResults)(nil)
 
 func (m *CreateOrderResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -199,14 +235,18 @@ func (m *CreateOrderResults) Validate(validationContext *apicommon.ValidationCon
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*CreateOrderResults
+	}{CreateOrderResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetOrderParams struct {
 	OrderID OrderID `json:"orderID"`
 }
 
-var _ apicommon.Validator = (*GetOrderParams)(nil)
+var _ apicommon.Model = (*GetOrderParams)(nil)
 
 func (m *GetOrderParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -216,14 +256,18 @@ func (m *GetOrderParams) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetOrderParams
+	}{GetOrderParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetOrderResults struct {
 	Order Order `json:"order"`
 }
 
-var _ apicommon.Validator = (*GetOrderResults)(nil)
+var _ apicommon.Model = (*GetOrderResults)(nil)
 
 func (m *GetOrderResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -233,14 +277,18 @@ func (m *GetOrderResults) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetOrderResults
+	}{GetOrderResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type CreateUserParams struct {
 	User User `json:"user"`
 }
 
-var _ apicommon.Validator = (*CreateUserParams)(nil)
+var _ apicommon.Model = (*CreateUserParams)(nil)
 
 func (m *CreateUserParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -250,14 +298,18 @@ func (m *CreateUserParams) Validate(validationContext *apicommon.ValidationConte
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*CreateUserParams
+	}{CreateUserParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetUserParams struct {
 	UserID UserID `json:"userID"`
 }
 
-var _ apicommon.Validator = (*GetUserParams)(nil)
+var _ apicommon.Model = (*GetUserParams)(nil)
 
 func (m *GetUserParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -267,14 +319,18 @@ func (m *GetUserParams) Validate(validationContext *apicommon.ValidationContext)
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetUserParams
+	}{GetUserParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetUserResults struct {
 	User User `json:"user"`
 }
 
-var _ apicommon.Validator = (*GetUserResults)(nil)
+var _ apicommon.Model = (*GetUserResults)(nil)
 
 func (m *GetUserResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -284,14 +340,18 @@ func (m *GetUserResults) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetUserResults
+	}{GetUserResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetUsersParams struct {
 	UserIDs []UserID `json:"userIDs"`
 }
 
-var _ apicommon.Validator = (*GetUsersParams)(nil)
+var _ apicommon.Model = (*GetUsersParams)(nil)
 
 func (m *GetUsersParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -314,14 +374,18 @@ func (m *GetUsersParams) Validate(validationContext *apicommon.ValidationContext
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetUsersParams
+	}{GetUsersParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type GetUsersResults struct {
 	Users []User `json:"users,omitempty"`
 }
 
-var _ apicommon.Validator = (*GetUsersResults)(nil)
+var _ apicommon.Model = (*GetUsersResults)(nil)
 
 func (m *GetUsersResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -336,14 +400,18 @@ func (m *GetUsersResults) Validate(validationContext *apicommon.ValidationContex
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*GetUsersResults
+	}{GetUsersResults: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type UpdateUserParams struct {
 	UserPatch UserPatch `json:"userPatch"`
 }
 
-var _ apicommon.Validator = (*UpdateUserParams)(nil)
+var _ apicommon.Model = (*UpdateUserParams)(nil)
 
 func (m *UpdateUserParams) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -353,7 +421,11 @@ func (m *UpdateUserParams) Validate(validationContext *apicommon.ValidationConte
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*UpdateUserParams
+	}{UpdateUserParams: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Pet struct {
@@ -363,7 +435,7 @@ type Pet struct {
 	Status PetStatus `json:"status"`
 }
 
-var _ apicommon.Validator = (*Pet)(nil)
+var _ apicommon.Model = (*Pet)(nil)
 
 func (m *Pet) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -403,7 +475,11 @@ func (m *Pet) Validate(validationContext *apicommon.ValidationContext) bool {
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*Pet
+	}{Pet: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type PetPatch struct {
@@ -413,7 +489,7 @@ type PetPatch struct {
 	Status *PetStatus `json:"status,omitempty"`
 }
 
-var _ apicommon.Validator = (*PetPatch)(nil)
+var _ apicommon.Model = (*PetPatch)(nil)
 
 func (m *PetPatch) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -449,24 +525,32 @@ func (m *PetPatch) Validate(validationContext *apicommon.ValidationContext) bool
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*PetPatch
+	}{PetPatch: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type PetID int64
 
-var _ apicommon.Validator = PetID(0)
+var _ apicommon.Model = PetID(0)
 
 func (m PetID) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < 1 {
 		validationContext.SetErrorDetails("value < 1")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		PetID
+	}{PetID: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type PetName string
 
-var _ apicommon.Validator = PetName("")
+var _ apicommon.Model = PetName("")
 
 func (m PetName) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -477,12 +561,16 @@ func (m PetName) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("length > 63")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		PetName
+	}{PetName: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type PetTag string
 
-var _ apicommon.Validator = PetTag("")
+var _ apicommon.Model = PetTag("")
 
 func (m PetTag) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -493,7 +581,11 @@ func (m PetTag) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("length > 63")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		PetTag
+	}{PetTag: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type PetStatus int32
@@ -519,7 +611,7 @@ func (m PetStatus) String() string {
 	}
 }
 
-var _ apicommon.Validator = PetStatus(0)
+var _ apicommon.Model = PetStatus(0)
 
 func (m PetStatus) Validate(validationContext *apicommon.ValidationContext) bool {
 	switch m {
@@ -542,7 +634,7 @@ type Order struct {
 	Status   OrderStatus `json:"status"`
 }
 
-var _ apicommon.Validator = (*Order)(nil)
+var _ apicommon.Model = (*Order)(nil)
 
 func (m *Order) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -574,19 +666,27 @@ func (m *Order) Validate(validationContext *apicommon.ValidationContext) bool {
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*Order
+	}{Order: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type OrderID int64
 
-var _ apicommon.Validator = OrderID(0)
+var _ apicommon.Model = OrderID(0)
 
 func (m OrderID) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m < 1 {
 		validationContext.SetErrorDetails("value < 1")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		OrderID
+	}{OrderID: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type OrderStatus int32
@@ -612,7 +712,7 @@ func (m OrderStatus) String() string {
 	}
 }
 
-var _ apicommon.Validator = OrderStatus(0)
+var _ apicommon.Model = OrderStatus(0)
 
 func (m OrderStatus) Validate(validationContext *apicommon.ValidationContext) bool {
 	switch m {
@@ -637,7 +737,7 @@ type User struct {
 	Password  Password  `json:"password"`
 }
 
-var _ apicommon.Validator = (*User)(nil)
+var _ apicommon.Model = (*User)(nil)
 
 func (m *User) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -682,7 +782,11 @@ func (m *User) Validate(validationContext *apicommon.ValidationContext) bool {
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*User
+	}{User: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type UserPatch struct {
@@ -694,7 +798,7 @@ type UserPatch struct {
 	Password  *Password  `json:"password,omitempty"`
 }
 
-var _ apicommon.Validator = (*UserPatch)(nil)
+var _ apicommon.Model = (*UserPatch)(nil)
 
 func (m *UserPatch) Validate(validationContext *apicommon.ValidationContext) bool {
 	{
@@ -739,12 +843,16 @@ func (m *UserPatch) Validate(validationContext *apicommon.ValidationContext) boo
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*UserPatch
+	}{UserPatch: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type UserID string
 
-var _ apicommon.Validator = UserID("")
+var _ apicommon.Model = UserID("")
 
 func (m UserID) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -759,12 +867,16 @@ func (m UserID) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value not matched to \"[a-z][a-z0-9]*\"")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		UserID
+	}{UserID: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type FirstName string
 
-var _ apicommon.Validator = FirstName("")
+var _ apicommon.Model = FirstName("")
 
 func (m FirstName) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -775,12 +887,16 @@ func (m FirstName) Validate(validationContext *apicommon.ValidationContext) bool
 		validationContext.SetErrorDetails("length > 63")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		FirstName
+	}{FirstName: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type LastName string
 
-var _ apicommon.Validator = LastName("")
+var _ apicommon.Model = LastName("")
 
 func (m LastName) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -791,12 +907,16 @@ func (m LastName) Validate(validationContext *apicommon.ValidationContext) bool 
 		validationContext.SetErrorDetails("length > 63")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		LastName
+	}{LastName: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Email string
 
-var _ apicommon.Validator = Email("")
+var _ apicommon.Model = Email("")
 
 func (m Email) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -811,12 +931,16 @@ func (m Email) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value not matched to \"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\\\.[a-zA-Z0-9-.]+\"")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Email
+	}{Email: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Phone string
 
-var _ apicommon.Validator = Phone("")
+var _ apicommon.Model = Phone("")
 
 func (m Phone) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 1 {
@@ -831,12 +955,16 @@ func (m Phone) Validate(validationContext *apicommon.ValidationContext) bool {
 		validationContext.SetErrorDetails("value not matched to \"\\\\+[0-9]+ [0-9]+\"")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Phone
+	}{Phone: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 type Password string
 
-var _ apicommon.Validator = Password("")
+var _ apicommon.Model = Password("")
 
 func (m Password) Validate(validationContext *apicommon.ValidationContext) bool {
 	if len(m) < 6 {
@@ -847,7 +975,11 @@ func (m Password) Validate(validationContext *apicommon.ValidationContext) bool 
 		validationContext.SetErrorDetails("length > 31")
 		return false
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		Password
+	}{Password: m}
+	return mm.FurtherValidate(validationContext)
 }
 
 var patterns = [...]*regexp.Regexp{

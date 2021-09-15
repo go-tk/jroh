@@ -4,9 +4,25 @@ import (
 	"context"
 )
 
+type Model interface {
+	Validator
+}
+
 type Validator interface {
 	Validate(validationContext *ValidationContext) (ok bool)
 }
+
+type FurtherValidator interface {
+	FurtherValidate(validationContext *ValidationContext) (ok bool)
+}
+
+type DummyFurtherValidator struct{ dummyFurtherValidator }
+
+var _ FurtherValidator = DummyFurtherValidator{}
+
+type dummyFurtherValidator struct{}
+
+func (dummyFurtherValidator) FurtherValidate(*ValidationContext) bool { return true }
 
 type ValidationContext struct {
 	Ctx context.Context

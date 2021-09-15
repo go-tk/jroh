@@ -15,7 +15,7 @@ type DoSomethingResults struct {
 	MyStructString  *fooapi.MyStructString  `json:"myStructString,omitempty"`
 }
 
-var _ apicommon.Validator = (*DoSomethingResults)(nil)
+var _ apicommon.Model = (*DoSomethingResults)(nil)
 
 func (m *DoSomethingResults) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m.MyStructInt32 != nil {
@@ -53,5 +53,9 @@ func (m *DoSomethingResults) Validate(validationContext *apicommon.ValidationCon
 		}
 		validationContext.Leave()
 	}
-	return true
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomethingResults
+	}{DoSomethingResults: m}
+	return mm.FurtherValidate(validationContext)
 }

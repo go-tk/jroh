@@ -1007,6 +1007,24 @@ func TestModelValidation(t *testing.T) {
 	}
 }
 
+func TestModelFurtherValidation(t *testing.T) {
+	{
+		xs := fooapi.XString("taboo")
+		vc := apicommon.NewValidationContext(context.Background())
+		ok := xs.Validate(vc)
+		assert.False(t, ok)
+		assert.Equal(t, "this is taboo!", vc.ErrorDetails())
+	}
+	{
+		s := myStructInt32()
+		s.TheInt32A = 666666
+		vc := apicommon.NewValidationContext(context.Background())
+		ok := s.Validate(vc)
+		assert.False(t, ok)
+		assert.Equal(t, "theInt32A is evil!", vc.ErrorDetails())
+	}
+}
+
 func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 	tsf := fooapi.TestServerFuncs{
 		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {

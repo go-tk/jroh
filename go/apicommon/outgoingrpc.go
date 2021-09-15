@@ -33,8 +33,8 @@ func (or *OutgoingRPC) Init(
 	namespace string,
 	serviceName string,
 	methodName string,
-	params interface{},
-	results interface{},
+	params Model,
+	results Model,
 	handler RPCHandler,
 	filters []RPCHandler,
 ) {
@@ -103,7 +103,7 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	}
 	if or.error.Code == 0 {
 		validationContext := NewValidationContext(ctx)
-		if !or.results.(Validator).Validate(validationContext) {
+		if !or.results.Validate(validationContext) {
 			return errors.New("invalid results: " + validationContext.ErrorDetails())
 		}
 	}

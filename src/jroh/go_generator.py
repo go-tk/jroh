@@ -479,7 +479,11 @@ ${validate_primitive_value("        ", v, field_type.primitive_type(), field)}\
             % endif
         % endif
     % endfor
-    return true
+    mm := struct {
+        ${apicommon()}.DummyFurtherValidator
+        *${model_name}
+    }{${model_name}: m}
+    return mm.FurtherValidate(validationContext)
 }
 </%def>\
 <%def name="validate_primitive_value(indent, v, primitive_type, primitive_constraints)">\
@@ -571,7 +575,7 @@ type ${method_name}Params struct {
         % endfor
 }
 
-var _ ${apicommon()}.Validator = (*${method_name}Params)(nil)
+var _ ${apicommon()}.Model = (*${method_name}Params)(nil)
 
 ${struct_validate_func(method_name + "Params", method.params.fields)}\
     % endif
@@ -583,7 +587,7 @@ type ${method_name}Results struct {
         % endfor
 }
 
-var _ ${apicommon()}.Validator = (*${method_name}Results)(nil)
+var _ ${apicommon()}.Model = (*${method_name}Results)(nil)
 
 ${struct_validate_func(method_name + "Results", method.results.fields)}\
     % endif
@@ -603,7 +607,7 @@ type ${model_name} struct {
     % endfor
 }
 
-var _ ${apicommon()}.Validator = (*${model_name})(nil)
+var _ ${apicommon()}.Model = (*${model_name})(nil)
 
 ${struct_validate_func(model_name, struct.fields)}\
     % elif model.type == ENUM:
@@ -648,7 +652,7 @@ func (m ${model_name}) String() string {
     }
 }
 
-var _ ${apicommon()}.Validator = ${model_name}(${primitive_zero_literals[enum.underlying_type]})
+var _ ${apicommon()}.Model = ${model_name}(${primitive_zero_literals[enum.underlying_type]})
 
 func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationContext) bool {
     switch m {
@@ -675,11 +679,15 @@ func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationCont
 %>\
 type ${model_name} ${xprimit.primitive_type}
 
-var _ ${apicommon()}.Validator = ${model_name}(${primitive_zero_literals[xprimit.primitive_type]})
+var _ ${apicommon()}.Model = ${model_name}(${primitive_zero_literals[xprimit.primitive_type]})
 
 func (m ${model_name}) Validate(validationContext *${apicommon()}.ValidationContext) bool {
 ${validate_primitive_value("    ", "m", xprimit.primitive_type, xprimit)}\
-    return true
+    mm := struct {
+        ${apicommon()}.DummyFurtherValidator
+        ${model_name}
+    }{${model_name}: m}
+    return mm.FurtherValidate(validationContext)
 }
     % endif
 % endfor
