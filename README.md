@@ -2,16 +2,21 @@
 
 Solution & Framework for **J**SON-**R**PC **o**ver **H**TTP
 
-## Why Not OpenAPI?
+## Why not OpenAPI?
 
-OpenAPI addresses the definition of RESTful APIs, when it comes to JSON-RPCs, some important elements for defining RPCs is missing, e.g., service name, method name and RPC error code.
+OpenAPI addresses the definition of RESTful APIs, when it comes to JSON-RPCs, some important elements
+for defining RPCs is missing, e.g., service name, method name and RPC error code.
 
-## The User Story
+## The user story
 
 1. Users shall define JSON-RPCs in **YAML**.
 2. Users can compile the YAML files into stub (client-side) code and skeleton (server-side) code in **Go**.
 3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to leverage
 **Swagger UI** as a browser for JSON-RPCs.
+
+## Features
+
+TODO
 
 ## Installation
 
@@ -32,7 +37,7 @@ $ mkdir temp && cd temp
 ```sh
 $ mkdir -p ./jroh/hello_world
 
-$ tee >./jroh/hello_world/greeter_service.yaml <<EOF
+$ cat >./jroh/hello_world/greeter_service.yaml <<EOF
 ########## BEGIN greeter_service.yaml ##########
 namespace: Hello-World
 
@@ -95,7 +100,7 @@ $ ls --recursive -l ./api ./oapi3
 ```sh
 $ mkdir ./server
 
-$ tee >./server/server.go <<EOF
+$ cat >./server/server.go <<EOF
 ////////// BEGIN server.go //////////
 package main
 
@@ -170,7 +175,7 @@ $ curl --data '{"name": "God"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.Say
 ```sh
 $ mkdir ./client
 
-$ tee >./client/client.go <<EOF
+$ cat >./client/client.go <<EOF
 ////////// BEGIN client.go //////////
 package main
 
@@ -224,3 +229,7 @@ $ docker run --rm \
 ```
 
 Open http://127.0.0.1:2333 in the browser.
+
+## Advanced examples
+
+- [Petstore](examples/2-petstore)
