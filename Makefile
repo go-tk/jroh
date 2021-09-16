@@ -50,7 +50,7 @@ image:
 		TAG=latest
 	fi
 	IMAGE=ghcr.io/go-tk/jrohc:$${TAG}
-	docker build --tag "$${IMAGE}" .
+	docker build --tag="$${IMAGE}" .
 ifdef PUSHIMAGE
 	docker push "$${IMAGE}"
 endif
