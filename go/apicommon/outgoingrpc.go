@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"unsafe"
 )
 
@@ -66,16 +67,30 @@ func (or *OutgoingRPC) encodeParams() error {
 	return nil
 }
 
-func (or *OutgoingRPC) requestHTTP(ctx context.Context) (*http.Response, error) {
+func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	requestBody := bytes.NewReader(or.rawParams)
 	request, err := http.NewRequestWithContext(ctx, "POST", or.url, requestBody)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if or.traceIDIsReceived {
 		injectTraceID(or.traceID, request.Header)
 	}
-	return or.client.Do(request)
+	if _, err := or.client.Do(request); err != nil {
+		return err
+	}
+	if or.statusCode != http.StatusOK {
+		return &UnexpectedStatusCodeError{or.statusCode}
+	}
+	return err
+}
+
+type UnexpectedStatusCodeError struct {
+	StatusCode int
+}
+
+func (usce *UnexpectedStatusCodeError) Error() string {
+	return "unexpected status code - %v" + strconv.Itoa(usce.StatusCode)
 }
 
 func (or *OutgoingRPC) decodeResp(ctx context.Context) error {

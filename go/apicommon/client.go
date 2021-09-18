@@ -25,6 +25,8 @@ func (co *ClientOptions) Sanitize() {
 		if err != nil {
 			return nil, err
 		}
+		outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
+		outgoingRPC.statusCode = response.StatusCode
 		if response.StatusCode != http.StatusOK {
 			response.Body.Close()
 			return response, nil
@@ -36,7 +38,6 @@ func (co *ClientOptions) Sanitize() {
 			return nil, err
 		}
 		if buffer.Len() >= 1 {
-			outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
 			outgoingRPC.rawResp = buffer.Bytes()
 		}
 		return response, nil
@@ -76,44 +77,18 @@ func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport 
 	return outgoingRPC.Do(makeContextWithRPC(ctx, &outgoingRPC.RPC))
 }
 
-type UnexpectedStatusCodeError struct {
-	StatusCode int
-
-	namespace   string
-	serviceName string
-	methodName  string
-	traceID     string
-}
-
-func (usce *UnexpectedStatusCodeError) Error() string {
-	return fmt.Sprintf("apicommon: unexpected status code; namespace=%q serviceName=%q methodName=%q traceID=%q statusCode=%q",
-		usce.namespace, usce.serviceName, usce.methodName, usce.traceID, usce.StatusCode)
-}
-
 func HandleRPC(ctx context.Context, rpc *RPC) error {
 	outgoingRPC := rpc.OutgoingRPC()
 	if err := outgoingRPC.encodeParams(); err != nil {
-		return fmt.Errorf("apicommon: params encoding failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
+		return fmt.Errorf("apicommon: params encoding failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %w",
 			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
 	}
-	response, err := outgoingRPC.requestHTTP(ctx)
-	if err != nil {
-		return fmt.Errorf("apicommon: http request failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
+	if err := outgoingRPC.requestHTTP(ctx); err != nil {
+		return fmt.Errorf("apicommon: http request failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %w",
 			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
-	}
-	outgoingRPC.statusCode = response.StatusCode
-	if outgoingRPC.statusCode != http.StatusOK {
-		return &UnexpectedStatusCodeError{
-			StatusCode: outgoingRPC.statusCode,
-
-			namespace:   rpc.namespace,
-			serviceName: rpc.serviceName,
-			methodName:  rpc.methodName,
-			traceID:     rpc.traceID,
-		}
 	}
 	if err := outgoingRPC.decodeResp(ctx); err != nil {
-		return fmt.Errorf("apicommon: resp decoding failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %v",
+		return fmt.Errorf("apicommon: resp decoding failed; namespace=%q serviceName=%q methodName=%q traceID=%q: %w",
 			rpc.namespace, rpc.serviceName, rpc.methodName, rpc.traceID, err)
 	}
 	if outgoingRPC.error.Code != 0 {

@@ -32,13 +32,11 @@ func MakeHandler(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
-				w.Write(nil)
 				return
 			}
 			var buffer bytes.Buffer
 			if _, err := buffer.ReadFrom(r.Body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write(nil)
 				return
 			}
 			incomingRPC := incomingRPCFactory()
@@ -52,10 +50,29 @@ func MakeHandler(
 				incomingRPC.rawParams = buffer.Bytes()
 			}
 			ctx := makeContextWithRPC(r.Context(), &incomingRPC.RPC)
-			handler.ServeHTTP(w, r.WithContext(ctx))
+			handler.ServeHTTP(responseWriterWrapper{w, incomingRPC}, r.WithContext(ctx))
 		})
 	}(handler)
 	return handler
+}
+
+type responseWriterWrapper struct {
+	http.ResponseWriter
+
+	incomingRPC *IncomingRPC
+}
+
+var _ http.ResponseWriter = responseWriterWrapper{}
+
+func (rww responseWriterWrapper) WriteHeader(statusCode int) {
+	rww.ResponseWriter.WriteHeader(statusCode)
+	rww.incomingRPC.statusCode = statusCode
+}
+
+func (rww responseWriterWrapper) Write(data []byte) (int, error) {
+	n, err := rww.ResponseWriter.Write(data)
+	rww.incomingRPC.responseWriteErr = err
+	return n, err
 }
 
 func handleHTTP(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +82,12 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 		if v := recover(); v != nil {
 			incomingRPC.savePanic(v)
 		}
-		incomingRPC.encodeAndWriteResp(w)
+		if !incomingRPC.encodeResp() {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Write(incomingRPC.rawResp)
 	}()
 	if !incomingRPC.decodeParams(ctx) {
 		return

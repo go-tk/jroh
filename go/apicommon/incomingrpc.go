@@ -23,12 +23,13 @@ type IncomingRPC struct {
 
 	traceIDIsReceived bool
 	rawParams         []byte
+	statusCode        int
+	responseWriteErr  error
 	error             Error
 	internalErr       error
 	stackTrace        string
-	encodeRespErr     error
+	respEncodingErr   error
 	rawResp           []byte
-	writeRespErr      error
 }
 
 func (ir *IncomingRPC) Init(
@@ -42,15 +43,17 @@ func (ir *IncomingRPC) Init(
 ) {
 	ir.mark = 'i'
 	ir.init(namespace, serviceName, methodName, params, results, handler, filters)
+	ir.statusCode = http.StatusOK
 }
 
-func (ir *IncomingRPC) RawParams() []byte    { return ir.rawParams }
-func (ir *IncomingRPC) Error() Error         { return ir.error }
-func (ir *IncomingRPC) InternalErr() error   { return ir.internalErr }
-func (ir *IncomingRPC) StackTrace() string   { return ir.stackTrace }
-func (ir *IncomingRPC) EncodeRespErr() error { return ir.encodeRespErr }
-func (ir *IncomingRPC) RawResp() []byte      { return ir.rawResp }
-func (ir *IncomingRPC) WriteRespErr() error  { return ir.writeRespErr }
+func (ir *IncomingRPC) RawParams() []byte       { return ir.rawParams }
+func (ir *IncomingRPC) StatusCode() int         { return ir.statusCode }
+func (ir *IncomingRPC) ResponseWriteErr() error { return ir.responseWriteErr }
+func (ir *IncomingRPC) Error() Error            { return ir.error }
+func (ir *IncomingRPC) InternalErr() error      { return ir.internalErr }
+func (ir *IncomingRPC) StackTrace() string      { return ir.stackTrace }
+func (ir *IncomingRPC) RespEncodingErr() error  { return ir.respEncodingErr }
+func (ir *IncomingRPC) RawResp() []byte         { return ir.rawResp }
 
 func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 	if ir.params == nil {
@@ -104,7 +107,7 @@ func (ir *IncomingRPC) savePanic(v interface{}) {
 	ir.stackTrace = stackTrace
 }
 
-func (ir *IncomingRPC) encodeAndWriteResp(responseWriter http.ResponseWriter) {
+func (ir *IncomingRPC) encodeResp() bool {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
@@ -125,11 +128,9 @@ func (ir *IncomingRPC) encodeAndWriteResp(responseWriter http.ResponseWriter) {
 		resp.Results = ir.results
 	}
 	if err := encoder.Encode(resp); err != nil {
-		ir.encodeRespErr = err
-		return
+		ir.respEncodingErr = err
+		return false
 	}
 	ir.rawResp = buffer.Bytes()
-	responseWriter.Header().Set("Content-Type", "application/json")
-	responseWriter.WriteHeader(http.StatusOK)
-	_, ir.writeRespErr = responseWriter.Write(ir.rawResp)
+	return true
 }
