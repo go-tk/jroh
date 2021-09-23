@@ -22,3 +22,4 @@ vet:
 .PHONY: test
 test:
 	go test -coverpkg=./apicommon/... ./apicommon
+	go test -cover ./middleware/...

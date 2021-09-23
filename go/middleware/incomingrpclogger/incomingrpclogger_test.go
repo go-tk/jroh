@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	"github.com/go-tk/jroh/go/middleware/incomingrpclogger"
+	. "github.com/go-tk/jroh/go/middleware/incomingrpclogger"
 	"github.com/go-tk/testcase"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 func TestIncomingRPCLogger(t *testing.T) {
 	type Input struct {
 		TestServerFuncs  fooapi.TestServerFuncs
-		OptionsSetters   []incomingrpclogger.OptionsSetter
+		OptionsSetters   []OptionsSetter
 		TraceIDGenerator apicommon.TraceIDGenerator
 		Params           fooapi.DoSomething2Params
 	}
@@ -41,7 +41,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
-						incomingrpclogger.New(logger, w.Input.OptionsSetters...),
+						New(logger, w.Input.OptionsSetters...),
 					},
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
@@ -71,7 +71,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 					return nil
 				}
 				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","urlPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"abc123\",\"results\":{\"myOnOff\":true}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"
 			}),
@@ -81,12 +81,12 @@ func TestIncomingRPCLogger(t *testing.T) {
 					results.MyOnOff = true
 					return nil
 				}
-				w.Input.OptionsSetters = []incomingrpclogger.OptionsSetter{
-					incomingrpclogger.MaxRawParamsSize(10),
-					incomingrpclogger.MaxRawRespSize(11),
+				w.Input.OptionsSetters = []OptionsSetter{
+					MaxRawParamsSize(10),
+					MaxRawRespSize(11),
 				}
 				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","urlPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"truncatedParams":"{\"myOnOff\"","truncatedResp":"{\"traceID\":","statusCode":200,` +
 					`"message":"incoming rpc"}` + "\n"
 			}),
@@ -99,7 +99,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 					return nil
 				}
 				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","urlPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"statusCode":500,"message":"incoming rpc"}` + "\n"
 			}),
@@ -109,7 +109,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 					panic("hello")
 				}
 				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","urlPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","internalErr":"hello","stackTrace":"goroutine...",` +
 					`"resp":"{\"traceID\":\"abc123\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"

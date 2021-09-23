@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-tk/jroh/go/apicommon"
+	. "github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -148,7 +148,7 @@ func myStructString() fooapi.MyStructString {
 
 func TestModelValidation(t *testing.T) {
 	{
-		vc := apicommon.NewValidationContext(context.Background())
+		vc := NewValidationContext(context.Background())
 		if m := myStructInt32(); !assert.True(t, m.Validate(vc)) {
 			t.Fatal(vc.ErrorDetails())
 		}
@@ -300,7 +300,7 @@ func TestModelValidation(t *testing.T) {
 		tcs = append(tcs, TC{m, "countLimitedOthers: length > 3"})
 
 		for _, tc := range tcs {
-			vc := apicommon.NewValidationContext(context.Background())
+			vc := NewValidationContext(context.Background())
 			assert.False(t, tc.M.Validate(vc))
 			assert.Equal(t, tc.E, vc.ErrorDetails())
 		}
@@ -440,7 +440,7 @@ func TestModelValidation(t *testing.T) {
 		tcs = append(tcs, TC{m, "countLimitedOthers: length > 3"})
 
 		for _, tc := range tcs {
-			vc := apicommon.NewValidationContext(context.Background())
+			vc := NewValidationContext(context.Background())
 			assert.False(t, tc.M.Validate(vc))
 			assert.Equal(t, tc.E, vc.ErrorDetails())
 		}
@@ -636,7 +636,7 @@ func TestModelValidation(t *testing.T) {
 		tcs = append(tcs, TC{m, "countLimitedOthers: length > 3"})
 
 		for _, tc := range tcs {
-			vc := apicommon.NewValidationContext(context.Background())
+			vc := NewValidationContext(context.Background())
 			assert.False(t, tc.M.Validate(vc))
 			assert.Equal(t, tc.E, vc.ErrorDetails())
 		}
@@ -832,7 +832,7 @@ func TestModelValidation(t *testing.T) {
 		tcs = append(tcs, TC{m, "countLimitedOthers: length > 3"})
 
 		for _, tc := range tcs {
-			vc := apicommon.NewValidationContext(context.Background())
+			vc := NewValidationContext(context.Background())
 			assert.False(t, tc.M.Validate(vc))
 			assert.Equal(t, tc.E, vc.ErrorDetails())
 		}
@@ -1000,7 +1000,7 @@ func TestModelValidation(t *testing.T) {
 		tcs = append(tcs, TC{m, "countLimitedOthers: length > 3"})
 
 		for _, tc := range tcs {
-			vc := apicommon.NewValidationContext(context.Background())
+			vc := NewValidationContext(context.Background())
 			assert.False(t, tc.M.Validate(vc))
 			assert.Equal(t, tc.E, vc.ErrorDetails())
 		}
@@ -1010,7 +1010,7 @@ func TestModelValidation(t *testing.T) {
 func TestModelFurtherValidation(t *testing.T) {
 	{
 		xs := fooapi.XString("taboo")
-		vc := apicommon.NewValidationContext(context.Background())
+		vc := NewValidationContext(context.Background())
 		ok := xs.Validate(vc)
 		assert.False(t, ok)
 		assert.Equal(t, "this is taboo!", vc.ErrorDetails())
@@ -1018,7 +1018,7 @@ func TestModelFurtherValidation(t *testing.T) {
 	{
 		s := myStructInt32()
 		s.TheInt32A = 666666
-		vc := apicommon.NewValidationContext(context.Background())
+		vc := NewValidationContext(context.Background())
 		ok := s.Validate(vc)
 		assert.False(t, ok)
 		assert.Equal(t, "theInt32A is evil!", vc.ErrorDetails())
@@ -1036,7 +1036,7 @@ func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 			results.MyOnOff = params.MyOnOff
 			return nil
 		},
-	}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+	}, ServerOptions{}, ClientOptions{})
 	t1 := myStructInt32()
 	t2 := myStructInt64()
 	t3 := myStructFloat32()
@@ -1064,7 +1064,7 @@ func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 
 func TestError(t *testing.T) {
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{}, ClientOptions{})
 		t1 := myStructString()
 		t1.TheXStringA = "a.c"
 		t2 := myStructString()
@@ -1076,21 +1076,21 @@ func TestError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
-		assert.ErrorIs(t, err, apicommon.ErrInvalidParams)
+		assert.ErrorIs(t, err, ErrInvalidParams)
 		assert.Equal(t, "myStructString.others.0.theXStringA: value not matched to \"[a-zA-Z0-9]*\"", error.Details)
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{
-			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
+			Middlewares: map[MethodIndex][]ServerMiddleware{
 				fooapi.Test_DoSomething2: {
 					func(handler http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							incomingRPC := apicommon.MustGetRPCFromContext(r.Context()).IncomingRPC()
+							incomingRPC := MustGetRPCFromContext(r.Context()).IncomingRPC()
 							data := incomingRPC.RawParams()
 							data[0] = ','
 							handler.ServeHTTP(w, r)
@@ -1098,7 +1098,7 @@ func TestError(t *testing.T) {
 					},
 				},
 			},
-		}, apicommon.ClientOptions{})
+		}, ClientOptions{})
 		t1 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t1,
@@ -1107,11 +1107,11 @@ func TestError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
-		assert.ErrorIs(t, err, apicommon.ErrParse)
+		assert.ErrorIs(t, err, ErrParse)
 		assert.Equal(t, "invalid character ',' looking for beginning of value", error.Details)
 	}()
 
@@ -1123,22 +1123,22 @@ func TestError(t *testing.T) {
 				err.Data.SetValue("foo", "bar")
 				return err
 			},
-		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		}, ServerOptions{}, ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
 		assert.ErrorIs(t, err, fooapi.ErrSomethingWrong)
 		assert.Equal(t, "hello world", error.Details)
-		assert.Equal(t, apicommon.ErrorData{"foo": "bar"}, error.Data)
+		assert.Equal(t, ErrorData{"foo": "bar"}, error.Data)
 	}()
 
 	func() {
-		apicommon.DebugMode = true
+		DebugMode = true
 		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething3Func: func(context.Context) error {
 				err := fooapi.NewSomethingWrongError()
@@ -1146,19 +1146,19 @@ func TestError(t *testing.T) {
 				err.Data.SetValue("foo", "bar")
 				return fmt.Errorf("err: %w", err)
 			},
-		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		}, ServerOptions{}, ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
-		assert.ErrorIs(t, err, apicommon.ErrInternal)
+		assert.ErrorIs(t, err, ErrInternal)
 		assert.Equal(t, "err: api: something wrong (1): hello world", error.Details)
 
-		apicommon.DebugMode = false
+		DebugMode = false
 		err = c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
@@ -1166,27 +1166,27 @@ func TestError(t *testing.T) {
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
-		assert.ErrorIs(t, err, apicommon.ErrInternal)
+		assert.ErrorIs(t, err, ErrInternal)
 		assert.Equal(t, "", error.Details)
-		assert.Equal(t, apicommon.ErrorData(nil), error.Data)
+		assert.Equal(t, ErrorData(nil), error.Data)
 	}()
 
 	func() {
-		apicommon.DebugMode = true
+		DebugMode = true
 		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething3Func: func(context.Context) error {
 				panic("NOOOOO!")
 			},
-		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		}, ServerOptions{}, ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
 		}
-		assert.ErrorIs(t, err, apicommon.ErrInternal)
+		assert.ErrorIs(t, err, ErrInternal)
 		assert.Equal(t, "NOOOOO!", error.Details)
 		stackTrace := error.Data["stackTrace"]
 		if assert.IsType(t, string(""), stackTrace) {
@@ -1194,7 +1194,7 @@ func TestError(t *testing.T) {
 			assert.True(t, strings.HasPrefix(stackTrace, "goroutine "))
 		}
 
-		apicommon.DebugMode = false
+		DebugMode = false
 		err = c.DoSomething3(context.Background())
 		if !assert.ErrorAs(t, err, &error) {
 			t.Fatal(err)
@@ -1211,7 +1211,7 @@ func TestError(t *testing.T) {
 				}
 				return nil
 			},
-		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		}, ServerOptions{}, ClientOptions{})
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1221,7 +1221,7 @@ func TestError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var error *apicommon.Error
+		var error *Error
 		if errors.As(err, &error) {
 			t.Fatal(err)
 		}
@@ -1238,7 +1238,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 				results.MyStructString = &tmp
 				return nil
 			},
-		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		}, ServerOptions{}, ClientOptions{})
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1247,7 +1247,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var usce *apicommon.UnexpectedStatusCodeError
+		var usce *UnexpectedStatusCodeError
 		if !assert.ErrorAs(t, err, &usce) {
 			t.Fatal(err)
 		}
@@ -1255,9 +1255,9 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{
-			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
-				apicommon.AnyMethod: {
+		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
+			Middlewares: map[MethodIndex][]ServerMiddleware{
+				AnyMethod: {
 					func(http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 							w.WriteHeader(403)
@@ -1265,7 +1265,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 					},
 				},
 			},
-		}, apicommon.ClientOptions{})
+		}, ClientOptions{})
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1274,7 +1274,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var usce *apicommon.UnexpectedStatusCodeError
+		var usce *UnexpectedStatusCodeError
 		if !assert.ErrorAs(t, err, &usce) {
 			t.Fatal(err)
 		}
@@ -1282,11 +1282,11 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{}, apicommon.ClientOptions{
-			Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
-				apicommon.AnyMethod: {
+		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{}, ClientOptions{
+			Middlewares: map[MethodIndex][]ClientMiddleware{
+				AnyMethod: {
 					func(transport http.RoundTripper) http.RoundTripper {
-						return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+						return TransportFunc(func(request *http.Request) (*http.Response, error) {
 							request.URL.Path = "/test"
 							return transport.RoundTrip(request)
 						})
@@ -1302,7 +1302,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 		if !assert.Error(t, err) {
 			t.FailNow()
 		}
-		var usce *apicommon.UnexpectedStatusCodeError
+		var usce *UnexpectedStatusCodeError
 		if !assert.ErrorAs(t, err, &usce) {
 			t.Fatal(err)
 		}
@@ -1315,28 +1315,28 @@ func TestTraceID(t *testing.T) {
 	var traceIDs []string
 	c2 := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
-			rpc := apicommon.MustGetRPCFromContext(ctx)
+			rpc := MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "A-"+rpc.TraceID())
 			return nil
 		},
-	}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+	}, ServerOptions{}, ClientOptions{})
 	c1 := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
-			rpc := apicommon.MustGetRPCFromContext(ctx)
+			rpc := MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "B1-"+rpc.TraceID())
 			err := c2.DoSomething3(ctx)
 			traceIDs = append(traceIDs, "B2-"+rpc.TraceID())
 			return err
 		},
-	}, apicommon.ServerOptions{
+	}, ServerOptions{
 		TraceIDGenerator: func() string {
 			k++
 			return fmt.Sprintf("My-Trace-ID-%d", k)
 		},
-	}, apicommon.ClientOptions{
-		RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
+	}, ClientOptions{
+		RPCFilters: map[MethodIndex][]RPCHandler{
 			fooapi.Test_DoSomething3: {
-				func(ctx context.Context, rpc *apicommon.RPC) error {
+				func(ctx context.Context, rpc *RPC) error {
 					traceIDs = append(traceIDs, "C1-"+rpc.TraceID())
 					err := rpc.Do(ctx)
 					traceIDs = append(traceIDs, "C2-"+rpc.TraceID())
@@ -1374,12 +1374,12 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 				return nil
 			},
 		},
-		apicommon.ServerOptions{
-			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
-				apicommon.AnyMethod: {
+		ServerOptions{
+			Middlewares: map[MethodIndex][]ServerMiddleware{
+				AnyMethod: {
 					func(handler http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							incomingRPC := apicommon.MustGetRPCFromContext(r.Context()).IncomingRPC()
+							incomingRPC := MustGetRPCFromContext(r.Context()).IncomingRPC()
 							switch mn := incomingRPC.MethodName(); mn {
 							case "DoSomething2":
 								assert.Equal(t, "Foo", incomingRPC.Namespace())
@@ -1437,9 +1437,9 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 					},
 				},
 			},
-			RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
-				apicommon.AnyMethod: {
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+			RPCFilters: map[MethodIndex][]RPCHandler{
+				AnyMethod: {
+					func(ctx context.Context, rpc *RPC) error {
 						incomingRPC := rpc.IncomingRPC()
 						switch mn := incomingRPC.MethodName(); mn {
 						case "DoSomething2":
@@ -1473,7 +1473,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						}
 						return err
 					},
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "E2"
 						err := rpc.Do(ctx)
 						s += "F2"
@@ -1481,13 +1481,13 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 					},
 				},
 				fooapi.Test_DoSomething2: {
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "G1"
 						err := rpc.Do(ctx)
 						s += "H1"
 						return err
 					},
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "G2"
 						err := rpc.Do(ctx)
 						s += "H2"
@@ -1500,10 +1500,10 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 				return fmt.Sprintf("My-Trace-ID-%d", k)
 			},
 		},
-		apicommon.ClientOptions{
-			RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
-				apicommon.AnyMethod: {
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+		ClientOptions{
+			RPCFilters: map[MethodIndex][]RPCHandler{
+				AnyMethod: {
+					func(ctx context.Context, rpc *RPC) error {
 						outgoingRPC := rpc.OutgoingRPC()
 						switch mn := outgoingRPC.MethodName(); mn {
 						case "DoSomething2":
@@ -1540,7 +1540,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						}
 						return err
 					},
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "I2"
 						err := rpc.Do(ctx)
 						s += "J2"
@@ -1548,13 +1548,13 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 					},
 				},
 				fooapi.Test_DoSomething2: {
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "K1"
 						err := rpc.Do(ctx)
 						s += "L1"
 						return err
 					},
-					func(ctx context.Context, rpc *apicommon.RPC) error {
+					func(ctx context.Context, rpc *RPC) error {
 						s += "K2"
 						err := rpc.Do(ctx)
 						s += "L2"
@@ -1562,11 +1562,11 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 					},
 				},
 			},
-			Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
-				apicommon.AnyMethod: {
+			Middlewares: map[MethodIndex][]ClientMiddleware{
+				AnyMethod: {
 					func(transport http.RoundTripper) http.RoundTripper {
-						return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
-							outgoingRPC := apicommon.MustGetRPCFromContext(request.Context()).OutgoingRPC()
+						return TransportFunc(func(request *http.Request) (*http.Response, error) {
+							outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
 							switch mn := outgoingRPC.MethodName(); mn {
 							case "DoSomething2":
 								assert.Equal(t, "Foo", outgoingRPC.Namespace())
@@ -1604,7 +1604,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						})
 					},
 					func(transport http.RoundTripper) http.RoundTripper {
-						return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+						return TransportFunc(func(request *http.Request) (*http.Response, error) {
 							s += "M2"
 							response, err := transport.RoundTrip(request)
 							s += "N2"
@@ -1614,7 +1614,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 				},
 				fooapi.Test_DoSomething2: {
 					func(transport http.RoundTripper) http.RoundTripper {
-						return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+						return TransportFunc(func(request *http.Request) (*http.Response, error) {
 							s += "O1"
 							response, err := transport.RoundTrip(request)
 							s += "P1"
@@ -1622,7 +1622,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						})
 					},
 					func(transport http.RoundTripper) http.RoundTripper {
-						return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+						return TransportFunc(func(request *http.Request) (*http.Response, error) {
 							s += "O2"
 							response, err := transport.RoundTrip(request)
 							s += "P2"
@@ -1651,10 +1651,10 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 	assert.Equal(t, "I1I2M1M2A1A2E1E2YYF2F1B2B1N2N1J2J1", s)
 }
 
-func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) fooapi.TestClient {
+func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
 	sm := http.NewServeMux()
 	fooapi.RegisterTestServer(&tsf, sm, serverOptions)
-	clientOptions.Transport = apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+	clientOptions.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
 		responseRecorder := httptest.NewRecorder()
 		sm.ServeHTTP(responseRecorder, request)
 		response := responseRecorder.Result()

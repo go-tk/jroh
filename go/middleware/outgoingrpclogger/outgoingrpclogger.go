@@ -1,4 +1,4 @@
-package incomingrpclogger
+package outgoingrpclogger
 
 import (
 	"net/http"
@@ -29,40 +29,35 @@ func MaxRawRespSize(value int) OptionsSetter {
 	return func(options *options) { options.MaxRawRespSize = value }
 }
 
-func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.ServerMiddleware {
+func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.ClientMiddleware {
 	options := new(options).Init()
 	for _, optionsSetter := range optionsSetters {
 		optionsSetter(options)
 	}
-	return func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			incomingRPC := apicommon.MustGetRPCFromContext(ctx).IncomingRPC()
-			logger = logger.With().Str("traceID", incomingRPC.TraceID()).Logger()
-			ctx = logger.WithContext(ctx)
-			r = r.WithContext(ctx)
+	return func(transport http.RoundTripper) http.RoundTripper {
+		return apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 			// Before
-			handler.ServeHTTP(w, r)
+			response, err := transport.RoundTrip(request)
+			if err != nil {
+				return nil, err
+			}
 			// After
 			event := logger.Info()
-			event.Str("rpcPath", r.URL.Path)
-			if rawParams := incomingRPC.RawParams(); rawParams != nil {
+			outgoingRPC := apicommon.MustGetRPCFromContext(request.Context()).OutgoingRPC()
+			if traceID := outgoingRPC.TraceID(); traceID != "" {
+				event.Str("traceID", outgoingRPC.TraceID())
+			}
+			event.Str("url", outgoingRPC.URL())
+			if rawParams := outgoingRPC.RawParams(); rawParams != nil {
 				if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {
 					event.Str("params", bytesToString(rawParams))
 				} else {
 					event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 				}
 			}
-			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
-				event.AnErr("internalErr", internalErr)
-				if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
-					event.Str("stackTrace", stackTrace)
-				}
-			}
-			if respEncodingErr := incomingRPC.RespEncodingErr(); respEncodingErr != nil {
-				event.AnErr("respEncodingErr", respEncodingErr)
-			} else {
-				if rawResp := incomingRPC.RawResp(); rawResp != nil {
+			if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
+				event.Int("statusCode", statusCode)
+				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
 					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
 						event.Str("resp", bytesToString(rawResp))
 					} else {
@@ -70,11 +65,8 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 					}
 				}
 			}
-			event.Int("statusCode", incomingRPC.StatusCode())
-			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
-				event.AnErr("responseWriteErr", responseWriteErr)
-			}
-			event.Msg("incoming rpc")
+			event.Msg("outgoing rpc")
+			return response, nil
 		})
 	}
 }
