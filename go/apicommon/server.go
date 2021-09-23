@@ -2,6 +2,7 @@ package apicommon
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 )
 
@@ -83,7 +84,13 @@ func handleHTTP(w http.ResponseWriter, r *http.Request) {
 			incomingRPC.savePanic(v)
 		}
 		if !incomingRPC.encodeResp() {
-			w.WriteHeader(http.StatusInternalServerError)
+			if DebugMode {
+				w.Header().Set("Content-Type", "text/plain; charest=utf-8")
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "resp encoding failed: %v", incomingRPC.respEncodingErr)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 			return
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")

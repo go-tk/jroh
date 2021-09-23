@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
@@ -1026,7 +1026,7 @@ func TestModelFurtherValidation(t *testing.T) {
 }
 
 func TestModelMarshalingAndUnmarshaling(t *testing.T) {
-	tsf := fooapi.TestServerFuncs{
+	c := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 			results.MyStructInt32 = params.MyStructInt32
 			results.MyStructInt64 = params.MyStructInt64
@@ -1036,30 +1036,7 @@ func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 			results.MyOnOff = params.MyOnOff
 			return nil
 		},
-	}
-	sm := http.NewServeMux()
-	fooapi.RegisterTestServer(&tsf, sm, apicommon.ServerOptions{})
-	s := http.Server{
-		Addr:    "127.0.0.1:7890",
-		Handler: sm,
-	}
-	go s.ListenAndServe()
-	defer s.Shutdown(context.Background())
-	var err error
-	for i := 0; i < 5; i++ {
-		_, err := http.Get("http://127.0.0.1:7890")
-		if err != nil {
-			t.Log(err)
-			time.Sleep(time.Second / 10)
-			continue
-		}
-		break
-	}
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	c := fooapi.NewTestClient("http://127.0.0.1:7890", apicommon.ClientOptions{})
+	}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 	t1 := myStructInt32()
 	t2 := myStructInt64()
 	t3 := myStructFloat32()
@@ -1086,35 +1063,8 @@ func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	setup := func(tsf fooapi.TestServerFuncs, port uint16, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) (fooapi.TestClient, func()) {
-		sm := http.NewServeMux()
-		fooapi.RegisterTestServer(&tsf, sm, serverOptions)
-		s := http.Server{
-			Addr:    fmt.Sprintf("127.0.0.1:%d", port),
-			Handler: sm,
-		}
-		go s.ListenAndServe()
-		var err error
-		for i := 0; i < 5; i++ {
-			_, err = http.Get(fmt.Sprintf("http://127.0.0.1:%d", port))
-			if err != nil {
-				t.Log(err)
-				time.Sleep(time.Second / 10)
-				continue
-			}
-			break
-		}
-		if err != nil {
-			s.Shutdown(context.Background())
-			t.Fatal(err)
-		}
-		c := fooapi.NewTestClient(fmt.Sprintf("http://127.0.0.1:%d", port), clientOptions)
-		return c, func() { s.Shutdown(context.Background()) }
-	}
-
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-		defer cleanup()
+		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 		t1 := myStructString()
 		t1.TheXStringA = "a.c"
 		t2 := myStructString()
@@ -1135,7 +1085,7 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{}, 7890, apicommon.ServerOptions{
+		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{
 			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 				fooapi.Test_DoSomething2: {
 					func(handler http.Handler) http.Handler {
@@ -1149,7 +1099,6 @@ func TestError(t *testing.T) {
 				},
 			},
 		}, apicommon.ClientOptions{})
-		defer cleanup()
 		t1 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t1,
@@ -1167,15 +1116,14 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething3Func: func(context.Context) error {
 				err := fooapi.NewSomethingWrongError()
 				err.Details = "hello world"
 				err.Data.SetValue("foo", "bar")
 				return err
 			},
-		}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-		defer cleanup()
+		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
@@ -1191,15 +1139,14 @@ func TestError(t *testing.T) {
 
 	func() {
 		apicommon.DebugMode = true
-		c, cleanup := setup(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething3Func: func(context.Context) error {
 				err := fooapi.NewSomethingWrongError()
 				err.Details = "hello world"
 				err.Data.SetValue("foo", "bar")
 				return fmt.Errorf("err: %w", err)
 			},
-		}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-		defer cleanup()
+		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
@@ -1226,12 +1173,11 @@ func TestError(t *testing.T) {
 
 	func() {
 		apicommon.DebugMode = true
-		c, cleanup := setup(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething3Func: func(context.Context) error {
 				panic("NOOOOO!")
 			},
-		}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-		defer cleanup()
+		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 		err := c.DoSomething3(context.Background())
 		if !assert.Error(t, err) {
 			t.FailNow()
@@ -1256,7 +1202,7 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServerFuncs{
 			DoSomething2Func: func(ctx context.Context, _ *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 				t2 := myStructString()
 				t2.TheXStringA = "a.c"
@@ -1265,8 +1211,7 @@ func TestError(t *testing.T) {
 				}
 				return nil
 			},
-		}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-		defer cleanup()
+		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1285,34 +1230,32 @@ func TestError(t *testing.T) {
 }
 
 func TestUnexpectedStatusCodeError(t *testing.T) {
-	setup := func(tsf fooapi.TestServerFuncs, port uint16, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) (fooapi.TestClient, func()) {
-		sm := http.NewServeMux()
-		fooapi.RegisterTestServer(&tsf, sm, serverOptions)
-		s := http.Server{
-			Addr:    fmt.Sprintf("127.0.0.1:%d", port),
-			Handler: sm,
+	func() {
+		c := makeTestClient(fooapi.TestServerFuncs{
+			DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				tmp := myStructString()
+				tmp.TheStringA = "taboo"
+				results.MyStructString = &tmp
+				return nil
+			},
+		}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+		t2 := myStructString()
+		params := fooapi.DoSomething2Params{
+			MyStructString: &t2,
 		}
-		go s.ListenAndServe()
-		var err error
-		for i := 0; i < 5; i++ {
-			_, err = http.Get(fmt.Sprintf("http://127.0.0.1:%d", port))
-			if err != nil {
-				t.Log(err)
-				time.Sleep(time.Second / 10)
-				continue
-			}
-			break
+		_, err := c.DoSomething2(context.Background(), &params)
+		if !assert.Error(t, err) {
+			t.FailNow()
 		}
-		if err != nil {
-			s.Shutdown(context.Background())
+		var usce *apicommon.UnexpectedStatusCodeError
+		if !assert.ErrorAs(t, err, &usce) {
 			t.Fatal(err)
 		}
-		c := fooapi.NewTestClient(fmt.Sprintf("http://127.0.0.1:%d", port), clientOptions)
-		return c, func() { s.Shutdown(context.Background()) }
-	}
+		assert.Equal(t, usce.StatusCode, 500)
+	}()
 
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{}, 7890, apicommon.ServerOptions{
+		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{
 			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 				apicommon.AnyMethod: {
 					func(http.Handler) http.Handler {
@@ -1323,7 +1266,6 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 				},
 			},
 		}, apicommon.ClientOptions{})
-		defer cleanup()
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1340,7 +1282,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 
 	func() {
-		c, cleanup := setup(fooapi.TestServerFuncs{}, 7890, apicommon.ServerOptions{}, apicommon.ClientOptions{
+		c := makeTestClient(fooapi.TestServerFuncs{}, apicommon.ServerOptions{}, apicommon.ClientOptions{
 			Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
 				apicommon.AnyMethod: {
 					func(transport http.RoundTripper) http.RoundTripper {
@@ -1352,7 +1294,6 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 				},
 			},
 		})
-		defer cleanup()
 		t2 := myStructString()
 		params := fooapi.DoSomething2Params{
 			MyStructString: &t2,
@@ -1370,43 +1311,16 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 }
 
 func TestTraceID(t *testing.T) {
-	setup := func(tsf fooapi.TestServerFuncs, port uint16, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) (fooapi.TestClient, func()) {
-		sm := http.NewServeMux()
-		fooapi.RegisterTestServer(&tsf, sm, serverOptions)
-		s := http.Server{
-			Addr:    fmt.Sprintf("127.0.0.1:%d", port),
-			Handler: sm,
-		}
-		go s.ListenAndServe()
-		var err error
-		for i := 0; i < 5; i++ {
-			_, err = http.Get(fmt.Sprintf("http://127.0.0.1:%d", port))
-			if err != nil {
-				t.Log(err)
-				time.Sleep(time.Second / 10)
-				continue
-			}
-			break
-		}
-		if err != nil {
-			s.Shutdown(context.Background())
-			t.Fatal(err)
-		}
-		c := fooapi.NewTestClient(fmt.Sprintf("http://127.0.0.1:%d", port), clientOptions)
-		return c, func() { s.Shutdown(context.Background()) }
-	}
-
 	var k int
 	var traceIDs []string
-	c2, cleanup2 := setup(fooapi.TestServerFuncs{
+	c2 := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
 			rpc := apicommon.MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "A-"+rpc.TraceID())
 			return nil
 		},
-	}, 7891, apicommon.ServerOptions{}, apicommon.ClientOptions{})
-	defer cleanup2()
-	c1, cleanup1 := setup(fooapi.TestServerFuncs{
+	}, apicommon.ServerOptions{}, apicommon.ClientOptions{})
+	c1 := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
 			rpc := apicommon.MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "B1-"+rpc.TraceID())
@@ -1414,7 +1328,7 @@ func TestTraceID(t *testing.T) {
 			traceIDs = append(traceIDs, "B2-"+rpc.TraceID())
 			return err
 		},
-	}, 7890, apicommon.ServerOptions{
+	}, apicommon.ServerOptions{
 		TraceIDGenerator: func() string {
 			k++
 			return fmt.Sprintf("My-Trace-ID-%d", k)
@@ -1431,7 +1345,6 @@ func TestTraceID(t *testing.T) {
 			},
 		},
 	})
-	defer cleanup1()
 	err := c1.DoSomething3(context.Background())
 	if !assert.NoError(t, err) {
 		t.Fatal(err)
@@ -1446,34 +1359,9 @@ func TestTraceID(t *testing.T) {
 }
 
 func TestMiddlewareAndRPCFilter(t *testing.T) {
-	setup := func(tsf fooapi.TestServerFuncs, port uint16, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) (fooapi.TestClient, func()) {
-		sm := http.NewServeMux()
-		fooapi.RegisterTestServer(&tsf, sm, serverOptions)
-		s := http.Server{
-			Addr:    fmt.Sprintf("127.0.0.1:%d", port),
-			Handler: sm,
-		}
-		go s.ListenAndServe()
-		var err error
-		for i := 0; i < 5; i++ {
-			_, err = http.Get(fmt.Sprintf("http://127.0.0.1:%d", port))
-			if err != nil {
-				t.Log(err)
-				time.Sleep(time.Second / 10)
-				continue
-			}
-			break
-		}
-		if err != nil {
-			s.Shutdown(context.Background())
-			t.Fatal(err)
-		}
-		c := fooapi.NewTestClient(fmt.Sprintf("http://127.0.0.1:%d", port), clientOptions)
-		return c, func() { s.Shutdown(context.Background()) }
-	}
 	var k int
 	var s string
-	c, cleanup := setup(
+	c := makeTestClient(
 		fooapi.TestServerFuncs{
 			DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 				assert.NotNil(t, params)
@@ -1486,7 +1374,6 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 				return nil
 			},
 		},
-		7891,
 		apicommon.ServerOptions{
 			Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 				apicommon.AnyMethod: {
@@ -1746,7 +1633,6 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 			},
 		},
 	)
-	defer cleanup()
 	t1 := myStructString()
 	params := fooapi.DoSomething2Params{
 		MyStructString: &t1,
@@ -1763,4 +1649,17 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, "I1I2M1M2A1A2E1E2YYF2F1B2B1N2N1J2J1", s)
+}
+
+func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions apicommon.ServerOptions, clientOptions apicommon.ClientOptions) fooapi.TestClient {
+	sm := http.NewServeMux()
+	fooapi.RegisterTestServer(&tsf, sm, serverOptions)
+	clientOptions.Transport = apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
+		responseRecorder := httptest.NewRecorder()
+		sm.ServeHTTP(responseRecorder, request)
+		response := responseRecorder.Result()
+		return response, nil
+	})
+	c := fooapi.NewTestClient("http://127.0.0.1", clientOptions)
+	return c
 }

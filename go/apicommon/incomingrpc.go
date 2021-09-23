@@ -22,14 +22,15 @@ type IncomingRPC struct {
 	RPC
 
 	traceIDIsReceived bool
-	rawParams         []byte
-	statusCode        int
-	responseWriteErr  error
 	error             Error
-	internalErr       error
-	stackTrace        string
-	respEncodingErr   error
-	rawResp           []byte
+
+	rawParams        []byte
+	internalErr      error
+	stackTrace       string
+	respEncodingErr  error
+	rawResp          []byte
+	statusCode       int
+	responseWriteErr error
 }
 
 func (ir *IncomingRPC) Init(
@@ -46,14 +47,14 @@ func (ir *IncomingRPC) Init(
 	ir.statusCode = http.StatusOK
 }
 
-func (ir *IncomingRPC) RawParams() []byte       { return ir.rawParams }
-func (ir *IncomingRPC) StatusCode() int         { return ir.statusCode }
-func (ir *IncomingRPC) ResponseWriteErr() error { return ir.responseWriteErr }
-func (ir *IncomingRPC) Error() Error            { return ir.error }
-func (ir *IncomingRPC) InternalErr() error      { return ir.internalErr }
-func (ir *IncomingRPC) StackTrace() string      { return ir.stackTrace }
-func (ir *IncomingRPC) RespEncodingErr() error  { return ir.respEncodingErr }
-func (ir *IncomingRPC) RawResp() []byte         { return ir.rawResp }
+func (ir *IncomingRPC) RawParams() []byte                { return ir.rawParams }
+func (ir *IncomingRPC) UpdateRawParams(rawParams []byte) { ir.rawParams = rawParams }
+func (ir *IncomingRPC) InternalErr() error               { return ir.internalErr }
+func (ir *IncomingRPC) StackTrace() string               { return ir.stackTrace }
+func (ir *IncomingRPC) RespEncodingErr() error           { return ir.respEncodingErr }
+func (ir *IncomingRPC) RawResp() []byte                  { return ir.rawResp }
+func (ir *IncomingRPC) StatusCode() int                  { return ir.statusCode }
+func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
 
 func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 	if ir.params == nil {
@@ -95,15 +96,15 @@ func (ir *IncomingRPC) saveErr(err error) {
 
 func (ir *IncomingRPC) savePanic(v interface{}) {
 	ir.error = *errInternal
-	errStr := fmt.Sprintf("%v", v)
+	errText := fmt.Sprintf("%v", v)
 	buffer := make([]byte, 4096)
 	n := runtime.Stack(buffer, false)
 	stackTrace := string(buffer[:n])
 	if DebugMode {
-		ir.error.Details = errStr
+		ir.error.Details = errText
 		ir.error.Data.SetValue("stackTrace", stackTrace)
 	}
-	ir.internalErr = errors.New(errStr)
+	ir.internalErr = errors.New(errText)
 	ir.stackTrace = stackTrace
 }
 
@@ -122,15 +123,19 @@ func (ir *IncomingRPC) encodeResp() bool {
 	if !ir.traceIDIsReceived {
 		resp.TraceID = &ir.traceID
 	}
-	if ir.error.Code != 0 {
-		resp.Error = &ir.error
-	} else {
+	if ir.error.Code == 0 {
 		resp.Results = ir.results
+	} else {
+		resp.Error = &ir.error
 	}
 	if err := encoder.Encode(resp); err != nil {
 		ir.respEncodingErr = err
 		return false
 	}
 	ir.rawResp = buffer.Bytes()
+	if !DebugMode {
+		// Remove '\n'
+		ir.rawResp = ir.rawResp[:len(ir.rawResp)-1]
+	}
 	return true
 }

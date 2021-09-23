@@ -23,11 +23,12 @@ type OutgoingRPC struct {
 	traceIDIsReceived bool
 	client            *http.Client
 	transport         http.RoundTripper
-	url               string
-	rawParams         []byte
-	statusCode        int
-	rawResp           []byte
 	error             Error
+
+	url        string
+	rawParams  []byte
+	statusCode int
+	rawResp    []byte
 }
 
 func (or *OutgoingRPC) Init(
@@ -43,27 +44,30 @@ func (or *OutgoingRPC) Init(
 	or.init(namespace, serviceName, methodName, params, results, handler, filters)
 }
 
-func (or *OutgoingRPC) URL() string       { return or.url }
-func (or *OutgoingRPC) RawParams() []byte { return or.rawParams }
-func (or *OutgoingRPC) StatusCode() int   { return or.statusCode }
-func (or *OutgoingRPC) RawResp() []byte   { return or.rawResp }
-func (or *OutgoingRPC) Error() Error      { return or.error }
+func (or *OutgoingRPC) URL() string                  { return or.url }
+func (or *OutgoingRPC) RawParams() []byte            { return or.rawParams }
+func (or *OutgoingRPC) StatusCode() int              { return or.statusCode }
+func (or *OutgoingRPC) RawResp() []byte              { return or.rawResp }
+func (or *OutgoingRPC) UpdateRawResp(rawResp []byte) { or.rawResp = rawResp }
 
 func (or *OutgoingRPC) encodeParams() error {
 	if or.params == nil {
 		return nil
 	}
-	if or.rawParams != nil {
-		// params has already been encoded
-		return nil
-	}
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
+	if DebugMode {
+		encoder.SetIndent("", "  ")
+	}
 	if err := encoder.Encode(or.params); err != nil {
 		return err
 	}
 	or.rawParams = buffer.Bytes()
+	if !DebugMode {
+		// Remove '\n'
+		or.rawParams = or.rawParams[:len(or.rawParams)-1]
+	}
 	return nil
 }
 
