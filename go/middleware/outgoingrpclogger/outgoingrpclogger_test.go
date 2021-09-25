@@ -108,7 +108,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 					MaxRawRespSize(11),
 				}
 				w.ExpectedOutput.Log = `{"level":"info","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"truncatedParams":"{\"myOnOff\"","statusCode":200,"truncatedResp":"{\"traceID\":",` +
+					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","statusCode":200,"respSize":45,"truncatedResp":"{\"traceID\":",` +
 					`"message":"outgoing rpc"}` + "\n"
 			}),
 	)

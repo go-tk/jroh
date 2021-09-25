@@ -52,6 +52,7 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Clien
 				if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {
 					event.Str("params", bytesToString(rawParams))
 				} else {
+					event.Int("paramsSize", len(rawParams))
 					event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 				}
 			}
@@ -61,6 +62,7 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Clien
 					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
 						event.Str("resp", bytesToString(rawResp))
 					} else {
+						event.Int("respSize", len(rawResp))
 						event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
 					}
 				}
