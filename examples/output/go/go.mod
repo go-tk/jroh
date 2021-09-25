@@ -3,7 +3,7 @@ module github.com/go-tk/jroh/examples/output/go
 go 1.16
 
 require (
-	github.com/go-tk/jroh/go v0.3.0
+	github.com/go-tk/jroh/go v0.3.1
 	github.com/rs/zerolog v1.25.0
 )
 
