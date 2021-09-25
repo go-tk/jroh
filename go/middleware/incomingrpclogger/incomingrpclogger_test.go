@@ -122,7 +122,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"statusCode":500,"message":"incoming rpc"}` + "\n"
 			}),
@@ -133,7 +133,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","internalErr":"hello","stackTrace":"goroutine...",` +
 					`"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"

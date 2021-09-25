@@ -44,7 +44,14 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
-			event := subLogger.Info()
+			internalErr := incomingRPC.InternalErr()
+			respEncodingErr := incomingRPC.RespEncodingErr()
+			var event *zerolog.Event
+			if internalErr == nil && respEncodingErr == nil {
+				event = subLogger.Info()
+			} else {
+				event = subLogger.Error()
+			}
 			event.Str("rpcPath", r.URL.Path)
 			if rawParams := incomingRPC.RawParams(); rawParams != nil {
 				if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {
@@ -53,13 +60,13 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 					event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 				}
 			}
-			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
+			if internalErr != nil {
 				event.AnErr("internalErr", internalErr)
 				if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
 					event.Str("stackTrace", stackTrace)
 				}
 			}
-			if respEncodingErr := incomingRPC.RespEncodingErr(); respEncodingErr != nil {
+			if respEncodingErr != nil {
 				event.AnErr("respEncodingErr", respEncodingErr)
 			} else {
 				if rawResp := incomingRPC.RawResp(); rawResp != nil {
