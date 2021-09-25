@@ -3,6 +3,7 @@ package incomingrpclogger_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -32,12 +33,13 @@ func TestIncomingRPCLogger(t *testing.T) {
 		Input          Input
 		ExpectedOutput Output
 
-		Buffer bytes.Buffer
+		Buf bytes.Buffer
+		TC  fooapi.TestClient
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
 			sm := http.NewServeMux()
-			logger := zerolog.New(&w.Buffer)
+			logger := zerolog.New(&w.Buf)
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
@@ -55,12 +57,12 @@ func TestIncomingRPCLogger(t *testing.T) {
 					return response, nil
 				}),
 			}
-			tc := fooapi.NewTestClient("http://127.0.0.1", co)
-			tc.DoSomething2(context.Background(), &w.Input.Params)
+			w.TC = fooapi.NewTestClient("http://127.0.0.1", co)
+			w.TC.DoSomething2(context.Background(), &w.Input.Params)
 		}).
 		AddTask(20, func(w *Workspace) {
 			var output Output
-			output.Log = w.Buffer.String()
+			output.Log = w.Buf.String()
 			assert.Equal(w.T(), w.ExpectedOutput, output)
 		})
 	testcase.RunList(t,
@@ -70,10 +72,29 @@ func TestIncomingRPCLogger(t *testing.T) {
 					results.MyOnOff = true
 					return nil
 				}
-				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"abc123\",\"results\":{\"myOnOff\":true}}",` +
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"
+			}),
+		tc.Copy().
+			AddTask(9, func(w *Workspace) {
+				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+					results.MyOnOff = true
+					return nil
+				}
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}",` +
+					`"statusCode":200,"message":"incoming rpc"}` + "\n" +
+					`{"level":"info","traceID":"tid2","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid2\",\"results\":{\"myOnOff\":true}}",` +
+					`"statusCode":200,"message":"incoming rpc"}` + "\n"
+			}).
+			AddTask(19, func(w *Workspace) {
+				w.TC.DoSomething2(context.Background(), &w.Input.Params)
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -85,8 +106,9 @@ func TestIncomingRPCLogger(t *testing.T) {
 					MaxRawParamsSize(10),
 					MaxRawRespSize(11),
 				}
-				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"truncatedParams":"{\"myOnOff\"","truncatedResp":"{\"traceID\":","statusCode":200,` +
 					`"message":"incoming rpc"}` + "\n"
 			}),
@@ -98,8 +120,9 @@ func TestIncomingRPCLogger(t *testing.T) {
 					results.MyStructString = &tmp
 					return nil
 				}
-				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"statusCode":500,"message":"incoming rpc"}` + "\n"
 			}),
@@ -108,28 +131,29 @@ func TestIncomingRPCLogger(t *testing.T) {
 				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					panic("hello")
 				}
-				w.Input.TraceIDGenerator = func() string { return "abc123" }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"abc123","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","internalErr":"hello","stackTrace":"goroutine...",` +
-					`"resp":"{\"traceID\":\"abc123\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
+					`"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
-				s := w.Buffer.String()
+				s := w.Buf.String()
 				ss := `,"stackTrace":"goroutine`
 				i := strings.Index(s, ss)
 				if !assert.GreaterOrEqual(w.T(), i, 0) {
 					t.FailNow()
 				}
 				i += len(ss)
-				w.Buffer.Truncate(i)
-				w.Buffer.WriteString("...")
+				w.Buf.Truncate(i)
+				w.Buf.WriteString("...")
 				j := strings.Index(s[i:], `"`)
 				if !assert.GreaterOrEqual(w.T(), j, 0) {
 					t.FailNow()
 				}
 				j += i
-				w.Buffer.WriteString(s[j:])
+				w.Buf.WriteString(s[j:])
 			}),
 	)
 }

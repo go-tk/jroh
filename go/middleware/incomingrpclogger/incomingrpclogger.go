@@ -38,13 +38,13 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			incomingRPC := apicommon.MustGetRPCFromContext(ctx).IncomingRPC()
-			logger = logger.With().Str("traceID", incomingRPC.TraceID()).Logger()
-			ctx = logger.WithContext(ctx)
+			subLogger := logger.With().Str("traceID", incomingRPC.TraceID()).Logger()
+			ctx = subLogger.WithContext(ctx)
 			r = r.WithContext(ctx)
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
-			event := logger.Info()
+			event := subLogger.Info()
 			event.Str("rpcPath", r.URL.Path)
 			if rawParams := incomingRPC.RawParams(); rawParams != nil {
 				if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {
