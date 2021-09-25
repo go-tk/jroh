@@ -82,6 +82,8 @@ EOF
 ```sh
 $ go mod init pkg.go.test
 
+$ docker pull ghcr.io/go-tk/jrohc:latest
+
 $ docker run --rm \
   --volume="${PWD}:/workspace" \
   --workdir=/workspace \
