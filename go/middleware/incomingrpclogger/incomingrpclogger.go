@@ -16,8 +16,8 @@ type options struct {
 }
 
 func (o *options) Init() *options {
-	o.MaxRawParamsSize = 512
-	o.MaxRawRespSize = 512
+	o.MaxRawParamsSize = 500
+	o.MaxRawRespSize = 500
 	return o
 }
 
@@ -29,7 +29,7 @@ func MaxRawRespSize(value int) OptionsSetter {
 	return func(options *options) { options.MaxRawRespSize = value }
 }
 
-func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.ServerMiddleware {
+func NewForServer(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.ServerMiddleware {
 	options := new(options).Init()
 	for _, optionsSetter := range optionsSetters {
 		optionsSetter(options)
@@ -44,13 +44,14 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
-			internalErr := incomingRPC.InternalErr()
-			respEncodingErr := incomingRPC.RespEncodingErr()
 			var event *zerolog.Event
-			if internalErr == nil && respEncodingErr == nil {
+			if incomingRPC.InternalErr() == nil && incomingRPC.RespEncodingErr() == nil {
 				event = subLogger.Info()
 			} else {
 				event = subLogger.Error()
+			}
+			if remoteAddr := r.RemoteAddr; remoteAddr != "" {
+				event.Str("remoteAddr", remoteAddr)
 			}
 			event.Str("rpcPath", r.URL.Path)
 			if rawParams := incomingRPC.RawParams(); rawParams != nil {
@@ -61,15 +62,20 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 					event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 				}
 			}
-			if internalErr != nil {
-				event.AnErr("internalErr", internalErr)
-				if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
-					event.Str("stackTrace", stackTrace)
+			event.Int("statusCode", incomingRPC.StatusCode())
+			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
+				event.AnErr("responseWriteErr", responseWriteErr)
+			}
+			if errorCode := incomingRPC.Error().Code; errorCode != 0 {
+				event.Int("errorCode", int(errorCode))
+				if internalErr := incomingRPC.InternalErr(); internalErr != nil {
+					event.AnErr("internalErr", internalErr)
+					if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
+						event.Str("stackTrace", stackTrace)
+					}
 				}
 			}
-			if respEncodingErr != nil {
-				event.AnErr("respEncodingErr", respEncodingErr)
-			} else {
+			if respEncodingErr := incomingRPC.RespEncodingErr(); respEncodingErr == nil {
 				if rawResp := incomingRPC.RawResp(); rawResp != nil {
 					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
 						event.Str("resp", bytesToString(rawResp))
@@ -78,10 +84,8 @@ func New(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.Serve
 						event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
 					}
 				}
-			}
-			event.Int("statusCode", incomingRPC.StatusCode())
-			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
-				event.AnErr("responseWriteErr", responseWriteErr)
+			} else {
+				event.AnErr("respEncodingErr", respEncodingErr)
 			}
 			event.Msg("incoming rpc")
 		})

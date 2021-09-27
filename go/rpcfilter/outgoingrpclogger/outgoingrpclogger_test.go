@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/middleware/outgoingrpclogger"
+	. "github.com/go-tk/jroh/go/rpcfilter/outgoingrpclogger"
 	"github.com/go-tk/testcase"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
@@ -44,9 +44,9 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}
 			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, sm, so)
 			co := apicommon.ClientOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
+				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
 					apicommon.AnyMethod: {
-						New(logger, w.Input.OptionsSetters...),
+						NewForClient(logger, w.Input.OptionsSetters...),
 					},
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
@@ -73,9 +73,9 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}",` +
-					`"message":"outgoing rpc"}` + "\n"
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+					`\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -85,12 +85,12 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}",` +
-					`"message":"outgoing rpc"}` + "\n" +
-					`{"level":"info","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid2\",\"results\":{\"myOnOff\":true}}",` +
-					`"message":"outgoing rpc"}` + "\n"
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+					`\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n" +
+					`{"level":"info","traceID":"tid2","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid2\",` +
+					`\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
 				w.TC.DoSomething2(context.Background(), &w.Input.Params)
@@ -107,9 +107,27 @@ func TestOutgoingRPCLogger(t *testing.T) {
 					MaxRawParamsSize(10),
 					MaxRawRespSize(11),
 				}
-				w.ExpectedOutput.Log = `{"level":"info","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","statusCode":200,"respSize":45,"truncatedResp":"{\"traceID\":",` +
-					`"message":"outgoing rpc"}` + "\n"
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","statusCode":200,"respSize":45,` +
+					`"truncatedResp":"{\"traceID\":","message":"outgoing rpc"}` + "\n"
+			}),
+		tc.Copy().
+			AddTask(9, func(w *Workspace) {
+				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+					logger := zerolog.Ctx(ctx)
+					logger.UpdateContext(func(context zerolog.Context) zerolog.Context {
+						return context.Str("foo", "bar")
+					})
+					logger.Info().Msg("test")
+					results.MyOnOff = true
+					return nil
+				}
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","foo":"bar","message":"test"}` + "\n" +
+					`{"level":"info","foo":"bar","traceID":"tid1","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+					`\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}),
 	)
 }

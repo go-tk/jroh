@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"unsafe"
@@ -23,12 +24,13 @@ type OutgoingRPC struct {
 	traceIDIsReceived bool
 	client            *http.Client
 	transport         http.RoundTripper
-	error             Error
 
-	url        string
-	rawParams  []byte
-	statusCode int
-	rawResp    []byte
+	url               string
+	paramsEncodingErr error
+	rawParams         []byte
+	statusCode        int
+	rawResp           []byte
+	error             Error
 }
 
 func (or *OutgoingRPC) Init(
@@ -45,10 +47,12 @@ func (or *OutgoingRPC) Init(
 }
 
 func (or *OutgoingRPC) URL() string                  { return or.url }
+func (or *OutgoingRPC) ParamsEncodingErr() error     { return or.paramsEncodingErr }
 func (or *OutgoingRPC) RawParams() []byte            { return or.rawParams }
 func (or *OutgoingRPC) StatusCode() int              { return or.statusCode }
 func (or *OutgoingRPC) RawResp() []byte              { return or.rawResp }
 func (or *OutgoingRPC) UpdateRawResp(rawResp []byte) { or.rawResp = rawResp }
+func (or *OutgoingRPC) Error() Error                 { return or.error }
 
 func (or *OutgoingRPC) encodeParams() error {
 	if or.params == nil {
@@ -71,6 +75,14 @@ func (or *OutgoingRPC) encodeParams() error {
 	return nil
 }
 
+type UnexpectedStatusCodeError struct {
+	StatusCode int
+}
+
+func (usce *UnexpectedStatusCodeError) Error() string {
+	return "unexpected status code - %v" + strconv.Itoa(usce.StatusCode)
+}
+
 func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	requestBody := bytes.NewReader(or.rawParams)
 	request, err := http.NewRequestWithContext(ctx, "POST", or.url, requestBody)
@@ -89,13 +101,7 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	return err
 }
 
-type UnexpectedStatusCodeError struct {
-	StatusCode int
-}
-
-func (usce *UnexpectedStatusCodeError) Error() string {
-	return "unexpected status code - %v" + strconv.Itoa(usce.StatusCode)
-}
+var ErrInvalidResults = errors.New("invalid results")
 
 func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.results == nil {
@@ -106,7 +112,10 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 			TraceID: &or.traceID,
 			Error:   &or.error,
 		}
-		return json.Unmarshal(or.rawResp, &resp)
+		if err := json.Unmarshal(or.rawResp, &resp); err != nil {
+			return err
+		}
+		return nil
 	}
 	resp := struct {
 		TraceID *string     `json:"traceID"`
@@ -123,7 +132,7 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.error.Code == 0 {
 		validationContext := NewValidationContext(ctx)
 		if !or.results.Validate(validationContext) {
-			return errors.New("invalid results: " + validationContext.ErrorDetails())
+			return fmt.Errorf("%w: %s", ErrInvalidResults, validationContext.ErrorDetails())
 		}
 	}
 	return nil

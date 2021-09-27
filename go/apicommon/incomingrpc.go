@@ -22,15 +22,15 @@ type IncomingRPC struct {
 	RPC
 
 	traceIDIsReceived bool
-	error             Error
 
 	rawParams        []byte
+	statusCode       int
+	responseWriteErr error
+	error            Error
 	internalErr      error
 	stackTrace       string
 	respEncodingErr  error
 	rawResp          []byte
-	statusCode       int
-	responseWriteErr error
 }
 
 func (ir *IncomingRPC) Init(
@@ -49,12 +49,13 @@ func (ir *IncomingRPC) Init(
 
 func (ir *IncomingRPC) RawParams() []byte                { return ir.rawParams }
 func (ir *IncomingRPC) UpdateRawParams(rawParams []byte) { ir.rawParams = rawParams }
+func (ir *IncomingRPC) StatusCode() int                  { return ir.statusCode }
+func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
+func (ir *IncomingRPC) Error() Error                     { return ir.error }
 func (ir *IncomingRPC) InternalErr() error               { return ir.internalErr }
 func (ir *IncomingRPC) StackTrace() string               { return ir.stackTrace }
 func (ir *IncomingRPC) RespEncodingErr() error           { return ir.respEncodingErr }
 func (ir *IncomingRPC) RawResp() []byte                  { return ir.rawResp }
-func (ir *IncomingRPC) StatusCode() int                  { return ir.statusCode }
-func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
 
 func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 	if ir.params == nil {
