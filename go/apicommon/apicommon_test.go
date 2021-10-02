@@ -1310,6 +1310,26 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 }
 
+func TestInvalidResultsError(t *testing.T) {
+	c := makeTestClient(fooapi.TestServerFuncs{
+		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+			tmp := myStructString()
+			tmp.TheCountLimitedRepeatedStringA = []string{"1", "2"}
+			results.MyStructString = &tmp
+			return nil
+		},
+	}, ServerOptions{}, ClientOptions{})
+	t2 := myStructString()
+	params := fooapi.DoSomething2Params{
+		MyStructString: &t2,
+	}
+	_, err := c.DoSomething2(context.Background(), &params)
+	if !assert.Error(t, err) {
+		t.FailNow()
+	}
+	assert.ErrorIs(t, err, ErrInvalidResults)
+}
+
 func TestTraceID(t *testing.T) {
 	var k int
 	var traceIDs []string

@@ -225,6 +225,7 @@ package {self._make_package_name()}
     context1 = g._import_package("context", "context")
     apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
     http = g._import_package("http", "net/http")
+    fmt = g._import_package("fmt", "fmt")
 
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
@@ -308,14 +309,19 @@ nil, \
 ${apicommon()}.HandleRPC, \
 rpcFilters)
     transport := c.transportTable[${service_name}_${method_name}]
-    % if method.results is None:
-    return c.DoRPC(ctx, &s.OutgoingRPC, transport, ${utils.quote(rpc_path)})
-    % else:
     if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, ${utils.quote(rpc_path)}); err != nil {
-        return nil, err
-    }
-    return &s.Results, nil
+        return \
+    % if method.results is not None:
+nil, \
     % endif
+${fmt()}.Errorf("rpc failed; namespace=\"${namespace}\" serviceName=\"${service_name}\" methodName=\"${method_name}\" traceID=%q: %w",
+            s.OutgoingRPC.TraceID(), err)
+    }
+    return \
+    % if method.results is not None:
+&s.Results, \
+    % endif
+nil
 }
 % endfor
 

@@ -4,6 +4,7 @@ package petstoreapi
 
 import (
 	context "context"
+	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 	http "net/http"
 )
@@ -40,7 +41,11 @@ func (c *userClient) CreateUser(ctx context.Context, params *CreateUserParams) e
 	rpcFilters := c.rpcFiltersTable[User_CreateUser]
 	s.OutgoingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[User_CreateUser]
-	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.CreateUser")
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.CreateUser"); err != nil {
+		return fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"User\" methodName=\"CreateUser\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
+	}
+	return nil
 }
 
 func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
@@ -54,7 +59,8 @@ func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUs
 	s.OutgoingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[User_GetUser]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUser"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"User\" methodName=\"GetUser\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }
@@ -70,7 +76,8 @@ func (c *userClient) GetUsers(ctx context.Context, params *GetUsersParams) (*Get
 	s.OutgoingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[User_GetUsers]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUsers"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"User\" methodName=\"GetUsers\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }
@@ -84,7 +91,11 @@ func (c *userClient) UpdateUser(ctx context.Context, params *UpdateUserParams) e
 	rpcFilters := c.rpcFiltersTable[User_UpdateUser]
 	s.OutgoingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[User_UpdateUser]
-	return c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.UpdateUser")
+	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.UpdateUser"); err != nil {
+		return fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"User\" methodName=\"UpdateUser\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
+	}
+	return nil
 }
 
 type UserClientFuncs struct {

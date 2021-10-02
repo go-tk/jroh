@@ -1,6 +1,7 @@
 package apicommon
 
 import (
+	"bytes"
 	"encoding/base64"
 	"math/rand"
 	"net/http"
@@ -45,9 +46,32 @@ func wrapHandler(handler http.Handler, serverMiddlewares map[MethodIndex][]Serve
 }
 
 func FillTransportTable(transportTable []http.RoundTripper, transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware) {
+	transportFunc := TransportFunc(func(request *http.Request) (*http.Response, error) {
+		outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
+		outgoingRPC.requestIsSent = true
+		response, err := transport.RoundTrip(request)
+		if err != nil {
+			return nil, err
+		}
+		outgoingRPC.statusCode = response.StatusCode
+		if response.StatusCode != http.StatusOK {
+			response.Body.Close()
+			return response, nil
+		}
+		var buffer bytes.Buffer
+		_, err = buffer.ReadFrom(response.Body)
+		response.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		if buffer.Len() >= 1 {
+			outgoingRPC.rawResp = buffer.Bytes()
+		}
+		return response, nil
+	})
 	for i := range transportTable {
 		methodIndex := MethodIndex(i)
-		transportTable[methodIndex] = wrapTransport(transport, clientMiddlewares, methodIndex)
+		transportTable[methodIndex] = wrapTransport(transportFunc, clientMiddlewares, methodIndex)
 	}
 }
 

@@ -4,6 +4,7 @@ package helloworldapi
 
 import (
 	context "context"
+	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 	http "net/http"
 )
@@ -39,7 +40,8 @@ func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*
 	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Greeter_SayHello]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"HelloWorld\" serviceName=\"Greeter\" methodName=\"SayHello\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }

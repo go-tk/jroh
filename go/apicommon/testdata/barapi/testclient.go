@@ -4,6 +4,7 @@ package barapi
 
 import (
 	context "context"
+	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 	http "net/http"
 )
@@ -37,7 +38,8 @@ func (c *testClient) DoSomething(ctx context.Context) (*DoSomethingResults, erro
 	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Test_DoSomething]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Bar.Test.DoSomething"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"Bar\" serviceName=\"Test\" methodName=\"DoSomething\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }

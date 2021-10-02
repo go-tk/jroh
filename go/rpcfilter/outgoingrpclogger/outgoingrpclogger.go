@@ -40,8 +40,17 @@ func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 		// Before
 		err := rpc.Do(ctx)
 		// After
-		event := subLogger.Info()
 		outgoingRPC := rpc.OutgoingRPC()
+		var errBeforeRequestIsSent error
+		if err != nil && !outgoingRPC.RequestIsSent() {
+			errBeforeRequestIsSent = err
+		}
+		var event *zerolog.Event
+		if errBeforeRequestIsSent == nil {
+			event = subLogger.Info()
+		} else {
+			event = subLogger.Error()
+		}
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
 			event.Str("traceID", outgoingRPC.TraceID())
 		}
@@ -54,19 +63,23 @@ func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 				event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 			}
 		}
-		if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
-			event.Int("statusCode", statusCode)
-			if rawResp := outgoingRPC.RawResp(); rawResp != nil {
-				if errorCode := outgoingRPC.Error().Code; errorCode != 0 {
-					event.Int("errorCode", int(errorCode))
-				}
-				if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
-					event.Str("resp", bytesToString(rawResp))
-				} else {
-					event.Int("respSize", len(rawResp))
-					event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
+		if errBeforeRequestIsSent == nil {
+			if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
+				event.Int("statusCode", statusCode)
+				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
+					if errorCode := outgoingRPC.Error().Code; errorCode != 0 {
+						event.Int("errorCode", int(errorCode))
+					}
+					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
+						event.Str("resp", bytesToString(rawResp))
+					} else {
+						event.Int("respSize", len(rawResp))
+						event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
+					}
 				}
 			}
+		} else {
+			event.AnErr("errBeforeRequestIsSent", errBeforeRequestIsSent)
 		}
 		event.Msg("outgoing rpc")
 		return err

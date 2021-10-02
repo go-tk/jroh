@@ -25,12 +25,12 @@ type OutgoingRPC struct {
 	client            *http.Client
 	transport         http.RoundTripper
 
-	url               string
-	paramsEncodingErr error
-	rawParams         []byte
-	statusCode        int
-	rawResp           []byte
-	error             Error
+	url           string
+	rawParams     []byte
+	requestIsSent bool
+	statusCode    int
+	rawResp       []byte
+	error         Error
 }
 
 func (or *OutgoingRPC) Init(
@@ -47,8 +47,8 @@ func (or *OutgoingRPC) Init(
 }
 
 func (or *OutgoingRPC) URL() string                  { return or.url }
-func (or *OutgoingRPC) ParamsEncodingErr() error     { return or.paramsEncodingErr }
 func (or *OutgoingRPC) RawParams() []byte            { return or.rawParams }
+func (or *OutgoingRPC) RequestIsSent() bool          { return or.requestIsSent }
 func (or *OutgoingRPC) StatusCode() int              { return or.statusCode }
 func (or *OutgoingRPC) RawResp() []byte              { return or.rawResp }
 func (or *OutgoingRPC) UpdateRawResp(rawResp []byte) { or.rawResp = rawResp }
@@ -65,7 +65,7 @@ func (or *OutgoingRPC) encodeParams() error {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(or.params); err != nil {
-		return err
+		return fmt.Errorf("params encoding failed: %v", err)
 	}
 	or.rawParams = buffer.Bytes()
 	if !DebugMode {
@@ -87,18 +87,18 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	requestBody := bytes.NewReader(or.rawParams)
 	request, err := http.NewRequestWithContext(ctx, "POST", or.url, requestBody)
 	if err != nil {
-		return err
+		return fmt.Errorf("http request failed (1): %v", err)
 	}
 	if or.traceIDIsReceived {
 		injectTraceID(or.traceID, request.Header)
 	}
 	if _, err := or.client.Do(request); err != nil {
-		return err
+		return fmt.Errorf("http request failed (2): %w", err)
 	}
 	if or.statusCode != http.StatusOK {
-		return &UnexpectedStatusCodeError{or.statusCode}
+		return fmt.Errorf("http request failed (3): %w", &UnexpectedStatusCodeError{or.statusCode})
 	}
-	return err
+	return nil
 }
 
 var ErrInvalidResults = errors.New("invalid results")
@@ -113,7 +113,7 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 			Error:   &or.error,
 		}
 		if err := json.Unmarshal(or.rawResp, &resp); err != nil {
-			return err
+			return fmt.Errorf("resp decoding failed (1): %v", err)
 		}
 		return nil
 	}
@@ -127,12 +127,12 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 		Results: or.results,
 	}
 	if err := json.Unmarshal(or.rawResp, &resp); err != nil {
-		return err
+		return fmt.Errorf("resp decoding failed (2): %v", err)
 	}
 	if or.error.Code == 0 {
 		validationContext := NewValidationContext(ctx)
 		if !or.results.Validate(validationContext) {
-			return fmt.Errorf("%w: %s", ErrInvalidResults, validationContext.ErrorDetails())
+			return fmt.Errorf("resp decoding failed (3): %w: %s", ErrInvalidResults, validationContext.ErrorDetails())
 		}
 	}
 	return nil

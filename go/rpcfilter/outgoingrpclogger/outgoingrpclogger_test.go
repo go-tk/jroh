@@ -129,5 +129,14 @@ func TestOutgoingRPCLogger(t *testing.T) {
 					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
 					`\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}),
+		tc.Copy().
+			AddTask(9, func(w *Workspace) {
+				tmp := fooapi.MyStructString{}
+				tmp.TheStringA = "taboo"
+				w.Input.Params.MyStructString = &tmp
+				w.ExpectedOutput.Log = `{"level":"error","url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
+					`"errBeforeRequestIsSent":"params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
+					`"message":"outgoing rpc"}` + "\n"
+			}),
 	)
 }

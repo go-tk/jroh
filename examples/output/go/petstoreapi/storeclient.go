@@ -4,6 +4,7 @@ package petstoreapi
 
 import (
 	context "context"
+	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 	http "net/http"
 )
@@ -40,7 +41,8 @@ func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams
 	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Store_CreateOrder]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.CreateOrder"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"Store\" methodName=\"CreateOrder\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }
@@ -56,7 +58,8 @@ func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*Ge
 	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Store_GetOrder]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.GetOrder"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; namespace=\"Petstore\" serviceName=\"Store\" methodName=\"GetOrder\" traceID=%q: %w",
+			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
 }
