@@ -1,10 +1,7 @@
 module github.com/go-tk/jroh/examples/output/go
 
-go 1.16
+go 1.15
 
-require (
-	github.com/go-tk/jroh/go v0.4.0
-	github.com/rs/zerolog v1.25.0
-)
+require github.com/go-tk/jroh/go v0.4.0
 
 replace github.com/go-tk/jroh/go => ../../../go
