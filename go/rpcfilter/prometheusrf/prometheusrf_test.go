@@ -1,4 +1,4 @@
-package prometheushelper_test
+package prometheusrf_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/rpcfilter/prometheushelper"
+	. "github.com/go-tk/jroh/go/rpcfilter/prometheusrf"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"

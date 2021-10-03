@@ -124,7 +124,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":500,` +
-					`"respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
+					`"internalErr":"resp encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().

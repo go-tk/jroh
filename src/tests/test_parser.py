@@ -1712,6 +1712,17 @@ errors:
             ),
             common.TestData(
                 in_file_path_2_file_data={
+                    "foo.yaml": f"""
+errors:
+  EEE:
+    code: {1<<31}
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: number too large: node_uri='foo\.yaml#/errors/EEE/code' number=2147483648 max_number=2147483647",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
                     "foo.yaml": """
 errors:
   EEE:

@@ -1310,7 +1310,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 }
 
-func TestInvalidResultsError(t *testing.T) {
+func TestInvalidResults(t *testing.T) {
 	c := makeTestClient(fooapi.TestServerFuncs{
 		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 			tmp := myStructString()
@@ -1327,7 +1327,7 @@ func TestInvalidResultsError(t *testing.T) {
 	if !assert.Error(t, err) {
 		t.FailNow()
 	}
-	assert.ErrorIs(t, err, ErrInvalidResults)
+	assert.Contains(t, err.Error(), "invalid results")
 }
 
 func TestTraceID(t *testing.T) {

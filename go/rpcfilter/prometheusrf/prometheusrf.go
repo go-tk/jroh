@@ -1,4 +1,4 @@
-package prometheushelper
+package prometheusrf
 
 import (
 	"context"

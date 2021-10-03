@@ -25,12 +25,11 @@ type IncomingRPC struct {
 
 	rawParams        []byte
 	statusCode       int
-	responseWriteErr error
 	error            Error
 	internalErr      error
 	stackTrace       string
-	respEncodingErr  error
 	rawResp          []byte
+	responseWriteErr error
 }
 
 func (ir *IncomingRPC) Init(
@@ -51,12 +50,11 @@ func (ir *IncomingRPC) Init(
 func (ir *IncomingRPC) RawParams() []byte                { return ir.rawParams }
 func (ir *IncomingRPC) UpdateRawParams(rawParams []byte) { ir.rawParams = rawParams }
 func (ir *IncomingRPC) StatusCode() int                  { return ir.statusCode }
-func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
 func (ir *IncomingRPC) Error() Error                     { return ir.error }
 func (ir *IncomingRPC) InternalErr() error               { return ir.internalErr }
 func (ir *IncomingRPC) StackTrace() string               { return ir.stackTrace }
-func (ir *IncomingRPC) RespEncodingErr() error           { return ir.respEncodingErr }
 func (ir *IncomingRPC) RawResp() []byte                  { return ir.rawResp }
+func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
 
 func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
 	if ir.params == nil {
@@ -110,7 +108,7 @@ func (ir *IncomingRPC) savePanic(v interface{}) {
 	ir.stackTrace = stackTrace
 }
 
-func (ir *IncomingRPC) encodeResp() bool {
+func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
@@ -131,7 +129,8 @@ func (ir *IncomingRPC) encodeResp() bool {
 		resp.Error = &ir.error
 	}
 	if err := encoder.Encode(resp); err != nil {
-		ir.respEncodingErr = err
+		err = fmt.Errorf("resp encoding failed: %v", err)
+		RespondError(ir, err, "", responseWriter)
 		return false
 	}
 	ir.rawResp = buffer.Bytes()
@@ -140,4 +139,26 @@ func (ir *IncomingRPC) encodeResp() bool {
 		ir.rawResp = ir.rawResp[:len(ir.rawResp)-1]
 	}
 	return true
+}
+
+func RespondError(incomingRPC *IncomingRPC, internalErr error, stackTrace string, responseWriter http.ResponseWriter) {
+	incomingRPC.error = Error{}
+	incomingRPC.internalErr = internalErr
+	incomingRPC.stackTrace = stackTrace
+	incomingRPC.rawResp = nil
+	if !DebugMode {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	responseWriter.Header().Set("Content-Type", "text/plain; charest=utf-8")
+	responseWriter.WriteHeader(http.StatusInternalServerError)
+	var buffer bytes.Buffer
+	buffer.WriteString(internalErr.Error())
+	buffer.WriteByte('\n')
+	if stackTrace != "" {
+		buffer.WriteString("stack trace:\n")
+		buffer.WriteString(stackTrace)
+		buffer.WriteByte('\n')
+	}
+	responseWriter.Write(buffer.Bytes())
 }

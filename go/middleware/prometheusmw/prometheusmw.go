@@ -1,4 +1,4 @@
-package prometheushelper
+package prometheusmw
 
 import (
 	"net/http"

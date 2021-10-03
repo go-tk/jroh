@@ -45,7 +45,7 @@ func NewForServer(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 			handler.ServeHTTP(w, r)
 			// After
 			var event *zerolog.Event
-			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.InternalErr() != nil || incomingRPC.RespEncodingErr() != nil {
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.InternalErr() != nil {
 				event = subLogger.Error()
 			} else {
 				event = subLogger.Info()
@@ -64,29 +64,25 @@ func NewForServer(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 				}
 			}
 			event.Int("statusCode", incomingRPC.StatusCode())
-			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
-				event.AnErr("responseWriteErr", responseWriteErr)
-			}
 			if errorCode := incomingRPC.Error().Code; errorCode != 0 {
 				event.Int("errorCode", int(errorCode))
-				if internalErr := incomingRPC.InternalErr(); internalErr != nil {
-					event.AnErr("internalErr", internalErr)
-					if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
-						event.Str("stackTrace", stackTrace)
-					}
+			}
+			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
+				event.AnErr("internalErr", internalErr)
+				if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
+					event.Str("stackTrace", stackTrace)
 				}
 			}
-			if respEncodingErr := incomingRPC.RespEncodingErr(); respEncodingErr == nil {
-				if rawResp := incomingRPC.RawResp(); rawResp != nil {
-					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
-						event.Str("resp", bytesToString(rawResp))
-					} else {
-						event.Int("respSize", len(rawResp))
-						event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
-					}
+			if rawResp := incomingRPC.RawResp(); rawResp != nil {
+				if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
+					event.Str("resp", bytesToString(rawResp))
+				} else {
+					event.Int("respSize", len(rawResp))
+					event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
 				}
-			} else {
-				event.AnErr("respEncodingErr", respEncodingErr)
+			}
+			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
+				event.AnErr("responseWriteErr", responseWriteErr)
 			}
 			event.Msg("incoming rpc")
 		})

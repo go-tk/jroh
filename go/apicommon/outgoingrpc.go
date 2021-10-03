@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -102,8 +101,6 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	return nil
 }
 
-var ErrInvalidResults = errors.New("invalid results")
-
 func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.results == nil {
 		resp := struct {
@@ -133,7 +130,7 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.error.Code == 0 {
 		validationContext := NewValidationContext(ctx)
 		if !or.results.Validate(validationContext) {
-			return fmt.Errorf("resp decoding failed (3): %w: %s", ErrInvalidResults, validationContext.ErrorDetails())
+			return fmt.Errorf("resp decoding failed (3): invalid results: %s", validationContext.ErrorDetails())
 		}
 	}
 	return nil
