@@ -37,13 +37,14 @@ func (or *OutgoingRPC) Init(
 	namespace string,
 	serviceName string,
 	methodName string,
+	fullMethodName string,
 	params Model,
 	results Model,
 	handler RPCHandler,
 	filters []RPCHandler,
 ) {
 	or.mark = 'o'
-	or.init(namespace, serviceName, methodName, params, results, handler, filters)
+	or.init(namespace, serviceName, methodName, fullMethodName, params, results, handler, filters)
 }
 
 func (or *OutgoingRPC) URL() string                  { return or.url }

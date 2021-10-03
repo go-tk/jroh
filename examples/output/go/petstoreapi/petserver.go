@@ -30,7 +30,7 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.AddPet(ctx, rpc.Params().(*AddPetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", "Petstore.Pet.AddPet", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_AddPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -47,7 +47,7 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPet(ctx, rpc.Params().(*GetPetParams), rpc.Results().(*GetPetResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", "Petstore.Pet.GetPet", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -64,7 +64,7 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPets(ctx, rpc.Params().(*GetPetsParams), rpc.Results().(*GetPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", "Petstore.Pet.GetPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPets, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -80,7 +80,7 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.UpdatePet(ctx, rpc.Params().(*UpdatePetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", "Petstore.Pet.UpdatePet", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_UpdatePet, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -97,7 +97,7 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.FindPets(ctx, rpc.Params().(*FindPetsParams), rpc.Results().(*FindPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", "Petstore.Pet.FindPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_FindPets, incomingRPCFactory, serverOptions.TraceIDGenerator)

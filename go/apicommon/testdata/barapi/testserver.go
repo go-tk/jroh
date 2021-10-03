@@ -26,7 +26,7 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Results().(*DoSomethingResults))
 			}
-			s.IncomingRPC.Init("Bar", "Test", "DoSomething", nil, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", nil, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)

@@ -45,11 +45,12 @@ func NewForServer(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 			handler.ServeHTTP(w, r)
 			// After
 			var event *zerolog.Event
-			if incomingRPC.InternalErr() == nil && incomingRPC.RespEncodingErr() == nil {
-				event = subLogger.Info()
-			} else {
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.InternalErr() != nil || incomingRPC.RespEncodingErr() != nil {
 				event = subLogger.Error()
+			} else {
+				event = subLogger.Info()
 			}
+			event.Str("fullMethodName", incomingRPC.FullMethodName())
 			if remoteAddr := r.RemoteAddr; remoteAddr != "" {
 				event.Str("remoteAddr", remoteAddr)
 			}

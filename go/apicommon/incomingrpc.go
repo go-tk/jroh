@@ -37,13 +37,14 @@ func (ir *IncomingRPC) Init(
 	namespace string,
 	serviceName string,
 	methodName string,
+	fullMethodName string,
 	params Model,
 	results Model,
 	handler RPCHandler,
 	filters []RPCHandler,
 ) {
 	ir.mark = 'i'
-	ir.init(namespace, serviceName, methodName, params, results, handler, filters)
+	ir.init(namespace, serviceName, methodName, fullMethodName, params, results, handler, filters)
 	ir.statusCode = http.StatusOK
 }
 

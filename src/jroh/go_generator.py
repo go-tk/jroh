@@ -135,6 +135,7 @@ func Register${service_name}Server(server ${service_name}Server, serveMux *${htt
 "${namespace}", \
 "${service_name}", \
 "${method_name}", \
+"${namespace}.${service_name}.${method_name}", \
     % if method.params is None:
 nil, \
     % else:
@@ -296,6 +297,7 @@ error) {
 "${namespace}", \
 "${service_name}", \
 "${method_name}", \
+"${namespace}.${service_name}.${method_name}", \
     % if method.params is None:
 nil, \
     % else:
@@ -314,7 +316,7 @@ rpcFilters)
     % if method.results is not None:
 nil, \
     % endif
-${fmt()}.Errorf("rpc failed; namespace=\"${namespace}\" serviceName=\"${service_name}\" methodName=\"${method_name}\" traceID=%q: %w",
+${fmt()}.Errorf("rpc failed; fullMethodName=\"${namespace}.${service_name}.${method_name}\" traceID=%q: %w",
             s.OutgoingRPC.TraceID(), err)
     }
     return \

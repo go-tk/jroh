@@ -27,7 +27,7 @@ func RegisterGreeterServer(server GreeterServer, serveMux *http.ServeMux, server
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.SayHello(ctx, rpc.Params().(*SayHelloParams), rpc.Results().(*SayHelloResults))
 			}
-			s.IncomingRPC.Init("HelloWorld", "Greeter", "SayHello", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Greeter_SayHello, incomingRPCFactory, serverOptions.TraceIDGenerator)

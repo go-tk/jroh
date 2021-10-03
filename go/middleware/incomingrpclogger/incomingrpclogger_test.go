@@ -74,8 +74,8 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
 					`\"results\":{\"myOnOff\":true}}","message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().
@@ -86,11 +86,11 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
 					`\"results\":{\"myOnOff\":true}}","message":"incoming rpc"}` + "\n" +
-					`{"level":"info","traceID":"tid2","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid2\",` +
+					`{"level":"info","traceID":"tid2","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid2\",` +
 					`\"results\":{\"myOnOff\":true}}","message":"incoming rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
@@ -108,8 +108,8 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","statusCode":200,"respSize":45,` +
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","paramsSize":17,"truncatedParams":"{\"myOnOff\"","statusCode":200,"respSize":45,` +
 					`"truncatedResp":"{\"traceID\":","message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().
@@ -122,8 +122,9 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":500,"respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
+				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":500,` +
+					`"respEncodingErr":"json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().
@@ -133,8 +134,8 @@ func TestIncomingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"errorCode":-32603,"internalErr":"hello",` +
+				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":200,"errorCode":-32603,"internalErr":"hello",` +
 					`"stackTrace":"goroutine...","resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
 					`"message":"incoming rpc"}` + "\n"
 			}).
@@ -169,8 +170,8 @@ func TestIncomingRPCLogger(t *testing.T) {
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","foo":"bar","message":"test"}` + "\n" +
-					`{"level":"info","traceID":"tid1","foo":"bar","rpcPath":"/rpc/Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
+					`{"level":"info","traceID":"tid1","foo":"bar","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"rpcPath":"/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","statusCode":200,"resp":"{\"traceID\":\"tid1\",` +
 					`\"results\":{\"myOnOff\":true}}",` +
 					`"message":"incoming rpc"}` + "\n"
 			}),

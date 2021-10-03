@@ -37,10 +37,10 @@ func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Greeter_SayHello]
-	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Greeter_SayHello]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
-		return nil, fmt.Errorf("rpc failed; namespace=\"HelloWorld\" serviceName=\"Greeter\" methodName=\"SayHello\" traceID=%q: %w",
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w",
 			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil

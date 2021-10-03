@@ -54,6 +54,7 @@ func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
 			event.Str("traceID", outgoingRPC.TraceID())
 		}
+		event.Str("fullMethodName", outgoingRPC.FullMethodName())
 		event.Str("url", outgoingRPC.URL())
 		if rawParams := outgoingRPC.RawParams(); rawParams != nil {
 			if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {

@@ -28,7 +28,7 @@ func RegisterStoreServer(server StoreServer, serveMux *http.ServeMux, serverOpti
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.CreateOrder(ctx, rpc.Params().(*CreateOrderParams), rpc.Results().(*CreateOrderResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Store", "CreateOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Store_CreateOrder, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -45,7 +45,7 @@ func RegisterStoreServer(server StoreServer, serveMux *http.ServeMux, serverOpti
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetOrder(ctx, rpc.Params().(*GetOrderParams), rpc.Results().(*GetOrderResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Store", "GetOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Store_GetOrder, incomingRPCFactory, serverOptions.TraceIDGenerator)

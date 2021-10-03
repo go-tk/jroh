@@ -1404,6 +1404,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 							case "DoSomething2":
 								assert.Equal(t, "Foo", incomingRPC.Namespace())
 								assert.Equal(t, "Test", incomingRPC.ServiceName())
+								assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
 								assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
 								assert.NotNil(t, incomingRPC.RawParams())
 								assert.NotNil(t, incomingRPC.Params())
@@ -1412,6 +1413,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 							case "DoSomething3":
 								assert.Equal(t, "Foo", incomingRPC.Namespace())
 								assert.Equal(t, "Test", incomingRPC.ServiceName())
+								assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
 								assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
 								assert.Nil(t, incomingRPC.RawParams())
 								assert.Nil(t, incomingRPC.Params())
@@ -1465,6 +1467,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						case "DoSomething2":
 							assert.Equal(t, "Foo", incomingRPC.Namespace())
 							assert.Equal(t, "Test", incomingRPC.ServiceName())
+							assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
 							assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
 							assert.NotNil(t, incomingRPC.RawParams())
 							assert.NotNil(t, incomingRPC.Params())
@@ -1473,6 +1476,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 						case "DoSomething3":
 							assert.Equal(t, "Foo", incomingRPC.Namespace())
 							assert.Equal(t, "Test", incomingRPC.ServiceName())
+							assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
 							assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
 							assert.Nil(t, incomingRPC.RawParams())
 							assert.Nil(t, incomingRPC.Params())

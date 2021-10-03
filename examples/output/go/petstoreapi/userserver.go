@@ -29,7 +29,7 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.CreateUser(ctx, rpc.Params().(*CreateUserParams))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "CreateUser", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "User", "CreateUser", "Petstore.User.CreateUser", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_CreateUser, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -46,7 +46,7 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetUser(ctx, rpc.Params().(*GetUserParams), rpc.Results().(*GetUserResults))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "GetUser", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "User", "GetUser", "Petstore.User.GetUser", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_GetUser, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -63,7 +63,7 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetUsers(ctx, rpc.Params().(*GetUsersParams), rpc.Results().(*GetUsersResults))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "GetUsers", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "User", "GetUsers", "Petstore.User.GetUsers", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_GetUsers, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -79,7 +79,7 @@ func RegisterUserServer(server UserServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.UpdateUser(ctx, rpc.Params().(*UpdateUserParams))
 			}
-			s.IncomingRPC.Init("Petstore", "User", "UpdateUser", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "User", "UpdateUser", "Petstore.User.UpdateUser", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, User_UpdateUser, incomingRPCFactory, serverOptions.TraceIDGenerator)

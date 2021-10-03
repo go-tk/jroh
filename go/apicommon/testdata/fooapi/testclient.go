@@ -38,10 +38,10 @@ func (c *testClient) DoSomething(ctx context.Context, params *DoSomethingParams)
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Test_DoSomething]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething"); err != nil {
-		return fmt.Errorf("rpc failed; namespace=\"Foo\" serviceName=\"Test\" methodName=\"DoSomething\" traceID=%q: %w",
+		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething\" traceID=%q: %w",
 			s.OutgoingRPC.TraceID(), err)
 	}
 	return nil
@@ -55,10 +55,10 @@ func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Param
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething2]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Test_DoSomething2]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething2"); err != nil {
-		return nil, fmt.Errorf("rpc failed; namespace=\"Foo\" serviceName=\"Test\" methodName=\"DoSomething2\" traceID=%q: %w",
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething2\" traceID=%q: %w",
 			s.OutgoingRPC.TraceID(), err)
 	}
 	return &s.Results, nil
@@ -69,10 +69,10 @@ func (c *testClient) DoSomething3(ctx context.Context) error {
 		OutgoingRPC apicommon.OutgoingRPC
 	}
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething3]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", nil, nil, apicommon.HandleRPC, rpcFilters)
 	transport := c.transportTable[Test_DoSomething3]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething3"); err != nil {
-		return fmt.Errorf("rpc failed; namespace=\"Foo\" serviceName=\"Test\" methodName=\"DoSomething3\" traceID=%q: %w",
+		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\" traceID=%q: %w",
 			s.OutgoingRPC.TraceID(), err)
 	}
 	return nil

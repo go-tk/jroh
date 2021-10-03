@@ -28,7 +28,7 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Params().(*DoSomethingParams))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -45,7 +45,7 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething2(ctx, rpc.Params().(*DoSomething2Params), rpc.Results().(*DoSomething2Results))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething2, incomingRPCFactory, serverOptions.TraceIDGenerator)
@@ -60,7 +60,7 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething3(ctx)
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", nil, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", nil, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething3, incomingRPCFactory, serverOptions.TraceIDGenerator)
