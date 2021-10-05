@@ -48,7 +48,7 @@ func wrapHandler(handler http.Handler, serverMiddlewares map[MethodIndex][]Serve
 func FillTransportTable(transportTable []http.RoundTripper, transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware) {
 	transportFunc := TransportFunc(func(request *http.Request) (*http.Response, error) {
 		outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
-		outgoingRPC.requestIsSent = true
+		outgoingRPC.isRequested = true
 		response, err := transport.RoundTrip(request)
 		if err != nil {
 			return nil, err

@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type OptionsSetter func(options *options)
+type OptionsBuilder func(options *options)
 
 type options struct {
 	MaxRawParamsSize int
@@ -21,32 +21,32 @@ func (o *options) Init() *options {
 	return o
 }
 
-func MaxRawParamsSize(value int) OptionsSetter {
+func MaxRawParamsSize(value int) OptionsBuilder {
 	return func(options *options) { options.MaxRawParamsSize = value }
 }
 
-func MaxRawRespSize(value int) OptionsSetter {
+func MaxRawRespSize(value int) OptionsBuilder {
 	return func(options *options) { options.MaxRawRespSize = value }
 }
 
-func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.RPCHandler {
+func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apicommon.RPCHandler {
 	options := new(options).Init()
-	for _, optionsSetter := range optionsSetters {
-		optionsSetter(options)
+	for _, optionsBuilder := range optionsBuilders {
+		optionsBuilder(options)
 	}
-	return func(ctx context.Context, rpc *apicommon.RPC) error {
+	return func(ctx context.Context, rpc *apicommon.RPC) (returnedErr error) {
 		subLogger := logger
 		ctx = subLogger.WithContext(ctx)
 		// Before
-		err := rpc.Do(ctx)
+		returnedErr = rpc.Do(ctx)
 		// After
 		outgoingRPC := rpc.OutgoingRPC()
-		var errBeforeRequestIsSent error
-		if err != nil && !outgoingRPC.RequestIsSent() {
-			errBeforeRequestIsSent = err
+		var preRequestErr error
+		if returnedErr != nil && !outgoingRPC.IsRequested() {
+			preRequestErr = returnedErr
 		}
 		var event *zerolog.Event
-		if errBeforeRequestIsSent == nil {
+		if preRequestErr == nil {
 			event = subLogger.Info()
 		} else {
 			event = subLogger.Error()
@@ -64,7 +64,7 @@ func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 				event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 			}
 		}
-		if errBeforeRequestIsSent == nil {
+		if preRequestErr == nil {
 			if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
 				event.Int("statusCode", statusCode)
 				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
@@ -80,10 +80,10 @@ func NewForClient(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicom
 				}
 			}
 		} else {
-			event.AnErr("errBeforeRequestIsSent", errBeforeRequestIsSent)
+			event.AnErr("preRequestErr", preRequestErr)
 		}
 		event.Msg("outgoing rpc")
-		return err
+		return
 	}
 }
 

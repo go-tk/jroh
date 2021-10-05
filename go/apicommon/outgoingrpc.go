@@ -24,12 +24,12 @@ type OutgoingRPC struct {
 	client            *http.Client
 	transport         http.RoundTripper
 
-	url           string
-	rawParams     []byte
-	requestIsSent bool
-	statusCode    int
-	rawResp       []byte
-	error         Error
+	url         string
+	rawParams   []byte
+	isRequested bool
+	statusCode  int
+	rawResp     []byte
+	error       Error
 }
 
 func (or *OutgoingRPC) Init(
@@ -48,7 +48,7 @@ func (or *OutgoingRPC) Init(
 
 func (or *OutgoingRPC) URL() string                  { return or.url }
 func (or *OutgoingRPC) RawParams() []byte            { return or.rawParams }
-func (or *OutgoingRPC) RequestIsSent() bool          { return or.requestIsSent }
+func (or *OutgoingRPC) IsRequested() bool            { return or.isRequested }
 func (or *OutgoingRPC) StatusCode() int              { return or.statusCode }
 func (or *OutgoingRPC) RawResp() []byte              { return or.rawResp }
 func (or *OutgoingRPC) UpdateRawResp(rawResp []byte) { or.rawResp = rawResp }

@@ -20,7 +20,7 @@ import (
 func TestIncomingRPCLogger(t *testing.T) {
 	type Input struct {
 		TestServerFuncs  fooapi.TestServerFuncs
-		OptionsSetters   []OptionsSetter
+		OptionsBuilders  []OptionsBuilder
 		TraceIDGenerator apicommon.TraceIDGenerator
 		Params           fooapi.DoSomething2Params
 	}
@@ -43,7 +43,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
-						NewForServer(logger, w.Input.OptionsSetters...),
+						NewForServer(logger, w.Input.OptionsBuilders...),
 					},
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
@@ -102,7 +102,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 					results.MyOnOff = true
 					return nil
 				}
-				w.Input.OptionsSetters = []OptionsSetter{
+				w.Input.OptionsBuilders = []OptionsBuilder{
 					MaxRawParamsSize(10),
 					MaxRawRespSize(11),
 				}

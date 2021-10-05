@@ -20,7 +20,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 	type Input struct {
 		TestServerFuncs  fooapi.TestServerFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator
-		OptionsSetters   []OptionsSetter
+		OptionsBuilders  []OptionsBuilder
 		Params           fooapi.DoSomething2Params
 	}
 	type Output struct {
@@ -46,7 +46,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			co := apicommon.ClientOptions{
 				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
 					apicommon.AnyMethod: {
-						NewForClient(logger, w.Input.OptionsSetters...),
+						NewForClient(logger, w.Input.OptionsBuilders...),
 					},
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
@@ -103,7 +103,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-				w.Input.OptionsSetters = []OptionsSetter{
+				w.Input.OptionsBuilders = []OptionsBuilder{
 					MaxRawParamsSize(10),
 					MaxRawRespSize(11),
 				}
@@ -136,7 +136,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.Params.MyStructString = &tmp
 				w.ExpectedOutput.Log = `{"level":"error","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2",` +
-					`"errBeforeRequestIsSent":"params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
+					`"preRequestErr":"params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"message":"outgoing rpc"}` + "\n"
 			}),
 	)

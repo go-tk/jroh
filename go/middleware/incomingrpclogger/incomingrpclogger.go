@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type OptionsSetter func(options *options)
+type OptionsBuilder func(options *options)
 
 type options struct {
 	MaxRawParamsSize int
@@ -21,18 +21,18 @@ func (o *options) Init() *options {
 	return o
 }
 
-func MaxRawParamsSize(value int) OptionsSetter {
+func MaxRawParamsSize(value int) OptionsBuilder {
 	return func(options *options) { options.MaxRawParamsSize = value }
 }
 
-func MaxRawRespSize(value int) OptionsSetter {
+func MaxRawRespSize(value int) OptionsBuilder {
 	return func(options *options) { options.MaxRawRespSize = value }
 }
 
-func NewForServer(logger zerolog.Logger, optionsSetters ...OptionsSetter) apicommon.ServerMiddleware {
+func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apicommon.ServerMiddleware {
 	options := new(options).Init()
-	for _, optionsSetter := range optionsSetters {
-		optionsSetter(options)
+	for _, optionsBuilder := range optionsBuilders {
+		optionsBuilder(options)
 	}
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

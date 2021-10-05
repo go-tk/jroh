@@ -61,14 +61,14 @@ var (
 )
 
 func NewForClient() apicommon.RPCHandler {
-	return func(ctx context.Context, rpc *apicommon.RPC) error {
+	return func(ctx context.Context, rpc *apicommon.RPC) (returnedErr error) {
 		t0 := time.Now()
 		// Before
-		err := rpc.Do(ctx)
+		returnedErr = rpc.Do(ctx)
 		// After
 		outgoingRPC := rpc.OutgoingRPC()
-		if !outgoingRPC.RequestIsSent() {
-			return err
+		if !outgoingRPC.IsRequested() {
+			return
 		}
 		t1 := time.Now()
 		{
@@ -117,7 +117,7 @@ func NewForClient() apicommon.RPCHandler {
 			)
 			observer.Observe(float64(n))
 		}
-		return err
+		return
 	}
 }
 

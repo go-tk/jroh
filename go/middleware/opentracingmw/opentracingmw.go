@@ -50,3 +50,19 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 		})
 	}
 }
+
+func NewForClient(tracer opentracing.Tracer) apicommon.ClientMiddleware {
+	return func(transport http.RoundTripper) http.RoundTripper {
+		return apicommon.TransportFunc(func(request *http.Request) (returnedResponse *http.Response, returnedErr error) {
+			span := opentracing.SpanFromContext(request.Context())
+			if span != nil {
+				if err := tracer.Inject(span.Context(), opentracing.HTTPHeaders,
+					opentracing.HTTPHeadersCarrier(request.Header)); err != nil {
+					panic(err)
+				}
+			}
+			returnedResponse, returnedErr = transport.RoundTrip(request)
+			return
+		})
+	}
+}
