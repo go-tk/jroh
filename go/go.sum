@@ -23,7 +23,6 @@ github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG1KdI/P7A=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
-github.com/go-tk/jroh v0.4.1 h1:c71c6A2TfbUeN1D6xvKd7f8V+Fp65t9VVpVyRZ20OSo=
 github.com/go-tk/testcase v0.5.3 h1:d8kLx3xX2jV+E4VyCW7z3vtZtfZjEeYjQ3slIAMBTA0=
 github.com/go-tk/testcase v0.5.3/go.mod h1:70s7MsM3r38BYfzntn8spYX2EvYBdoJkBUY/lVCjZz8=
 github.com/godbus/dbus/v5 v5.0.4 h1:9349emZab16e7zQvpmsbtjc18ykshndd8y2PG3sgJbA=

@@ -2,7 +2,6 @@ package opentracingmw
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-tk/jroh/go/apicommon"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -33,15 +32,14 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 				ext.Error.Set(span, true)
 			}
 			ext.HTTPStatusCode.Set(span, uint16(incomingRPC.StatusCode()))
-			var errorCodeStr string
+			const errorCodeKey = "jroh.error_code"
 			if errorCode := incomingRPC.Error().Code; errorCode == 0 {
-				errorCodeStr = "-"
+				span.SetTag(errorCodeKey, "-")
 			} else {
-				errorCodeStr = strconv.FormatInt(int64(errorCode), 10)
+				span.SetTag(errorCodeKey, errorCode)
 			}
-			span.SetTag("jroh.error_code", errorCodeStr)
 			if incomingRPC.Error().Code != 0 {
-				span.LogFields(log.Event("error"), log.Message(incomingRPC.Error().Message))
+				span.LogFields(log.Event("rpc error"), log.Message(incomingRPC.Error().Message))
 			}
 			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
 				span.LogFields(log.Event("internal error"), log.Message(internalErr.Error()))
