@@ -130,7 +130,7 @@ func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 	}
 	if err := encoder.Encode(resp); err != nil {
 		err = fmt.Errorf("resp encoding failed: %v", err)
-		RespondError(ir, err, "", responseWriter)
+		RespondInternalError(ir, err, "", responseWriter)
 		return false
 	}
 	ir.rawResp = buffer.Bytes()
@@ -141,7 +141,7 @@ func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 	return true
 }
 
-func RespondError(incomingRPC *IncomingRPC, internalErr error, stackTrace string, responseWriter http.ResponseWriter) {
+func RespondInternalError(incomingRPC *IncomingRPC, internalErr error, stackTrace string, responseWriter http.ResponseWriter) {
 	incomingRPC.error = Error{}
 	incomingRPC.internalErr = internalErr
 	incomingRPC.stackTrace = stackTrace

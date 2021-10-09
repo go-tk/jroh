@@ -87,10 +87,10 @@ func TestPrometheusHelper(t *testing.T) {
 	assert.Contains(t, s, `jroh_client_rpc_duration_seconds_bucket{jroh_method_name="DoSomething2",jroh_namespace="Foo",jroh_service_name="Test",le="0.1"} 1`)
 	assert.Contains(t, s, `jroh_client_rpc_duration_seconds_bucket{jroh_method_name="DoSomething3",jroh_namespace="Foo",jroh_service_name="Test",le="0.1"} 2`)
 
-	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="-",jroh_method_name="DoSomething",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="200"} 1`)
-	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="-",jroh_method_name="DoSomething2",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="200"} 1`)
+	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="0",jroh_method_name="DoSomething",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="200"} 1`)
+	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="0",jroh_method_name="DoSomething2",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="200"} 1`)
 	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="-32000",jroh_method_name="DoSomething3",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="200"} 1`)
-	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="-",jroh_method_name="DoSomething3",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="-"} 1`)
+	assert.Contains(t, s, `jroh_client_rpcs_total{jroh_error_code="0",jroh_method_name="DoSomething3",jroh_namespace="Foo",jroh_service_name="Test",jroh_status_code="0"} 1`)
 
 	assert.Contains(t, s, `jroh_client_params_size_bytes_bucket{jroh_method_name="DoSomething",jroh_namespace="Foo",jroh_service_name="Test",le="1000"} 1`)
 	assert.Contains(t, s, `jroh_client_params_size_bytes_bucket{jroh_method_name="DoSomething2",jroh_namespace="Foo",jroh_service_name="Test",le="1000"} 1`)

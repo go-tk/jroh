@@ -2,6 +2,7 @@ package opentracingrf
 
 import (
 	"context"
+	"unsafe"
 
 	"github.com/go-tk/jroh/go/apicommon"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -11,44 +12,57 @@ import (
 
 func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 	return func(ctx context.Context, rpc *apicommon.RPC) (returnedErr error) {
+		outgoingRPC := rpc.OutgoingRPC()
 		var spanParentContext opentracing.SpanContext
 		if spanParent := opentracing.SpanFromContext(ctx); spanParent != nil {
+			tracer = spanParent.Tracer()
 			spanParentContext = spanParent.Context()
 		}
 		span := tracer.StartSpan(
-			rpc.FullMethodName(),
+			outgoingRPC.FullMethodName(),
 			opentracing.ChildOf(spanParentContext),
 			ext.SpanKindRPCClient,
 		)
 		ext.Component.Set(span, "JROH")
 		// Before
-		returnedErr = rpc.Do(ctx)
+		returnedErr = outgoingRPC.Do(ctx)
 		// After
-		outgoingRPC := rpc.OutgoingRPC()
-		var preRequestErr error
-		if returnedErr != nil && !outgoingRPC.IsRequested() {
-			preRequestErr = returnedErr
+		logFields := []log.Field{log.Event("outgoing rpc")}
+		if traceID := outgoingRPC.TraceID(); traceID != "" {
+			logFields = append(logFields, log.String("trace_id", traceID))
 		}
-		if preRequestErr == nil {
-			if statusCode := outgoingRPC.StatusCode(); statusCode == 0 {
-				span.SetTag(string(ext.HTTPStatusCode), "-")
-			} else {
-				ext.HTTPStatusCode.Set(span, uint16(statusCode))
+		if apicommon.DebugMode {
+			if rawParams := outgoingRPC.RawParams(); rawParams != nil {
+				logFields = append(logFields, log.String("params", bytesToString(rawParams)))
 			}
-			const errorCodeKey = "jroh.error_code"
-			if errorCode := outgoingRPC.Error().Code; errorCode == 0 {
-				span.SetTag(errorCodeKey, "-")
-			} else {
-				span.SetTag(errorCodeKey, errorCode)
-			}
+		}
+		span.SetTag("jroh.is_requested", outgoingRPC.IsRequested())
+		if outgoingRPC.IsRequested() {
+			ext.HTTPStatusCode.Set(span, uint16(outgoingRPC.StatusCode()))
+			span.SetTag("jroh.error_code", int32(outgoingRPC.Error().Code))
 			if outgoingRPC.Error().Code != 0 {
-				span.LogFields(log.Event("rpc error"), log.Message(outgoingRPC.Error().Message))
+				logFields = append(logFields, log.String("api_error", outgoingRPC.Error().Message))
+			}
+			if apicommon.DebugMode {
+				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
+					logFields = append(logFields, log.String("resp", bytesToString(rawResp)))
+				}
 			}
 		} else {
-			ext.Error.Set(span, true)
-			span.LogFields(log.Event("pre-request error"), log.Message(preRequestErr.Error()))
+			if returnedErr != nil {
+				ext.Error.Set(span, true)
+				logFields = append(logFields, log.String("pre_request_error", returnedErr.Error()))
+			}
 		}
-		span.Finish()
+		span.FinishWithOptions(opentracing.FinishOptions{
+			LogRecords: []opentracing.LogRecord{
+				{Fields: logFields},
+			},
+		})
 		return
 	}
+}
+
+func bytesToString(bytes []byte) string {
+	return *(*string)(unsafe.Pointer(&bytes))
 }

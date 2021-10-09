@@ -63,12 +63,12 @@ var (
 func NewForServer() apicommon.ServerMiddleware {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			incomingRPC := apicommon.MustGetRPCFromContext(r.Context()).IncomingRPC()
 			t0 := time.Now()
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
 			t1 := time.Now()
-			incomingRPC := apicommon.MustGetRPCFromContext(r.Context()).IncomingRPC()
 			{
 				observer := rpcDurationSecondsHistogramVec.WithLabelValues(
 					incomingRPC.Namespace(),
@@ -78,19 +78,12 @@ func NewForServer() apicommon.ServerMiddleware {
 				observer.Observe(t1.Sub(t0).Seconds())
 			}
 			{
-				statusCodeStr := strconv.FormatInt(int64(incomingRPC.StatusCode()), 10)
-				var errorCodeStr string
-				if errorCode := incomingRPC.Error().Code; errorCode == 0 {
-					errorCodeStr = "-"
-				} else {
-					errorCodeStr = strconv.FormatInt(int64(errorCode), 10)
-				}
 				counter := rpcsTotalCounterVec.WithLabelValues(
 					incomingRPC.Namespace(),
 					incomingRPC.ServiceName(),
 					incomingRPC.MethodName(),
-					statusCodeStr,
-					errorCodeStr,
+					strconv.FormatInt(int64(incomingRPC.StatusCode()), 10),
+					strconv.FormatInt(int64(incomingRPC.Error().Code), 10),
 				)
 				counter.Add(1)
 			}

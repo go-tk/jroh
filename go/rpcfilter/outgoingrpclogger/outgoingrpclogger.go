@@ -35,21 +35,17 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 		optionsBuilder(options)
 	}
 	return func(ctx context.Context, rpc *apicommon.RPC) (returnedErr error) {
+		outgoingRPC := rpc.OutgoingRPC()
 		subLogger := logger
 		ctx = subLogger.WithContext(ctx)
 		// Before
-		returnedErr = rpc.Do(ctx)
+		returnedErr = outgoingRPC.Do(ctx)
 		// After
-		outgoingRPC := rpc.OutgoingRPC()
-		var preRequestErr error
-		if returnedErr != nil && !outgoingRPC.IsRequested() {
-			preRequestErr = returnedErr
-		}
 		var event *zerolog.Event
-		if preRequestErr == nil {
-			event = subLogger.Info()
-		} else {
+		if !outgoingRPC.IsRequested() && returnedErr != nil {
 			event = subLogger.Error()
+		} else {
+			event = subLogger.Info()
 		}
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
 			event.Str("traceID", outgoingRPC.TraceID())
@@ -64,7 +60,8 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 				event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 			}
 		}
-		if preRequestErr == nil {
+		event.Bool("isRequested", outgoingRPC.IsRequested())
+		if outgoingRPC.IsRequested() {
 			if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
 				event.Int("statusCode", statusCode)
 				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
@@ -80,7 +77,9 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 				}
 			}
 		} else {
-			event.AnErr("preRequestErr", preRequestErr)
+			if returnedErr != nil {
+				event.AnErr("preRequestErr", returnedErr)
+			}
 		}
 		event.Msg("outgoing rpc")
 		return

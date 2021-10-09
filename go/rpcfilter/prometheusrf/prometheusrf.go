@@ -62,11 +62,11 @@ var (
 
 func NewForClient() apicommon.RPCHandler {
 	return func(ctx context.Context, rpc *apicommon.RPC) (returnedErr error) {
+		outgoingRPC := rpc.OutgoingRPC()
 		t0 := time.Now()
 		// Before
-		returnedErr = rpc.Do(ctx)
+		returnedErr = outgoingRPC.Do(ctx)
 		// After
-		outgoingRPC := rpc.OutgoingRPC()
 		if !outgoingRPC.IsRequested() {
 			return
 		}
@@ -80,24 +80,12 @@ func NewForClient() apicommon.RPCHandler {
 			observer.Observe(t1.Sub(t0).Seconds())
 		}
 		{
-			var statusCodeStr string
-			if statusCode := outgoingRPC.StatusCode(); statusCode == 0 {
-				statusCodeStr = "-"
-			} else {
-				statusCodeStr = strconv.FormatInt(int64(statusCode), 10)
-			}
-			var errorCodeStr string
-			if errorCode := outgoingRPC.Error().Code; errorCode == 0 {
-				errorCodeStr = "-"
-			} else {
-				errorCodeStr = strconv.FormatInt(int64(errorCode), 10)
-			}
 			counter := rpcsTotalCounterVec.WithLabelValues(
 				outgoingRPC.Namespace(),
 				outgoingRPC.ServiceName(),
 				outgoingRPC.MethodName(),
-				statusCodeStr,
-				errorCodeStr,
+				strconv.FormatInt(int64(outgoingRPC.StatusCode()), 10),
+				strconv.FormatInt(int64(outgoingRPC.Error().Code), 10),
 			)
 			counter.Add(1)
 		}
