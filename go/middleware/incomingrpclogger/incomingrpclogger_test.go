@@ -30,11 +30,11 @@ func TestIncomingRPCLogger(t *testing.T) {
 	type Workspace struct {
 		testcase.WorkspaceBase
 
-		Input          Input
-		ExpectedOutput Output
-
 		Buf bytes.Buffer
 		TC  fooapi.TestClient
+
+		Input          Input
+		ExpectedOutput Output
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {

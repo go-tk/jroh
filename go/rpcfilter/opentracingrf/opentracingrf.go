@@ -24,6 +24,7 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 			ext.SpanKindRPCClient,
 		)
 		ext.Component.Set(span, "JROH")
+		ctx = opentracing.ContextWithSpan(ctx, span)
 		// Before
 		returnedErr = outgoingRPC.Do(ctx)
 		// After
