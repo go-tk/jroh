@@ -86,6 +86,4 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 	}
 }
 
-func bytesToString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
-}
+func bytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }

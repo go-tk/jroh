@@ -45,7 +45,7 @@ func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 			handler.ServeHTTP(w, r)
 			// After
 			var event *zerolog.Event
-			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.InternalErr() != nil {
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {
 				event = subLogger.Error()
 			} else {
 				event = subLogger.Info()
@@ -89,6 +89,4 @@ func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 	}
 }
 
-func bytesToString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
-}
+func bytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }

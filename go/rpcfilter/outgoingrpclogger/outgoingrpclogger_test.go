@@ -79,6 +79,15 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
+				lastTID := 0
+				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
+					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
+					`"statusCode":200,"errorCode":-32000,"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32000,\"message\":\"not implemented\"}}",` +
+					`"message":"outgoing rpc"}` + "\n"
+			}),
+		tc.Copy().
+			AddTask(9, func(w *Workspace) {
 				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil

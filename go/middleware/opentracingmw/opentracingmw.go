@@ -38,7 +38,7 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 					logFields = append(logFields, log.String("params", bytesToString(rawParams)))
 				}
 			}
-			if incomingRPC.StatusCode()/100 == 5 {
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {
 				ext.Error.Set(span, true)
 			}
 			ext.HTTPStatusCode.Set(span, uint16(incomingRPC.StatusCode()))
@@ -47,7 +47,6 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 				logFields = append(logFields, log.String("api_error", incomingRPC.Error().Message))
 			}
 			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
-				ext.Error.Set(span, true)
 				logFields = append(logFields, log.String("internal_error", internalErr.Error()))
 			}
 			if apicommon.DebugMode {
@@ -55,18 +54,13 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 					logFields = append(logFields, log.String("resp", bytesToString(rawResp)))
 				}
 			}
-			span.FinishWithOptions(opentracing.FinishOptions{
-				LogRecords: []opentracing.LogRecord{
-					{Fields: logFields},
-				},
-			})
+			span.LogFields(logFields...)
+			span.Finish()
 		})
 	}
 }
 
-func bytesToString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
-}
+func bytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }
 
 func NewForClient() apicommon.ClientMiddleware {
 	return func(transport http.RoundTripper) http.RoundTripper {

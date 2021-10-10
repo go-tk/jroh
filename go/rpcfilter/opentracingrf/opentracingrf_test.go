@@ -1,4 +1,4 @@
-package opentracingmw_test
+package opentracingrf_test
 
 import (
 	"context"
@@ -11,9 +11,10 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/middleware/opentracingmw"
+	"github.com/go-tk/jroh/go/middleware/opentracingmw"
+	. "github.com/go-tk/jroh/go/rpcfilter/opentracingrf"
 	"github.com/go-tk/testcase"
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 		Input  Input
 		Output Output
 	}
+	type ReqKey struct{}
 	mocktracer.New()
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
@@ -45,18 +47,30 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			mt := mocktracer.New()
 			w.MT = mt
 			so := apicommon.ServerOptions{
-				TraceIDGenerator: w.Input.TraceIDGenerator,
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
-						NewForServer(mt),
+						func(handler http.Handler) http.Handler {
+							return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+								ctx := r.Context()
+								ctx = context.WithValue(ctx, ReqKey{}, r)
+								r = r.WithContext(ctx)
+								handler.ServeHTTP(w, r)
+							})
+						},
 					},
 				},
+				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
 			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, sm, so)
 			co := apicommon.ClientOptions{
+				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
+					apicommon.AnyMethod: {
+						NewForClient(mt),
+					},
+				},
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
 					apicommon.AnyMethod: {
-						NewForClient(),
+						opentracingmw.NewForClient(),
 					},
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
@@ -94,16 +108,17 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				ms := mss[0]
 				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(200),
-					"jroh.error_code":  int32(0),
+					"span.kind":         ext.SpanKindRPCClientEnum,
+					"component":         "JROH",
+					"jroh.is_requested": true,
+					"http.status_code":  uint16(200),
+					"jroh.error_code":   int32(0),
 				}, ms.Tags())
 				mlrs := ms.Logs()
 				if assert.Len(w.T(), mlrs, 1) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
+						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 					}, mlr.Fields)
 				}
@@ -124,33 +139,33 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				ms := mss[0]
 				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(200),
-					"jroh.error_code":  int32(-32603),
-					"error":            true,
+					"span.kind":         ext.SpanKindRPCClientEnum,
+					"component":         "JROH",
+					"jroh.is_requested": true,
+					"http.status_code":  uint16(200),
+					"jroh.error_code":   int32(-32603),
 				}, ms.Tags())
 				mlrs := ms.Logs()
 				if assert.Len(w.T(), mlrs, 1) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
+						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 						{Key: "api_error", ValueKind: reflect.String, ValueString: "internal error"},
-						{Key: "internal_error", ValueKind: reflect.String, ValueString: "just wrong"},
 					}, mlr.Fields)
 				}
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
-					tmp := fooapi.MyStructString{}
-					tmp.TheStringA = "taboo"
-					results.MyStructString = &tmp
+					results.MyOnOff = true
 					return nil
 				}
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
+				tmp := fooapi.MyStructString{}
+				tmp.TheStringA = "taboo"
+				w.Input.Params.MyStructString = &tmp
 			}).
 			AddTask(21, func(w *Workspace) {
 				mss := w.Output.MSs
@@ -160,47 +175,17 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				ms := mss[0]
 				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(500),
-					"jroh.error_code":  int32(0),
-					"error":            true,
+					"span.kind":         ext.SpanKindRPCClientEnum,
+					"component":         "JROH",
+					"jroh.is_requested": false,
+					"error":             true,
 				}, ms.Tags())
 				mlrs := ms.Logs()
 				if assert.Len(w.T(), mlrs, 1) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
-						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
-						{Key: "internal_error", ValueKind: reflect.String, ValueString: "resp encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
-					}, mlr.Fields)
-				}
-			}),
-		tc.Copy().
-			AddTask(9, func(w *Workspace) {
-				lastTID := 0
-				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
-			}).
-			AddTask(21, func(w *Workspace) {
-				mss := w.Output.MSs
-				if !assert.Len(w.T(), mss, 1) {
-					w.T().FailNow()
-				}
-				ms := mss[0]
-				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
-				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(200),
-					"jroh.error_code":  int32(-32000),
-				}, ms.Tags())
-				mlrs := ms.Logs()
-				if assert.Len(w.T(), mlrs, 1) {
-					mlr := mlrs[0]
-					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
-						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
-						{Key: "api_error", ValueKind: reflect.String, ValueString: "not implemented"},
+						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
+						{Key: "pre_request_error", ValueKind: reflect.String, ValueString: "params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
 					}, mlr.Fields)
 				}
 			}),
@@ -225,16 +210,17 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				ms := mss[0]
 				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(200),
-					"jroh.error_code":  int32(0),
+					"span.kind":         ext.SpanKindRPCClientEnum,
+					"component":         "JROH",
+					"jroh.is_requested": true,
+					"http.status_code":  uint16(200),
+					"jroh.error_code":   int32(0),
 				}, ms.Tags())
 				mlrs := ms.Logs()
 				if assert.Len(w.T(), mlrs, 1) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
+						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 						{Key: "params", ValueKind: reflect.String, ValueString: "{\n  \"myOnOff\": false\n}\n"},
 						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"traceID\": \"tid1\",\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
@@ -244,8 +230,12 @@ func TestOpenTracingMiddleware(t *testing.T) {
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
-					ms := opentracing.SpanFromContext(ctx).(*mocktracer.MockSpan)
-					assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
+					r := ctx.Value(ReqKey{}).(*http.Request)
+					sc, err := w.MT.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+					if assert.NoError(w.T(), err) {
+						msc := sc.(mocktracer.MockSpanContext)
+						assert.NotEqual(w.T(), -9999, msc.SpanID)
+					}
 					results.MyOnOff = true
 					return nil
 				}
@@ -267,16 +257,17 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				assert.Equal(w.T(), -9999, ms.ParentID)
 				assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 				assert.Equal(w.T(), map[string]interface{}{
-					"span.kind":        ext.SpanKindRPCServerEnum,
-					"component":        "JROH",
-					"http.status_code": uint16(200),
-					"jroh.error_code":  int32(0),
+					"span.kind":         ext.SpanKindRPCClientEnum,
+					"component":         "JROH",
+					"jroh.is_requested": true,
+					"http.status_code":  uint16(200),
+					"jroh.error_code":   int32(0),
 				}, ms.Tags())
 				mlrs := ms.Logs()
 				if assert.Len(w.T(), mlrs, 1) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
-						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
+						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 					}, mlr.Fields)
 				}

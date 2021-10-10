@@ -55,15 +55,10 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 				logFields = append(logFields, log.String("pre_request_error", returnedErr.Error()))
 			}
 		}
-		span.FinishWithOptions(opentracing.FinishOptions{
-			LogRecords: []opentracing.LogRecord{
-				{Fields: logFields},
-			},
-		})
+		span.LogFields(logFields...)
+		span.Finish()
 		return
 	}
 }
 
-func bytesToString(bytes []byte) string {
-	return *(*string)(unsafe.Pointer(&bytes))
-}
+func bytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }
