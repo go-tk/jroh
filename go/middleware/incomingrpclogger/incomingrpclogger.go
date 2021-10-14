@@ -50,11 +50,10 @@ func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 			} else {
 				event = subLogger.Info()
 			}
-			event.Str("fullMethodName", incomingRPC.FullMethodName())
 			if remoteAddr := r.RemoteAddr; remoteAddr != "" {
 				event.Str("remoteAddr", remoteAddr)
 			}
-			event.Str("rpcPath", r.URL.Path)
+			event.Str("fullMethodName", incomingRPC.FullMethodName())
 			if rawParams := incomingRPC.RawParams(); rawParams != nil {
 				if apicommon.DebugMode || len(rawParams) <= options.MaxRawParamsSize {
 					event.Str("params", bytesToString(rawParams))
