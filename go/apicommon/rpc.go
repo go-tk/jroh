@@ -9,6 +9,7 @@ type RPC struct {
 	serviceName     string
 	methodName      string
 	fullMethodName  string
+	methodIndex     MethodIndex
 	params          Model
 	results         Model
 	traceID         string
@@ -22,6 +23,7 @@ func (r *RPC) init(
 	serviceName string,
 	methodName string,
 	fullMethodName string,
+	methodIndex MethodIndex,
 	params Model,
 	results Model,
 	handler RPCHandler,
@@ -31,19 +33,21 @@ func (r *RPC) init(
 	r.serviceName = serviceName
 	r.methodName = methodName
 	r.fullMethodName = fullMethodName
+	r.methodIndex = methodIndex
 	r.params = params
 	r.results = results
 	r.handler = handler
 	r.filters = filters
 }
 
-func (r *RPC) Namespace() string      { return r.namespace }
-func (r *RPC) ServiceName() string    { return r.serviceName }
-func (r *RPC) MethodName() string     { return r.methodName }
-func (r *RPC) FullMethodName() string { return r.fullMethodName }
-func (r *RPC) Params() Model          { return r.params }
-func (r *RPC) Results() Model         { return r.results }
-func (r *RPC) TraceID() string        { return r.traceID }
+func (r *RPC) Namespace() string        { return r.namespace }
+func (r *RPC) ServiceName() string      { return r.serviceName }
+func (r *RPC) MethodName() string       { return r.methodName }
+func (r *RPC) FullMethodName() string   { return r.fullMethodName }
+func (r *RPC) MethodIndex() MethodIndex { return r.methodIndex }
+func (r *RPC) Params() Model            { return r.params }
+func (r *RPC) Results() Model           { return r.results }
+func (r *RPC) TraceID() string          { return r.traceID }
 
 func (r *RPC) Do(ctx context.Context) error {
 	if i := r.nextFilterIndex; i < len(r.filters) {
@@ -52,6 +56,8 @@ func (r *RPC) Do(ctx context.Context) error {
 	}
 	return r.handler(ctx, r)
 }
+
+type MethodIndex int
 
 type RPCHandler func(ctx context.Context, rpc *RPC) (err error)
 

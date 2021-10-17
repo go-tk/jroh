@@ -5,18 +5,20 @@ package helloworldapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type GreeterServer interface {
 	SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) (err error)
 }
 
-func RegisterGreeterServer(server GreeterServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
+func RegisterGreeterServer(server GreeterServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
+	var serverMiddlewareTable [1][]apicommon.ServerMiddleware
+	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
 	var rpcFiltersTable [1][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
+		serverMiddlewares := serverMiddlewareTable[Greeter_SayHello]
 		rpcFilters := rpcFiltersTable[Greeter_SayHello]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -27,11 +29,11 @@ func RegisterGreeterServer(server GreeterServer, serveMux *http.ServeMux, server
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.SayHello(ctx, rpc.Params().(*SayHelloParams), rpc.Results().(*SayHelloResults))
 			}
-			s.IncomingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", Greeter_SayHello, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Greeter_SayHello, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/HelloWorld.Greeter.SayHello", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/HelloWorld.Greeter.SayHello", handler, "HelloWorld.Greeter.SayHello", serverMiddlewares, rpcFilters)
 	}
 }
 

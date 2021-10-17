@@ -1,6 +1,7 @@
 package apicommon
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"time"
@@ -21,24 +22,61 @@ func (co *ClientOptions) Sanitize() {
 
 type ClientMiddleware func(oldTransport http.RoundTripper) (newTransport http.RoundTripper)
 
-type TransportFunc func(request *http.Request) (response *http.Response, err error)
-
-var _ http.RoundTripper = TransportFunc(nil)
-
-func (tf TransportFunc) RoundTrip(request *http.Request) (*http.Response, error) { return tf(request) }
+func FillTransportTable(transportTable []http.RoundTripper, transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware) {
+	transport = func(transport http.RoundTripper) http.RoundTripper {
+		return TransportFunc(func(request *http.Request) (*http.Response, error) {
+			outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
+			outgoingRPC.isRequested = true
+			response, err := transport.RoundTrip(request)
+			if err != nil {
+				return nil, err
+			}
+			outgoingRPC.statusCode = response.StatusCode
+			if response.StatusCode != http.StatusOK {
+				response.Body.Close()
+				return response, nil
+			}
+			var buffer bytes.Buffer
+			_, err = buffer.ReadFrom(response.Body)
+			response.Body.Close()
+			if err != nil {
+				return nil, err
+			}
+			if buffer.Len() >= 1 {
+				outgoingRPC.rawResp = buffer.Bytes()
+			}
+			return response, nil
+		})
+	}(transport)
+	for i := range transportTable {
+		transport := transport
+		methodIndex := MethodIndex(i)
+		clientMiddlewares2 := clientMiddlewares[methodIndex]
+		for i := len(clientMiddlewares2) - 1; i >= 0; i-- {
+			clientMiddleware := clientMiddlewares2[i]
+			transport = clientMiddleware(transport)
+		}
+		clientMiddlewares3 := clientMiddlewares[AnyMethod]
+		for i := len(clientMiddlewares3) - 1; i >= 0; i-- {
+			clientMiddleware := clientMiddlewares3[i]
+			transport = clientMiddleware(transport)
+		}
+		transportTable[methodIndex] = transport
+	}
+}
 
 type Client struct {
 	c          http.Client
 	rpcBaseURL string
 }
 
-func (c *Client) Init(rpcBaseURL string, timeout time.Duration) {
-	c.rpcBaseURL = rpcBaseURL
+func (c *Client) Init(timeout time.Duration, rpcBaseURL string) {
 	c.c.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
 		outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
 		return outgoingRPC.transport.RoundTrip(request)
 	})
 	c.c.Timeout = timeout
+	c.rpcBaseURL = rpcBaseURL
 }
 
 func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport http.RoundTripper, rpcPath string) error {
@@ -52,21 +90,8 @@ func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport 
 	return outgoingRPC.Do(makeContextWithRPC(ctx, &outgoingRPC.RPC))
 }
 
-func HandleRPC(ctx context.Context, rpc *RPC) error {
-	outgoingRPC := rpc.OutgoingRPC()
-	if err := outgoingRPC.encodeParams(); err != nil {
-		return err
-	}
-	if err := outgoingRPC.requestHTTP(ctx); err != nil {
-		return err
-	}
-	if err := outgoingRPC.decodeResp(ctx); err != nil {
-		return err
-	}
-	if outgoingRPC.error.Code != 0 {
-		return &outgoingRPC.error
-	}
-	return nil
-}
+type TransportFunc func(request *http.Request) (response *http.Response, err error)
 
-var _ RPCHandler = HandleRPC
+var _ http.RoundTripper = TransportFunc(nil)
+
+func (tf TransportFunc) RoundTrip(request *http.Request) (*http.Response, error) { return tf(request) }

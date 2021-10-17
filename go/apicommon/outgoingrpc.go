@@ -37,13 +37,13 @@ func (or *OutgoingRPC) Init(
 	serviceName string,
 	methodName string,
 	fullMethodName string,
+	methodIndex MethodIndex,
 	params Model,
 	results Model,
-	handler RPCHandler,
 	filters []RPCHandler,
 ) {
 	or.mark = 'o'
-	or.init(namespace, serviceName, methodName, fullMethodName, params, results, handler, filters)
+	or.init(namespace, serviceName, methodName, fullMethodName, methodIndex, params, results, handleRPC, filters)
 }
 
 func (or *OutgoingRPC) URL() string                  { return or.url }
@@ -135,3 +135,22 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	}
 	return nil
 }
+
+func handleRPC(ctx context.Context, rpc *RPC) error {
+	outgoingRPC := rpc.OutgoingRPC()
+	if err := outgoingRPC.encodeParams(); err != nil {
+		return err
+	}
+	if err := outgoingRPC.requestHTTP(ctx); err != nil {
+		return err
+	}
+	if err := outgoingRPC.decodeResp(ctx); err != nil {
+		return err
+	}
+	if outgoingRPC.error.Code != 0 {
+		return &outgoingRPC.error
+	}
+	return nil
+}
+
+var _ RPCHandler = handleRPC

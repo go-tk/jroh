@@ -5,7 +5,6 @@ package fooapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type TestServer interface {
@@ -14,11 +13,14 @@ type TestServer interface {
 	DoSomething3(ctx context.Context) (err error)
 }
 
-func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
+func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
+	var serverMiddlewareTable [3][]apicommon.ServerMiddleware
+	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
 	var rpcFiltersTable [3][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
+		serverMiddlewares := serverMiddlewareTable[Test_DoSomething]
 		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -28,13 +30,14 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Params().(*DoSomethingParams))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", Test_DoSomething, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Foo.Test.DoSomething", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething", handler, "Foo.Test.DoSomething", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Test_DoSomething2]
 		rpcFilters := rpcFiltersTable[Test_DoSomething2]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -45,13 +48,14 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething2(ctx, rpc.Params().(*DoSomething2Params), rpc.Results().(*DoSomething2Results))
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", Test_DoSomething2, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething2, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Foo.Test.DoSomething2", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething2", handler, "Foo.Test.DoSomething2", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Test_DoSomething3]
 		rpcFilters := rpcFiltersTable[Test_DoSomething3]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -60,11 +64,11 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething3(ctx)
 			}
-			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", nil, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", Test_DoSomething3, nil, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething3, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Foo.Test.DoSomething3", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething3", handler, "Foo.Test.DoSomething3", serverMiddlewares, rpcFilters)
 	}
 }
 

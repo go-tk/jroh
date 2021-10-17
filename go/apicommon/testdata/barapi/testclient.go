@@ -23,7 +23,7 @@ type testClient struct {
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {
 	options.Sanitize()
 	var c testClient
-	c.Init(rpcBaseURL, options.Timeout)
+	c.Init(options.Timeout, rpcBaseURL)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
@@ -35,7 +35,7 @@ func (c *testClient) DoSomething(ctx context.Context) (*DoSomethingResults, erro
 		Results     DoSomethingResults
 	}
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", nil, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", Test_DoSomething, nil, &s.Results, rpcFilters)
 	transport := c.transportTable[Test_DoSomething]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Bar.Test.DoSomething"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Bar.Test.DoSomething\" traceID=%q: %w",

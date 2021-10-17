@@ -25,7 +25,7 @@ type testClient struct {
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {
 	options.Sanitize()
 	var c testClient
-	c.Init(rpcBaseURL, options.Timeout)
+	c.Init(options.Timeout, rpcBaseURL)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
@@ -38,7 +38,7 @@ func (c *testClient) DoSomething(ctx context.Context, params *DoSomethingParams)
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", Test_DoSomething, &s.Params, nil, rpcFilters)
 	transport := c.transportTable[Test_DoSomething]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething"); err != nil {
 		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething\" traceID=%q: %w",
@@ -55,7 +55,7 @@ func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Param
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething2]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", Test_DoSomething2, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[Test_DoSomething2]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething2"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething2\" traceID=%q: %w",
@@ -69,7 +69,7 @@ func (c *testClient) DoSomething3(ctx context.Context) error {
 		OutgoingRPC apicommon.OutgoingRPC
 	}
 	rpcFilters := c.rpcFiltersTable[Test_DoSomething3]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", nil, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", Test_DoSomething3, nil, nil, rpcFilters)
 	transport := c.transportTable[Test_DoSomething3]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething3"); err != nil {
 		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\" traceID=%q: %w",

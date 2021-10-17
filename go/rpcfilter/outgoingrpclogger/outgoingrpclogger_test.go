@@ -37,12 +37,12 @@ func TestOutgoingRPCLogger(t *testing.T) {
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			sm := http.NewServeMux()
+			rr := apicommon.NewRPCRouter(nil)
 			logger := zerolog.New(&w.Buf)
 			so := apicommon.ServerOptions{
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, sm, so)
+			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, rr, so)
 			co := apicommon.ClientOptions{
 				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
 					apicommon.AnyMethod: {
@@ -51,7 +51,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 					responseRecorder := httptest.NewRecorder()
-					sm.ServeHTTP(responseRecorder, request)
+					rr.ServeMux().ServeHTTP(responseRecorder, request)
 					response := responseRecorder.Result()
 					return response, nil
 				}),

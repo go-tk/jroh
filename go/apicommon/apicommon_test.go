@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-tk/jroh/go/apicommon"
 	. "github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
 	"github.com/stretchr/testify/assert"
@@ -1676,11 +1677,11 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 }
 
 func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
-	sm := http.NewServeMux()
-	fooapi.RegisterTestServer(&tsf, sm, serverOptions)
+	rr := apicommon.NewRPCRouter(nil)
+	fooapi.RegisterTestServer(&tsf, rr, serverOptions)
 	clientOptions.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
 		responseRecorder := httptest.NewRecorder()
-		sm.ServeHTTP(responseRecorder, request)
+		rr.ServeMux().ServeHTTP(responseRecorder, request)
 		response := responseRecorder.Result()
 		return response, nil
 	})

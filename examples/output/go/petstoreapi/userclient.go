@@ -26,7 +26,7 @@ type userClient struct {
 func NewUserClient(rpcBaseURL string, options apicommon.ClientOptions) UserClient {
 	options.Sanitize()
 	var c userClient
-	c.Init(rpcBaseURL, options.Timeout)
+	c.Init(options.Timeout, rpcBaseURL)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
@@ -39,7 +39,7 @@ func (c *userClient) CreateUser(ctx context.Context, params *CreateUserParams) e
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[User_CreateUser]
-	s.OutgoingRPC.Init("Petstore", "User", "CreateUser", "Petstore.User.CreateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "User", "CreateUser", "Petstore.User.CreateUser", User_CreateUser, &s.Params, nil, rpcFilters)
 	transport := c.transportTable[User_CreateUser]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.CreateUser"); err != nil {
 		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.CreateUser\" traceID=%q: %w",
@@ -56,7 +56,7 @@ func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUs
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[User_GetUser]
-	s.OutgoingRPC.Init("Petstore", "User", "GetUser", "Petstore.User.GetUser", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "User", "GetUser", "Petstore.User.GetUser", User_GetUser, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[User_GetUser]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUser"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.GetUser\" traceID=%q: %w",
@@ -73,7 +73,7 @@ func (c *userClient) GetUsers(ctx context.Context, params *GetUsersParams) (*Get
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[User_GetUsers]
-	s.OutgoingRPC.Init("Petstore", "User", "GetUsers", "Petstore.User.GetUsers", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "User", "GetUsers", "Petstore.User.GetUsers", User_GetUsers, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[User_GetUsers]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.GetUsers"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.GetUsers\" traceID=%q: %w",
@@ -89,7 +89,7 @@ func (c *userClient) UpdateUser(ctx context.Context, params *UpdateUserParams) e
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[User_UpdateUser]
-	s.OutgoingRPC.Init("Petstore", "User", "UpdateUser", "Petstore.User.UpdateUser", &s.Params, nil, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "User", "UpdateUser", "Petstore.User.UpdateUser", User_UpdateUser, &s.Params, nil, rpcFilters)
 	transport := c.transportTable[User_UpdateUser]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.User.UpdateUser"); err != nil {
 		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\" traceID=%q: %w",

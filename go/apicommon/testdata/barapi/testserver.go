@@ -5,18 +5,20 @@ package barapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type TestServer interface {
 	DoSomething(ctx context.Context, results *DoSomethingResults) (err error)
 }
 
-func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
+func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
+	var serverMiddlewareTable [1][]apicommon.ServerMiddleware
+	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
 	var rpcFiltersTable [1][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
+		serverMiddlewares := serverMiddlewareTable[Test_DoSomething]
 		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -26,11 +28,11 @@ func RegisterTestServer(server TestServer, serveMux *http.ServeMux, serverOption
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.DoSomething(ctx, rpc.Results().(*DoSomethingResults))
 			}
-			s.IncomingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", nil, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", Test_DoSomething, nil, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Test_DoSomething, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Bar.Test.DoSomething", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Bar.Test.DoSomething", handler, "Bar.Test.DoSomething", serverMiddlewares, rpcFilters)
 	}
 }
 

@@ -23,7 +23,7 @@ type greeterClient struct {
 func NewGreeterClient(rpcBaseURL string, options apicommon.ClientOptions) GreeterClient {
 	options.Sanitize()
 	var c greeterClient
-	c.Init(rpcBaseURL, options.Timeout)
+	c.Init(options.Timeout, rpcBaseURL)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
@@ -37,7 +37,7 @@ func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Greeter_SayHello]
-	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", Greeter_SayHello, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[Greeter_SayHello]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w",

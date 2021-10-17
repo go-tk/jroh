@@ -19,7 +19,7 @@ import (
 func TestPrometheusHelper(t *testing.T) {
 	r := prometheus.NewRegistry()
 	MustRegisterCollectors(r)
-	sm := http.NewServeMux()
+	rr := apicommon.NewRPCRouter(nil)
 	so := apicommon.ServerOptions{}
 	fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
 		DoSomethingFunc: func(context.Context, *fooapi.DoSomethingParams) error {
@@ -28,7 +28,7 @@ func TestPrometheusHelper(t *testing.T) {
 		DoSomething2Func: func(context.Context, *fooapi.DoSomething2Params, *fooapi.DoSomething2Results) error {
 			return nil
 		},
-	}, sm, so)
+	}, rr, so)
 	var transportErr error
 	co := apicommon.ClientOptions{
 		RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
@@ -41,7 +41,7 @@ func TestPrometheusHelper(t *testing.T) {
 				return nil, transportErr
 			}
 			responseRecorder := httptest.NewRecorder()
-			sm.ServeHTTP(responseRecorder, request)
+			rr.ServeMux().ServeHTTP(responseRecorder, request)
 			response := responseRecorder.Result()
 			return response, nil
 		}),

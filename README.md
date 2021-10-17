@@ -130,11 +130,12 @@ func main() {
             return nil
         },
     }
-    serveMux := http.NewServeMux()
-    helloworldapi.RegisterGreeterServer(&server, serveMux, apicommon.ServerOptions{})
+    rpcRouter := apicommon.NewRPCRouter(nil)
+    helloworldapi.RegisterGreeterServer(&server, rpcRouter, apicommon.ServerOptions{})
+    log.Printf("rpc route infos: %#v", rpcRouter.RPCRouteInfos())
 
     apicommon.DebugMode = true
-    err := http.ListenAndServe(":2220", serveMux)
+    err := http.ListenAndServe(":2220", rpcRouter.ServeMux())
     log.Fatal(err)
 }
 ////////// END server.go //////////

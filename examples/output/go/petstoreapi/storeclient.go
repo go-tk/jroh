@@ -24,7 +24,7 @@ type storeClient struct {
 func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreClient {
 	options.Sanitize()
 	var c storeClient
-	c.Init(rpcBaseURL, options.Timeout)
+	c.Init(options.Timeout, rpcBaseURL)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
@@ -38,7 +38,7 @@ func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Store_CreateOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", Store_CreateOrder, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[Store_CreateOrder]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.CreateOrder"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.CreateOrder\" traceID=%q: %w",
@@ -55,7 +55,7 @@ func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*Ge
 	}
 	s.Params = *params
 	rpcFilters := c.rpcFiltersTable[Store_GetOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", &s.Params, &s.Results, apicommon.HandleRPC, rpcFilters)
+	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", Store_GetOrder, &s.Params, &s.Results, rpcFilters)
 	transport := c.transportTable[Store_GetOrder]
 	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.GetOrder"); err != nil {
 		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.GetOrder\" traceID=%q: %w",

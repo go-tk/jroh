@@ -78,7 +78,6 @@ package {self._make_package_name()}
 
 <%
     context1 = g._import_package("context", "context")
-    http = g._import_package("http", "net/http")
     apicommon = g._import_package("apicommon", "github.com/go-tk/jroh/go/apicommon")
 
     namespace = utils.pascal_case(g._namespace)
@@ -100,16 +99,20 @@ type ${service_name}Server interface {
 % endfor
 }
 
-func Register${service_name}Server(server ${service_name}Server, serveMux *${http()}.ServeMux, serverOptions ${apicommon()}.ServerOptions) {
+func Register${service_name}Server(server ${service_name}Server, rpcRouter *${apicommon()}.RPCRouter, serverOptions ${apicommon()}.ServerOptions) {
     serverOptions.Sanitize()
+    var serverMiddlewareTable [${len(service.methods)}][]${apicommon()}.ServerMiddleware
+    ${apicommon()}.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
     var rpcFiltersTable [${len(service.methods)}][]${apicommon()}.RPCHandler
     ${apicommon()}.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
+    full_method_name = f"{namespace}.{service_name}.{method_name}"
     rpc_path = service.rpc_paths[i]
 %>\
     {
+        serverMiddlewares := serverMiddlewareTable[${service_name}_${method_name}]
         rpcFilters := rpcFiltersTable[${service_name}_${method_name}]
         incomingRPCFactory := func() *${apicommon()}.IncomingRPC {
             var s struct {
@@ -135,7 +138,8 @@ func Register${service_name}Server(server ${service_name}Server, serveMux *${htt
 "${namespace}", \
 "${service_name}", \
 "${method_name}", \
-"${namespace}.${service_name}.${method_name}", \
+"${full_method_name}", \
+${service_name}_${method_name}, \
     % if method.params is None:
 nil, \
     % else:
@@ -150,8 +154,8 @@ rpcHandler, \
 rpcFilters)
             return &s.IncomingRPC
         }
-        handler := ${apicommon()}.MakeHandler(serverOptions.Middlewares, ${service_name}_${method_name}, incomingRPCFactory, serverOptions.TraceIDGenerator)
-        serveMux.Handle(${utils.quote(rpc_path)}, handler)
+        handler := ${apicommon()}.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+        rpcRouter.AddRPCRoute(${utils.quote(rpc_path)}, handler, "${full_method_name}", serverMiddlewares, rpcFilters)
     }
 % endfor
 }
@@ -260,7 +264,7 @@ type ${service_name2}Client struct {
 func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOptions) ${service_name}Client {
     options.Sanitize()
     var c ${service_name2}Client
-    c.Init(rpcBaseURL, options.Timeout)
+    c.Init(options.Timeout, rpcBaseURL)
     ${apicommon()}.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
     ${apicommon()}.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
     return &c
@@ -268,6 +272,7 @@ func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOp
 % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
+    full_method_name = f"{namespace}.{service_name}.{method_name}"
     rpc_path = service.rpc_paths[i]
 %>\
 
@@ -297,7 +302,8 @@ error) {
 "${namespace}", \
 "${service_name}", \
 "${method_name}", \
-"${namespace}.${service_name}.${method_name}", \
+"${full_method_name}", \
+${service_name}_${method_name}, \
     % if method.params is None:
 nil, \
     % else:
@@ -308,7 +314,6 @@ nil, \
     % else:
 &s.Results, \
     % endif
-${apicommon()}.HandleRPC, \
 rpcFilters)
     transport := c.transportTable[${service_name}_${method_name}]
     if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, ${utils.quote(rpc_path)}); err != nil {
@@ -316,7 +321,7 @@ rpcFilters)
     % if method.results is not None:
 nil, \
     % endif
-${fmt()}.Errorf("rpc failed; fullMethodName=\"${namespace}.${service_name}.${method_name}\" traceID=%q: %w",
+${fmt()}.Errorf("rpc failed; fullMethodName=\"${full_method_name}\" traceID=%q: %w",
             s.OutgoingRPC.TraceID(), err)
     }
     return \

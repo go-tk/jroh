@@ -5,7 +5,6 @@ package petstoreapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type StoreServer interface {
@@ -13,11 +12,14 @@ type StoreServer interface {
 	GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) (err error)
 }
 
-func RegisterStoreServer(server StoreServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
+func RegisterStoreServer(server StoreServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
+	var serverMiddlewareTable [2][]apicommon.ServerMiddleware
+	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
 	var rpcFiltersTable [2][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
+		serverMiddlewares := serverMiddlewareTable[Store_CreateOrder]
 		rpcFilters := rpcFiltersTable[Store_CreateOrder]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -28,13 +30,14 @@ func RegisterStoreServer(server StoreServer, serveMux *http.ServeMux, serverOpti
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.CreateOrder(ctx, rpc.Params().(*CreateOrderParams), rpc.Results().(*CreateOrderResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", Store_CreateOrder, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Store_CreateOrder, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Store.CreateOrder", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Store.CreateOrder", handler, "Petstore.Store.CreateOrder", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Store_GetOrder]
 		rpcFilters := rpcFiltersTable[Store_GetOrder]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -45,11 +48,11 @@ func RegisterStoreServer(server StoreServer, serveMux *http.ServeMux, serverOpti
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetOrder(ctx, rpc.Params().(*GetOrderParams), rpc.Results().(*GetOrderResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", Store_GetOrder, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Store_GetOrder, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Store.GetOrder", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Store.GetOrder", handler, "Petstore.Store.GetOrder", serverMiddlewares, rpcFilters)
 	}
 }
 

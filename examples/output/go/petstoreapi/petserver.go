@@ -5,7 +5,6 @@ package petstoreapi
 import (
 	context "context"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type PetServer interface {
@@ -16,11 +15,14 @@ type PetServer interface {
 	FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) (err error)
 }
 
-func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions apicommon.ServerOptions) {
+func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
+	var serverMiddlewareTable [5][]apicommon.ServerMiddleware
+	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
 	var rpcFiltersTable [5][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
+		serverMiddlewares := serverMiddlewareTable[Pet_AddPet]
 		rpcFilters := rpcFiltersTable[Pet_AddPet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -30,13 +32,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.AddPet(ctx, rpc.Params().(*AddPetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", "Petstore.Pet.AddPet", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", "Petstore.Pet.AddPet", Pet_AddPet, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_AddPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Pet.AddPet", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.AddPet", handler, "Petstore.Pet.AddPet", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Pet_GetPet]
 		rpcFilters := rpcFiltersTable[Pet_GetPet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -47,13 +50,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPet(ctx, rpc.Params().(*GetPetParams), rpc.Results().(*GetPetResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", "Petstore.Pet.GetPet", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", "Petstore.Pet.GetPet", Pet_GetPet, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPet, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Pet.GetPet", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.GetPet", handler, "Petstore.Pet.GetPet", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Pet_GetPets]
 		rpcFilters := rpcFiltersTable[Pet_GetPets]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -64,13 +68,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.GetPets(ctx, rpc.Params().(*GetPetsParams), rpc.Results().(*GetPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", "Petstore.Pet.GetPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", "Petstore.Pet.GetPets", Pet_GetPets, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_GetPets, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Pet.GetPets", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.GetPets", handler, "Petstore.Pet.GetPets", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Pet_UpdatePet]
 		rpcFilters := rpcFiltersTable[Pet_UpdatePet]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -80,13 +85,14 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.UpdatePet(ctx, rpc.Params().(*UpdatePetParams))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", "Petstore.Pet.UpdatePet", &s.Params, nil, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", "Petstore.Pet.UpdatePet", Pet_UpdatePet, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_UpdatePet, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Pet.UpdatePet", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.UpdatePet", handler, "Petstore.Pet.UpdatePet", serverMiddlewares, rpcFilters)
 	}
 	{
+		serverMiddlewares := serverMiddlewareTable[Pet_FindPets]
 		rpcFilters := rpcFiltersTable[Pet_FindPets]
 		incomingRPCFactory := func() *apicommon.IncomingRPC {
 			var s struct {
@@ -97,11 +103,11 @@ func RegisterPetServer(server PetServer, serveMux *http.ServeMux, serverOptions 
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
 				return server.FindPets(ctx, rpc.Params().(*FindPetsParams), rpc.Results().(*FindPetsResults))
 			}
-			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", "Petstore.Pet.FindPets", &s.Params, &s.Results, rpcHandler, rpcFilters)
+			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", "Petstore.Pet.FindPets", Pet_FindPets, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
 		}
-		handler := apicommon.MakeHandler(serverOptions.Middlewares, Pet_FindPets, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		serveMux.Handle("/rpc/Petstore.Pet.FindPets", handler)
+		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
+		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.FindPets", handler, "Petstore.Pet.FindPets", serverMiddlewares, rpcFilters)
 	}
 }
 
