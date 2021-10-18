@@ -11,7 +11,7 @@ type TestServer interface {
 	DoSomething(ctx context.Context, results *DoSomethingResults) (err error)
 }
 
-func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [1][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -32,7 +32,7 @@ func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Bar.Test.DoSomething", handler, "Bar.Test.DoSomething", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Bar.Test.DoSomething", handler, "Bar.Test.DoSomething", serverMiddlewares, rpcFilters)
 	}
 }
 

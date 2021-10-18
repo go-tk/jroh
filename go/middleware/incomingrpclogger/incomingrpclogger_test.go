@@ -38,7 +38,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			rr := apicommon.NewRPCRouter(nil)
+			r := apicommon.NewRouter(nil)
 			logger := zerolog.New(&w.Buf)
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
@@ -48,13 +48,13 @@ func TestIncomingRPCLogger(t *testing.T) {
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, rr, so)
+			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
 			co := apicommon.ClientOptions{
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 					request = request.Clone(request.Context())
 					request.RemoteAddr = "127.0.0.1:12345"
 					responseRecorder := httptest.NewRecorder()
-					rr.ServeMux().ServeHTTP(responseRecorder, request)
+					r.ServeMux().ServeHTTP(responseRecorder, request)
 					response := responseRecorder.Result()
 					return response, nil
 				}),

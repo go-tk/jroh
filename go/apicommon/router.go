@@ -6,34 +6,34 @@ import (
 	"runtime"
 )
 
-type RPCRouter struct {
-	serveMux      *http.ServeMux
-	rpcRouteInfos []RPCRouteInfo
+type Router struct {
+	serveMux   *http.ServeMux
+	routeInfos []RouteInfo
 }
 
-func NewRPCRouter(serveMux *http.ServeMux) *RPCRouter {
-	var rr RPCRouter
+func NewRouter(serveMux *http.ServeMux) *Router {
+	var r Router
 	if serveMux == nil {
 		serveMux = http.NewServeMux()
 	}
-	rr.serveMux = serveMux
-	return &rr
+	r.serveMux = serveMux
+	return &r
 }
 
-func (rr *RPCRouter) AddRPCRoute(
+func (r *Router) AddRoute(
 	rpcPath string,
 	handler http.Handler,
 	fullMethodName string,
 	serverMiddlewares []ServerMiddleware,
 	rpcFilters []RPCHandler,
 ) {
-	rr.serveMux.Handle(rpcPath, handler)
-	rr.addRPCRouteInfo(fullMethodName, rpcPath, serverMiddlewares, rpcFilters)
+	r.serveMux.Handle(rpcPath, handler)
+	r.addRouteInfo(rpcPath, fullMethodName, serverMiddlewares, rpcFilters)
 }
 
-func (rr *RPCRouter) addRPCRouteInfo(
-	fullMethodName string,
+func (r *Router) addRouteInfo(
 	rpcPath string,
+	fullMethodName string,
 	serverMiddlewares []ServerMiddleware,
 	rpcFilters []RPCHandler,
 ) {
@@ -45,21 +45,21 @@ func (rr *RPCRouter) addRPCRouteInfo(
 	for i, rpcFilter := range rpcFilters {
 		rpcFilters2[i] = runtime.FuncForPC(reflect.ValueOf(rpcFilter).Pointer()).Name()
 	}
-	rpcRouteInfo := RPCRouteInfo{
-		FullMethodName:    fullMethodName,
+	routeInfo := RouteInfo{
 		RPCPath:           rpcPath,
+		FullMethodName:    fullMethodName,
 		ServerMiddlewares: serverMiddlewares2,
 		RPCFilters:        rpcFilters2,
 	}
-	rr.rpcRouteInfos = append(rr.rpcRouteInfos, rpcRouteInfo)
+	r.routeInfos = append(r.routeInfos, routeInfo)
 }
 
-func (rr *RPCRouter) ServeMux() *http.ServeMux      { return rr.serveMux }
-func (rr *RPCRouter) RPCRouteInfos() []RPCRouteInfo { return rr.rpcRouteInfos }
+func (r *Router) ServeMux() *http.ServeMux { return r.serveMux }
+func (r *Router) RouteInfos() []RouteInfo  { return r.routeInfos }
 
-type RPCRouteInfo struct {
-	FullMethodName    string
+type RouteInfo struct {
 	RPCPath           string
+	FullMethodName    string
 	ServerMiddlewares []string
 	RPCFilters        []string
 }

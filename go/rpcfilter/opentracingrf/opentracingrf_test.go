@@ -43,7 +43,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 	mocktracer.New()
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			rr := apicommon.NewRPCRouter(nil)
+			r := apicommon.NewRouter(nil)
 			mt := mocktracer.New()
 			w.MT = mt
 			so := apicommon.ServerOptions{
@@ -61,7 +61,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, rr, so)
+			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
 			co := apicommon.ClientOptions{
 				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
 					apicommon.AnyMethod: {
@@ -75,7 +75,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 					responseRecorder := httptest.NewRecorder()
-					rr.ServeMux().ServeHTTP(responseRecorder, request.WithContext(context.Background()))
+					r.ServeMux().ServeHTTP(responseRecorder, request.WithContext(context.Background()))
 					response := responseRecorder.Result()
 					return response, nil
 				}),

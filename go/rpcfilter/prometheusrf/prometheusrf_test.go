@@ -19,7 +19,7 @@ import (
 func TestPrometheusHelper(t *testing.T) {
 	r := prometheus.NewRegistry()
 	MustRegisterCollectors(r)
-	rr := apicommon.NewRPCRouter(nil)
+	rr := apicommon.NewRouter(nil)
 	so := apicommon.ServerOptions{}
 	fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
 		DoSomethingFunc: func(context.Context, *fooapi.DoSomethingParams) error {

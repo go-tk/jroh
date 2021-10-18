@@ -15,7 +15,7 @@ type PetServer interface {
 	FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) (err error)
 }
 
-func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [5][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -36,7 +36,7 @@ func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverO
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.AddPet", handler, "Petstore.Pet.AddPet", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Pet.AddPet", handler, "Petstore.Pet.AddPet", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Pet_GetPet]
@@ -54,7 +54,7 @@ func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverO
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.GetPet", handler, "Petstore.Pet.GetPet", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Pet.GetPet", handler, "Petstore.Pet.GetPet", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Pet_GetPets]
@@ -72,7 +72,7 @@ func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverO
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.GetPets", handler, "Petstore.Pet.GetPets", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Pet.GetPets", handler, "Petstore.Pet.GetPets", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Pet_UpdatePet]
@@ -89,7 +89,7 @@ func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverO
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.UpdatePet", handler, "Petstore.Pet.UpdatePet", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Pet.UpdatePet", handler, "Petstore.Pet.UpdatePet", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Pet_FindPets]
@@ -107,7 +107,7 @@ func RegisterPetServer(server PetServer, rpcRouter *apicommon.RPCRouter, serverO
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Pet.FindPets", handler, "Petstore.Pet.FindPets", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Pet.FindPets", handler, "Petstore.Pet.FindPets", serverMiddlewares, rpcFilters)
 	}
 }
 

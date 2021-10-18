@@ -11,7 +11,7 @@ type GreeterServer interface {
 	SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) (err error)
 }
 
-func RegisterGreeterServer(server GreeterServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterGreeterServer(server GreeterServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [1][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -33,7 +33,7 @@ func RegisterGreeterServer(server GreeterServer, rpcRouter *apicommon.RPCRouter,
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/HelloWorld.Greeter.SayHello", handler, "HelloWorld.Greeter.SayHello", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/HelloWorld.Greeter.SayHello", handler, "HelloWorld.Greeter.SayHello", serverMiddlewares, rpcFilters)
 	}
 }
 

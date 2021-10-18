@@ -13,7 +13,7 @@ type TestServer interface {
 	DoSomething3(ctx context.Context) (err error)
 }
 
-func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [3][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -34,7 +34,7 @@ func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething", handler, "Foo.Test.DoSomething", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Foo.Test.DoSomething", handler, "Foo.Test.DoSomething", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Test_DoSomething2]
@@ -52,7 +52,7 @@ func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething2", handler, "Foo.Test.DoSomething2", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Foo.Test.DoSomething2", handler, "Foo.Test.DoSomething2", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Test_DoSomething3]
@@ -68,7 +68,7 @@ func RegisterTestServer(server TestServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Foo.Test.DoSomething3", handler, "Foo.Test.DoSomething3", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Foo.Test.DoSomething3", handler, "Foo.Test.DoSomething3", serverMiddlewares, rpcFilters)
 	}
 }
 

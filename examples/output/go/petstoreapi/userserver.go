@@ -14,7 +14,7 @@ type UserServer interface {
 	UpdateUser(ctx context.Context, params *UpdateUserParams) (err error)
 }
 
-func RegisterUserServer(server UserServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [4][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -35,7 +35,7 @@ func RegisterUserServer(server UserServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.User.CreateUser", handler, "Petstore.User.CreateUser", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.User.CreateUser", handler, "Petstore.User.CreateUser", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[User_GetUser]
@@ -53,7 +53,7 @@ func RegisterUserServer(server UserServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.User.GetUser", handler, "Petstore.User.GetUser", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.User.GetUser", handler, "Petstore.User.GetUser", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[User_GetUsers]
@@ -71,7 +71,7 @@ func RegisterUserServer(server UserServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.User.GetUsers", handler, "Petstore.User.GetUsers", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.User.GetUsers", handler, "Petstore.User.GetUsers", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[User_UpdateUser]
@@ -88,7 +88,7 @@ func RegisterUserServer(server UserServer, rpcRouter *apicommon.RPCRouter, serve
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.User.UpdateUser", handler, "Petstore.User.UpdateUser", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.User.UpdateUser", handler, "Petstore.User.UpdateUser", serverMiddlewares, rpcFilters)
 	}
 }
 

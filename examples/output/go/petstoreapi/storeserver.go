@@ -12,7 +12,7 @@ type StoreServer interface {
 	GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) (err error)
 }
 
-func RegisterStoreServer(server StoreServer, rpcRouter *apicommon.RPCRouter, serverOptions apicommon.ServerOptions) {
+func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [2][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -34,7 +34,7 @@ func RegisterStoreServer(server StoreServer, rpcRouter *apicommon.RPCRouter, ser
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Store.CreateOrder", handler, "Petstore.Store.CreateOrder", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Store.CreateOrder", handler, "Petstore.Store.CreateOrder", serverMiddlewares, rpcFilters)
 	}
 	{
 		serverMiddlewares := serverMiddlewareTable[Store_GetOrder]
@@ -52,7 +52,7 @@ func RegisterStoreServer(server StoreServer, rpcRouter *apicommon.RPCRouter, ser
 			return &s.IncomingRPC
 		}
 		handler := apicommon.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-		rpcRouter.AddRPCRoute("/rpc/Petstore.Store.GetOrder", handler, "Petstore.Store.GetOrder", serverMiddlewares, rpcFilters)
+		router.AddRoute("/rpc/Petstore.Store.GetOrder", handler, "Petstore.Store.GetOrder", serverMiddlewares, rpcFilters)
 	}
 }
 

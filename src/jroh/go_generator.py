@@ -99,7 +99,7 @@ type ${service_name}Server interface {
 % endfor
 }
 
-func Register${service_name}Server(server ${service_name}Server, rpcRouter *${apicommon()}.RPCRouter, serverOptions ${apicommon()}.ServerOptions) {
+func Register${service_name}Server(server ${service_name}Server, router *${apicommon()}.Router, serverOptions ${apicommon()}.ServerOptions) {
     serverOptions.Sanitize()
     var serverMiddlewareTable [${len(service.methods)}][]${apicommon()}.ServerMiddleware
     ${apicommon()}.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -155,7 +155,7 @@ rpcFilters)
             return &s.IncomingRPC
         }
         handler := ${apicommon()}.MakeHandler(serverMiddlewares, incomingRPCFactory, serverOptions.TraceIDGenerator)
-        rpcRouter.AddRPCRoute(${utils.quote(rpc_path)}, handler, "${full_method_name}", serverMiddlewares, rpcFilters)
+        router.AddRoute(${utils.quote(rpc_path)}, handler, "${full_method_name}", serverMiddlewares, rpcFilters)
     }
 % endfor
 }
