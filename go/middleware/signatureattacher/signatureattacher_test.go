@@ -36,21 +36,22 @@ func TestSignatureAttacher(t *testing.T) {
 								return nil, false, nil
 							}
 							return w.Input.Key, true, nil
-						}),
+						}, signaturverifier.TimestampGetter(func() int64 { return 1234567890 })),
 					},
 				},
 			}
 			fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
 				DoSomething3Func: func(context.Context) error { return nil },
 			}, r, so)
+			obs := append(w.Input.OptionsBuilders, TimestampGetter(func() int64 { return 1234567890 }))
 			co := apicommon.ClientOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
 					apicommon.AnyMethod: {
-						NewForClient(w.Input.SenderID, w.Input.Key, w.Input.OptionsBuilders...),
+						NewForClient(w.Input.SenderID, w.Input.Key, obs...),
 					},
 				},
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
-					a := request.Header["Authorization"]
+					a := request.Header.Get("Authorization")
 					if !assert.NotEmpty(t, a) {
 						t.FailNow()
 					}

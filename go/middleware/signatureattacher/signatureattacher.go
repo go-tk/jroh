@@ -19,12 +19,18 @@ import (
 type OptionsBuilder func(options *options)
 
 type options struct {
-	AlgorithmType algorithmType
+	TimestampGetter func() int64
+	AlgorithmType   algorithmType
 }
 
 func (o *options) Init() *options {
+	o.TimestampGetter = func() int64 { return time.Now().Unix() }
 	o.AlgorithmType = algorithmMD5
 	return o
+}
+
+func TimestampGetter(value func() int64) OptionsBuilder {
+	return func(options *options) { options.TimestampGetter = value }
 }
 
 func AlgorithmMD5() OptionsBuilder {
@@ -51,7 +57,7 @@ func NewForClient(senderID string, key []byte, optionsBuilders ...OptionsBuilder
 	return func(transport http.RoundTripper) http.RoundTripper {
 		return apicommon.TransportFunc(func(request *http.Request) (returnedResponse *http.Response, returnedErr error) {
 			outgoingRPC := apicommon.MustGetRPCFromContext(request.Context()).OutgoingRPC()
-			timestamp := time.Now().Unix()
+			timestamp := options.TimestampGetter()
 			signature := makeSignature(
 				timestamp,
 				senderID,

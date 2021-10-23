@@ -23,17 +23,23 @@ type OptionsBuilder func(options *options)
 
 type options struct {
 	MaxHeaderStrLength int
+	TimestampGetter    func() int64
 	MaxTimestampSkew   int64
 }
 
 func (o *options) Init() *options {
 	o.MaxHeaderStrLength = 256
+	o.TimestampGetter = func() int64 { return time.Now().Unix() }
 	o.MaxTimestampSkew = 10
 	return o
 }
 
 func MaxHeaderStrLength(value int) OptionsBuilder {
 	return func(options *options) { options.MaxHeaderStrLength = value }
+}
+
+func TimestampGetter(value func() int64) OptionsBuilder {
+	return func(options *options) { options.TimestampGetter = value }
 }
 
 func MaxTimestampSkew(value int64) OptionsBuilder {
@@ -65,7 +71,7 @@ func NewForServer(keyFetcher KeyFetcher, optionsBuilders ...OptionsBuilder) apic
 				incomingRPC.RespondHTTPWithErr(w, http.StatusBadRequest, err, "")
 				return
 			}
-			if !checkTimestamp(header.Timestamp, options.MaxTimestampSkew) {
+			if now := options.TimestampGetter(); !checkTimestamp(header.Timestamp, now, options.MaxTimestampSkew) {
 				err := fmt.Errorf("signaturverifier: unexpected timestamp; timestamp=%v maxTimestampSkew=%v",
 					header.Timestamp, options.MaxTimestampSkew)
 				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
@@ -139,8 +145,7 @@ func parseHeaderStr(headerStr string) (header, error) {
 	}, nil
 }
 
-func checkTimestamp(timestamp, maxTimestampSkew int64) bool {
-	now := time.Now().Unix()
+func checkTimestamp(timestamp, now, maxTimestampSkew int64) bool {
 	if minTimestamp := now - maxTimestampSkew; timestamp < minTimestamp {
 		return false
 	}
