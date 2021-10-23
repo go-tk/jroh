@@ -163,6 +163,14 @@ class _Translator:
         responses = {
             "200": {
                 "description": "\n\n".join(description_parts),
+                "headers": {
+                    "X-JROH-Trace-ID": {
+                        "description": "The trace identifier.",
+                        "schema": {
+                            "type": "string",
+                        },
+                    }
+                },
                 "content": {
                     "application/json": {
                         "schema": schema,
@@ -181,11 +189,6 @@ class _Translator:
         if schema_id in self._schemas:
             return
         properties = {
-            "traceID": {
-                "type": "string",
-                "description": "The identifier of the trace associated with the log entry.",
-                "example": "Uv38ByGCZU8WP18PmmIdcg",
-            },
             "error": {
                 "$ref": self._common_file_path + "#/components/schemas/error",
                 "description": "The error encountered."
@@ -199,7 +202,6 @@ class _Translator:
         schema2 = {
             "type": "object",
             "properties": properties,
-            "required": ["traceID"],
         }
         self._schemas[schema_id] = schema2
         if results is not None:

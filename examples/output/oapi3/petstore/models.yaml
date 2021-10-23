@@ -18,16 +18,10 @@ components:
     addPetResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     getPetParams:
       type: object
       properties:
@@ -40,10 +34,6 @@ components:
     getPetResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -54,8 +44,6 @@ components:
           - $ref: '#/components/schemas/getPetResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     getPetResults:
       type: object
       properties:
@@ -81,10 +69,6 @@ components:
     getPetsResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -95,8 +79,6 @@ components:
           - $ref: '#/components/schemas/getPetsResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     getPetsResults:
       type: object
       properties:
@@ -118,16 +100,10 @@ components:
     updatePetResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     findPetsParams:
       type: object
       properties:
@@ -147,10 +123,6 @@ components:
     findPetsResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -161,8 +133,6 @@ components:
           - $ref: '#/components/schemas/findPetsResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     findPetsResults:
       type: object
       properties:
@@ -184,10 +154,6 @@ components:
     createOrderResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -198,8 +164,6 @@ components:
           - $ref: '#/components/schemas/createOrderResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     createOrderResults:
       type: object
       properties:
@@ -221,10 +185,6 @@ components:
     getOrderResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -235,8 +195,6 @@ components:
           - $ref: '#/components/schemas/getOrderResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     getOrderResults:
       type: object
       properties:
@@ -258,16 +216,10 @@ components:
     createUserResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     getUserParams:
       type: object
       properties:
@@ -280,10 +232,6 @@ components:
     getUserResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -294,8 +242,6 @@ components:
           - $ref: '#/components/schemas/getUserResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     getUserResults:
       type: object
       properties:
@@ -321,10 +267,6 @@ components:
     getUsersResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -335,8 +277,6 @@ components:
           - $ref: '#/components/schemas/getUsersResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     getUsersResults:
       type: object
       properties:
@@ -358,16 +298,10 @@ components:
     updateUserResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     pet:
       type: object
       properties:

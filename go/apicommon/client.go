@@ -27,9 +27,15 @@ func FillTransportTable(transportTable []http.RoundTripper, transport http.Round
 		return TransportFunc(func(request *http.Request) (*http.Response, error) {
 			outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
 			outgoingRPC.isRequested = true
+			if outgoingRPC.traceID != "" {
+				injectTraceID(outgoingRPC.traceID, request.Header)
+			}
 			response, err := transport.RoundTrip(request)
 			if err != nil {
 				return nil, err
+			}
+			if outgoingRPC.traceID == "" {
+				outgoingRPC.traceID = extractTraceID(response.Header)
 			}
 			outgoingRPC.statusCode = response.StatusCode
 			if response.StatusCode != http.StatusOK {
@@ -82,7 +88,6 @@ func (c *Client) Init(timeout time.Duration, rpcBaseURL string) {
 func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport http.RoundTripper, rpcPath string) error {
 	if rpc, ok := GetRPCFromContext(ctx); ok {
 		outgoingRPC.traceID = rpc.traceID
-		outgoingRPC.traceIDIsReceived = true
 	}
 	outgoingRPC.client = &c.c
 	outgoingRPC.transport = transport

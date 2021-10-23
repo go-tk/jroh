@@ -1619,9 +1619,9 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 							case "DoSomething2":
 								assert.NotNil(t, outgoingRPC.RawParams())
 								assert.NotNil(t, outgoingRPC.RawResp())
-								assert.Equal(t, "", outgoingRPC.TraceID())
+								assert.Equal(t, "My-Trace-ID-1", outgoingRPC.TraceID())
 							case "DoSomething3":
-								assert.Equal(t, "", outgoingRPC.TraceID())
+								assert.Equal(t, "My-Trace-ID-2", outgoingRPC.TraceID())
 							default:
 								assert.Fail(t, "unknown method name: "+mn)
 							}

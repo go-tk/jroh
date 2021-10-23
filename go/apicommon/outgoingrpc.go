@@ -20,9 +20,8 @@ func (r *RPC) OutgoingRPC() *OutgoingRPC {
 type OutgoingRPC struct {
 	RPC
 
-	traceIDIsReceived bool
-	client            *http.Client
-	transport         http.RoundTripper
+	client    *http.Client
+	transport http.RoundTripper
 
 	url         string
 	rawParams   []byte
@@ -89,9 +88,6 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("http request failed (1): %v", err)
 	}
-	if or.traceIDIsReceived {
-		injectTraceID(or.traceID, request.Header)
-	}
 	if _, err := or.client.Do(request); err != nil {
 		return fmt.Errorf("http request failed (2): %w", err)
 	}
@@ -104,11 +100,9 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 	if or.results == nil {
 		resp := struct {
-			TraceID *string `json:"traceID"`
-			Error   *Error  `json:"error"`
+			Error *Error `json:"error"`
 		}{
-			TraceID: &or.traceID,
-			Error:   &or.error,
+			Error: &or.error,
 		}
 		if err := json.Unmarshal(or.rawResp, &resp); err != nil {
 			return fmt.Errorf("resp decoding failed (1): %v", err)
@@ -116,11 +110,9 @@ func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
 		return nil
 	}
 	resp := struct {
-		TraceID *string     `json:"traceID"`
 		Error   *Error      `json:"error"`
 		Results interface{} `json:"results"`
 	}{
-		TraceID: &or.traceID,
 		Error:   &or.error,
 		Results: or.results,
 	}

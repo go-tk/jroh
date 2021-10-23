@@ -56,6 +56,11 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32603 | internal error | Internal JSON-RPC error. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -79,6 +84,11 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32603 | internal error | Internal JSON-RPC error. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -95,29 +105,17 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     sayHelloV2Resp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
 """,
                     "xyz/greeting_service.yaml": """\
 openapi: 3.0.0
@@ -136,6 +134,11 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32603 | internal error | Internal JSON-RPC error. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -152,16 +155,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
 """,
                 },
             ),
@@ -220,6 +217,11 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32603 | internal error | Internal JSON-RPC error. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -243,6 +245,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -259,6 +266,11 @@ paths:
             | Code | Message | Description |
             | - | - | - |
             | -32603 | internal error | Internal JSON-RPC error. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -289,6 +301,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -305,16 +322,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     sayHelloV2Params:
       type: object
       properties:
@@ -326,23 +337,13 @@ components:
     sayHelloV2Resp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     sayHelloV3Resp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
@@ -353,8 +354,6 @@ components:
           - $ref: '#/components/schemas/sayHelloV3Results'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     sayHelloV3Results:
       type: object
       properties:
@@ -445,6 +444,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -510,16 +514,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     color:
       type: integer
       format: int32
@@ -626,6 +624,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -671,16 +674,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     nickname:
       type: string
       minLength: 1
@@ -773,6 +770,11 @@ paths:
             | 123 | xyz | Too Bad! (>_<) |
             | 300 | fail | Failed |
             | 400 | bad situation | None |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -789,16 +791,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
 """,
                 },
             ),
@@ -936,6 +932,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -987,16 +988,10 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
           - description: The error encountered.
-      required:
-      - traceID
     foo:
       type: object
       properties:

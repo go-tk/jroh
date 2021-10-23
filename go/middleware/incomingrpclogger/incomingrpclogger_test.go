@@ -77,8 +77,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid1\",` +
-					`\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n"
+					`"params":"{\"myOnOff\":false}","resp":"{\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -89,11 +88,9 @@ func TestIncomingRPCLogger(t *testing.T) {
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid1\",` +
-					`\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n" +
+					`"params":"{\"myOnOff\":false}","resp":"{\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n" +
 					`{"level":"info","traceID":"tid2","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid2\",` +
-					`\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n"
+					`"params":"{\"myOnOff\":false}","resp":"{\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
 				w.TC.DoSomething2(context.Background(), &w.Input.Params)
@@ -111,8 +108,8 @@ func TestIncomingRPCLogger(t *testing.T) {
 				lastTID := 0
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
-					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","respSize":45,` +
-					`"truncatedResp":"{\"traceID\":","statusCode":200,"message":"incoming rpc"}` + "\n"
+					`"paramsSize":17,"truncatedParams":"{\"myOnOff\"","respSize":28,` +
+					`"truncatedResp":"{\"results\":","statusCode":200,"message":"incoming rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -137,7 +134,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"error","traceID":"tid1","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"params":"{\"myOnOff\":false}","errorCode":-32603,"err":"hello",` +
-					`"stackTrace":"goroutine...","resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
+					`"stackTrace":"goroutine...","resp":"{\"error\":{\"code\":-32603,\"message\":\"internal error\"}}",` +
 					`"statusCode":200,"message":"incoming rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
@@ -172,8 +169,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","foo":"bar","message":"test"}` + "\n" +
 					`{"level":"info","traceID":"tid1","foo":"bar","remoteAddr":"127.0.0.1:12345","fullMethodName":"Foo.Test.DoSomething2",` +
-					`"params":"{\"myOnOff\":false}","resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}",` +
-					`"statusCode":200,"message":"incoming rpc"}` + "\n"
+					`"params":"{\"myOnOff\":false}","resp":"{\"results\":{\"myOnOff\":true}}","statusCode":200,"message":"incoming rpc"}` + "\n"
 			}),
 	)
 }

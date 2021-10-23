@@ -21,8 +21,6 @@ func (r *RPC) IncomingRPC() *IncomingRPC {
 type IncomingRPC struct {
 	RPC
 
-	traceIDIsReceived bool
-
 	rawParams        []byte
 	error            Error
 	err              error
@@ -117,13 +115,9 @@ func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 		encoder.SetIndent("", "  ")
 	}
 	resp := struct {
-		TraceID *string     `json:"traceID,omitempty"`
 		Error   *Error      `json:"error,omitempty"`
 		Results interface{} `json:"results,omitempty"`
 	}{}
-	if !ir.traceIDIsReceived {
-		resp.TraceID = &ir.traceID
-	}
 	if ir.error.Code == 0 {
 		resp.Results = ir.results
 	} else {

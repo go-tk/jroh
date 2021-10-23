@@ -64,12 +64,12 @@ func MakeHandler(
 				return
 			}
 			incomingRPC := incomingRPCFactory()
-			if traceID := extractTraceID(r.Header); traceID == "" {
-				incomingRPC.traceID = traceIDGenerator()
-			} else {
-				incomingRPC.traceID = traceID
-				incomingRPC.traceIDIsReceived = true
+			traceID := extractTraceID(r.Header)
+			if traceID == "" {
+				traceID = traceIDGenerator()
+				injectTraceID(traceID, w.Header())
 			}
+			incomingRPC.traceID = traceID
 			if buffer.Len() >= 1 {
 				incomingRPC.rawParams = buffer.Bytes()
 			}

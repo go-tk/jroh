@@ -227,7 +227,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 						{Key: "params", ValueKind: reflect.String, ValueString: "{\n  \"myOnOff\": false\n}\n"},
-						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"traceID\": \"tid1\",\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
+						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
 					}, mlr.Fields)
 				}
 			}),

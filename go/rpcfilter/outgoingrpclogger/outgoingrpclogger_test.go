@@ -75,7 +75,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
+					`"statusCode":200,"resp":"{\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -83,7 +83,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32000,\"message\":\"not implemented\"}}",` +
+					`"statusCode":200,"resp":"{\"error\":{\"code\":-32000,\"message\":\"not implemented\"}}",` +
 					`"errorCode":-32000,"message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
@@ -96,10 +96,10 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n" +
+					`"statusCode":200,"resp":"{\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n" +
 					`{"level":"info","traceID":"tid2","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"resp":"{\"traceID\":\"tid2\",\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
+					`"statusCode":200,"resp":"{\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}).
 			AddTask(19, func(w *Workspace) {
 				w.TC.DoSomething2(context.Background(), &w.Input.Params)
@@ -118,7 +118,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				}
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","paramsSize":17,"truncatedParams":"{\"myOnOff\"",` +
-					`"isRequested":true,"statusCode":200,"respSize":45,"truncatedResp":"{\"traceID\":","message":"outgoing rpc"}` + "\n"
+					`"isRequested":true,"statusCode":200,"respSize":28,"truncatedResp":"{\"results\":","message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -136,7 +136,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.ExpectedOutput.Log = `{"level":"info","foo":"bar","message":"test"}` + "\n" +
 					`{"level":"info","foo":"bar","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"resp":"{\"traceID\":\"tid1\",\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
+					`"statusCode":200,"resp":"{\"results\":{\"myOnOff\":true}}","message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {

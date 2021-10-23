@@ -237,7 +237,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 						{Key: "params", ValueKind: reflect.String, ValueString: "{\n  \"myOnOff\": false\n}\n"},
-						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"traceID\": \"tid1\",\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
+						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
 					}, mlr.Fields)
 				}
 			}),

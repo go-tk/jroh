@@ -26,6 +26,11 @@ paths:
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
             | 1001 | user not allowed | The user is in the blacklist. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:

@@ -19,10 +19,6 @@ components:
     sayHelloResp:
       type: object
       properties:
-        traceID:
-          type: string
-          description: The identifier of the trace associated with the log entry.
-          example: Uv38ByGCZU8WP18PmmIdcg
         error:
           allOf:
           - $ref: ../common.yaml#/components/schemas/error
@@ -33,8 +29,6 @@ components:
           - $ref: '#/components/schemas/sayHelloResults'
           - description: The results returned. This field is mutually exclusive of
               the `error` field.
-      required:
-      - traceID
     sayHelloResults:
       type: object
       properties:

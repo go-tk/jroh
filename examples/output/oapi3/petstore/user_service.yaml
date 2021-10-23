@@ -25,6 +25,11 @@ paths:
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
             | 1001 | user already exists | The user ID is in use. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -50,6 +55,11 @@ paths:
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
             | 1002 | user not found | Can't find the user. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -74,6 +84,11 @@ paths:
             | -32700 | parse error | Invalid JSON was received by the server. |
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -99,6 +114,11 @@ paths:
             | -32603 | internal error | Internal JSON-RPC error. |
             | -32602 | invalid params | Invalid method parameter(s). |
             | 1002 | user not found | Can't find the user. |
+          headers:
+            X-JROH-Trace-ID:
+              description: The trace identifier.
+              schema:
+                type: string
           content:
             application/json:
               schema:
