@@ -137,7 +137,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
 						{Key: "api_error", ValueKind: reflect.String, ValueString: "internal error"},
-						{Key: "internal_error", ValueKind: reflect.String, ValueString: "just wrong"},
+						{Key: "native_error", ValueKind: reflect.String, ValueString: "just wrong"},
 					}, mlr.Fields)
 				}
 			}),
@@ -172,7 +172,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "incoming rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
-						{Key: "internal_error", ValueKind: reflect.String, ValueString: "resp encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
+						{Key: "native_error", ValueKind: reflect.String, ValueString: "resp encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
 					}, mlr.Fields)
 				}
 			}),

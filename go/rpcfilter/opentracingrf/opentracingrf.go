@@ -28,6 +28,15 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 		// Before
 		returnedErr = outgoingRPC.Do(ctx)
 		// After
+		span.SetTag("jroh.is_requested", outgoingRPC.IsRequested())
+		if outgoingRPC.IsRequested() {
+			ext.HTTPStatusCode.Set(span, uint16(outgoingRPC.StatusCode()))
+			span.SetTag("jroh.error_code", int32(outgoingRPC.Error().Code))
+		} else {
+			if returnedErr != nil {
+				ext.Error.Set(span, true)
+			}
+		}
 		logFields := []log.Field{log.Event("outgoing rpc")}
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
 			logFields = append(logFields, log.String("trace_id", traceID))
@@ -37,22 +46,19 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 				logFields = append(logFields, log.String("params", bytesToString(rawParams)))
 			}
 		}
-		span.SetTag("jroh.is_requested", outgoingRPC.IsRequested())
 		if outgoingRPC.IsRequested() {
-			ext.HTTPStatusCode.Set(span, uint16(outgoingRPC.StatusCode()))
-			span.SetTag("jroh.error_code", int32(outgoingRPC.Error().Code))
-			if outgoingRPC.Error().Code != 0 {
-				logFields = append(logFields, log.String("api_error", outgoingRPC.Error().Message))
-			}
 			if apicommon.DebugMode {
 				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
 					logFields = append(logFields, log.String("resp", bytesToString(rawResp)))
 				}
 			}
-		} else {
-			if returnedErr != nil {
-				ext.Error.Set(span, true)
-				logFields = append(logFields, log.String("pre_request_error", returnedErr.Error()))
+			if outgoingRPC.Error().Code != 0 {
+				logFields = append(logFields, log.String("api_error", outgoingRPC.Error().Message))
+			}
+		}
+		if returnedErr != nil {
+			if _, ok := returnedErr.(*apicommon.Error); !ok {
+				logFields = append(logFields, log.String("native_error", returnedErr.Error()))
 			}
 		}
 		span.LogFields(logFields...)

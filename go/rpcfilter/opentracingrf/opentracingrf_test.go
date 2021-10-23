@@ -185,7 +185,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
-						{Key: "pre_request_error", ValueKind: reflect.String, ValueString: "params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
+						{Key: "native_error", ValueKind: reflect.String, ValueString: "params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
 					}, mlr.Fields)
 				}
 			}),

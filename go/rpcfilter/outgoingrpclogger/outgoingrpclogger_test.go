@@ -83,8 +83,8 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.TraceIDGenerator = func() string { lastTID++; return fmt.Sprintf("tid%d", lastTID) }
 				w.ExpectedOutput.Log = `{"level":"info","traceID":"tid1","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","params":"{\"myOnOff\":false}","isRequested":true,` +
-					`"statusCode":200,"errorCode":-32000,"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32000,\"message\":\"not implemented\"}}",` +
-					`"message":"outgoing rpc"}` + "\n"
+					`"statusCode":200,"resp":"{\"traceID\":\"tid1\",\"error\":{\"code\":-32000,\"message\":\"not implemented\"}}",` +
+					`"errorCode":-32000,"message":"outgoing rpc"}` + "\n"
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -145,7 +145,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 				w.Input.Params.MyStructString = &tmp
 				w.ExpectedOutput.Log = `{"level":"error","fullMethodName":"Foo.Test.DoSomething2",` +
 					`"url":"http://127.0.0.1/rpc/Foo.Test.DoSomething2","isRequested":false,` +
-					`"preRequestErr":"params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
+					`"err":"params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word",` +
 					`"message":"outgoing rpc"}` + "\n"
 			}),
 	)

@@ -29,6 +29,11 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
+			ext.HTTPStatusCode.Set(span, uint16(incomingRPC.StatusCode()))
+			span.SetTag("jroh.error_code", int32(incomingRPC.Error().Code))
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {
+				ext.Error.Set(span, true)
+			}
 			logFields := []log.Field{
 				log.Event("incoming rpc"),
 				log.String("trace_id", incomingRPC.TraceID()),
@@ -38,16 +43,11 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 					logFields = append(logFields, log.String("params", bytesToString(rawParams)))
 				}
 			}
-			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {
-				ext.Error.Set(span, true)
-			}
-			ext.HTTPStatusCode.Set(span, uint16(incomingRPC.StatusCode()))
-			span.SetTag("jroh.error_code", int32(incomingRPC.Error().Code))
 			if incomingRPC.Error().Code != 0 {
 				logFields = append(logFields, log.String("api_error", incomingRPC.Error().Message))
 			}
-			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
-				logFields = append(logFields, log.String("internal_error", internalErr.Error()))
+			if err := incomingRPC.Err(); err != nil {
+				logFields = append(logFields, log.String("native_error", err.Error()))
 			}
 			if apicommon.DebugMode {
 				if rawResp := incomingRPC.RawResp(); rawResp != nil {

@@ -65,20 +65,21 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 			if statusCode := outgoingRPC.StatusCode(); statusCode != 0 {
 				event.Int("statusCode", statusCode)
 				if rawResp := outgoingRPC.RawResp(); rawResp != nil {
-					if errorCode := outgoingRPC.Error().Code; errorCode != 0 {
-						event.Int("errorCode", int(errorCode))
-					}
 					if apicommon.DebugMode || len(rawResp) <= options.MaxRawRespSize {
 						event.Str("resp", bytesToString(rawResp))
 					} else {
 						event.Int("respSize", len(rawResp))
 						event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
 					}
+					if errorCode := outgoingRPC.Error().Code; errorCode != 0 {
+						event.Int("errorCode", int(errorCode))
+					}
 				}
 			}
-		} else {
-			if returnedErr != nil {
-				event.AnErr("preRequestErr", returnedErr)
+		}
+		if returnedErr != nil {
+			if _, ok := returnedErr.(*apicommon.Error); !ok {
+				event.AnErr("err", returnedErr)
 			}
 		}
 		event.Msg("outgoing rpc")

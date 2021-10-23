@@ -62,12 +62,11 @@ func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 					event.Str("truncatedParams", bytesToString(rawParams[:options.MaxRawParamsSize]))
 				}
 			}
-			event.Int("statusCode", incomingRPC.StatusCode())
 			if errorCode := incomingRPC.Error().Code; errorCode != 0 {
 				event.Int("errorCode", int(errorCode))
 			}
-			if internalErr := incomingRPC.InternalErr(); internalErr != nil {
-				event.AnErr("internalErr", internalErr)
+			if err := incomingRPC.Err(); err != nil {
+				event.AnErr("err", err)
 				if stackTrace := incomingRPC.StackTrace(); stackTrace != "" {
 					event.Str("stackTrace", stackTrace)
 				}
@@ -80,6 +79,7 @@ func NewForServer(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 					event.Str("truncatedResp", bytesToString(rawResp[:options.MaxRawRespSize]))
 				}
 			}
+			event.Int("statusCode", incomingRPC.StatusCode())
 			if responseWriteErr := incomingRPC.ResponseWriteErr(); responseWriteErr != nil {
 				event.AnErr("responseWriteErr", responseWriteErr)
 			}
