@@ -152,7 +152,6 @@ $ go run ./server/server.go
 $ curl --data '{"name": "Roy"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
 # {
-#   "traceID": "Uv38ByGCZU8WP18PmmIdcg",
 #   "results": {
 #     "message": "Hi, Roy!"
 #   }
@@ -161,7 +160,6 @@ $ curl --data '{"name": "Roy"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.Say
 $ curl --data '{"name": "God"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
 # {
-#   "traceID": "lWbHTRADfE17uwQH0eLGSQ",
 #   "error": {
 #     "code": 1001,
 #     "message": "user not allowed"
