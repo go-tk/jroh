@@ -80,7 +80,7 @@ type UnexpectedStatusCodeError struct {
 }
 
 func (usce *UnexpectedStatusCodeError) Error() string {
-	return "unexpected status code - %v" + strconv.Itoa(usce.StatusCode)
+	return "unexpected status code - " + strconv.Itoa(usce.StatusCode)
 }
 
 func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {

@@ -27,19 +27,19 @@ func (o *options) Init() *options {
 	return o
 }
 
-func AlgorithmMD5(value int) OptionsBuilder {
+func AlgorithmMD5() OptionsBuilder {
 	return func(options *options) { options.AlgorithmType = algorithmMD5 }
 }
 
-func AlgorithmSHA1(value int) OptionsBuilder {
+func AlgorithmSHA1() OptionsBuilder {
 	return func(options *options) { options.AlgorithmType = algorithmSHA1 }
 }
 
-func AlgorithmSHA256(value int) OptionsBuilder {
+func AlgorithmSHA256() OptionsBuilder {
 	return func(options *options) { options.AlgorithmType = algorithmSHA256 }
 }
 
-func AlgorithmSHA512(value int) OptionsBuilder {
+func AlgorithmSHA512() OptionsBuilder {
 	return func(options *options) { options.AlgorithmType = algorithmSHA512 }
 }
 
