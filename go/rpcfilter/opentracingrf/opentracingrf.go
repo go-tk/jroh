@@ -41,6 +41,7 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
 			logFields = append(logFields, log.String("trace_id", traceID))
 		}
+		logFields = append(logFields, log.String("url", outgoingRPC.URL()))
 		if apicommon.DebugMode {
 			if rawParams := outgoingRPC.RawParams(); rawParams != nil {
 				logFields = append(logFields, log.String("params", bytesToString(rawParams)))

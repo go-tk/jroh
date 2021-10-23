@@ -120,6 +120,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
+						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 					}, mlr.Fields)
 				}
 			}),
@@ -151,6 +152,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
+						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 						{Key: "api_error", ValueKind: reflect.String, ValueString: "internal error"},
 					}, mlr.Fields)
 				}
@@ -185,6 +187,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					mlr := mlrs[0]
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
+						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 						{Key: "native_error", ValueKind: reflect.String, ValueString: "params encoding failed: json: error calling MarshalJSON for type *fooapi.MyStructString: bad word"},
 					}, mlr.Fields)
 				}
@@ -222,6 +225,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
+						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 						{Key: "params", ValueKind: reflect.String, ValueString: "{\n  \"myOnOff\": false\n}\n"},
 						{Key: "resp", ValueKind: reflect.String, ValueString: "{\n  \"traceID\": \"tid1\",\n  \"results\": {\n    \"myOnOff\": true\n  }\n}\n"},
 					}, mlr.Fields)
@@ -269,6 +273,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					assert.Equal(w.T(), []mocktracer.MockKeyValue{
 						{Key: "event", ValueKind: reflect.String, ValueString: "outgoing rpc"},
 						{Key: "trace_id", ValueKind: reflect.String, ValueString: "tid1"},
+						{Key: "url", ValueKind: reflect.String, ValueString: "http://127.0.0.1/rpc/Foo.Test.DoSomething2"},
 					}, mlr.Fields)
 				}
 			}),

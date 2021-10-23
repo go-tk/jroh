@@ -147,7 +147,7 @@ func (ir *IncomingRPC) RespondHTTPWithErr(responseWriter http.ResponseWriter, st
 	ir.err = err
 	ir.stackTrace = stackTrace
 	ir.rawResp = nil
-	if !DebugMode {
+	if !DebugMode && statusCode == http.StatusInternalServerError {
 		responseWriter.WriteHeader(statusCode)
 		return
 	}
