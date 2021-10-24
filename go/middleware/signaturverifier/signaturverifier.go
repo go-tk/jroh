@@ -101,6 +101,8 @@ func NewForServer(keyFetcher KeyFetcher, optionsBuilders ...OptionsBuilder) apic
 				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
 				return
 			}
+			ctx = makeContextWithSenderID(ctx, header.SenderID)
+			r = r.WithContext(ctx)
 			handler.ServeHTTP(w, r)
 		})
 	}
@@ -187,7 +189,7 @@ func makeSignature(
 	}
 	hash := hmac.New(f, key)
 	var buffer bytes.Buffer
-	fmt.Fprintf(&buffer, "t=%d,sid=%s,rid=%s,m=", timestamp, senderID, recipientID)
+	fmt.Fprintf(&buffer, "t=%d&sid=%s&rid=%s&m=", timestamp, senderID, recipientID)
 	hash.Write(buffer.Bytes())
 	hash.Write(message)
 	rawSignature := hash.Sum(nil)
@@ -197,4 +199,19 @@ func makeSignature(
 	encoder.Close()
 	signature := buffer.String()
 	return signature
+}
+
+type contextValueSenderID struct{}
+
+func makeContextWithSenderID(ctx context.Context, senderID string) context.Context {
+	return context.WithValue(ctx, contextValueSenderID{}, senderID)
+}
+
+func MustGetSenderIDFromContext(ctx context.Context) string {
+	return ctx.Value(contextValueSenderID{}).(string)
+}
+
+func GetSenderIDFromContext(ctx context.Context) (string, bool) {
+	senderID, ok := ctx.Value(contextValueSenderID{}).(string)
+	return senderID, ok
 }

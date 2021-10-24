@@ -3,6 +3,7 @@ package signaturverifier_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -42,7 +43,17 @@ func TestSignatureVerifier(t *testing.T) {
 				TraceIDGenerator: func() string { return "tid" },
 			}
 			fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
-				DoSomething3Func: func(context.Context) error { return nil },
+				DoSomething3Func: func(ctx context.Context) error {
+					sid1, ok := GetSenderIDFromContext(ctx)
+					if !assert.True(w.T(), ok) {
+						w.T().FailNow()
+					}
+					sid2 := MustGetSenderIDFromContext(ctx)
+					if assert.Equal(w.T(), sid1, sid2) {
+						assert.Contains(w.T(), w.Input.HeaderStr, fmt.Sprintf(",sid=%q,", sid1))
+					}
+					return nil
+				},
 			}, r, so)
 			var output Output
 			co := apicommon.ClientOptions{
@@ -129,6 +140,18 @@ func TestSignatureVerifier(t *testing.T) {
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.KeyFetcher = func(ctx context.Context, senderID string) (key []byte, ok bool, err error) {
+					return nil, false, errors.New("something wrong")
+				}
+				w.Input.OptionsBuilders = []OptionsBuilder{
+					TimestampGetter(func() int64 { return 1234567890 }),
+					MaxTimestampSkew(5),
+				}
+				w.Input.HeaderStr = `Signature t=1234567890,sid="",at="sha1",s=""`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 500`
+			}),
+		tc.Copy().
+			AddTask(9, func(w *Workspace) {
+				w.Input.KeyFetcher = func(ctx context.Context, senderID string) (key []byte, ok bool, err error) {
 					assert.Equal(w.T(), "user", senderID)
 					return nil, false, nil
 				}
@@ -164,7 +187,7 @@ func TestSignatureVerifier(t *testing.T) {
 					TimestampGetter(func() int64 { return 1234567890 }),
 					MaxTimestampSkew(5),
 				}
-				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_MD5",at="md5",s="QwnOmlfLbJh8d0jjvWLeIQ=="`
+				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_MD5",at="md5",s="elWHx9HTVRG9q+m7+VmK3A=="`
 				w.ExpectedOutput.RespBody = `{}`
 			}),
 		tc.Copy().
@@ -177,7 +200,7 @@ func TestSignatureVerifier(t *testing.T) {
 					TimestampGetter(func() int64 { return 1234567890 }),
 					MaxTimestampSkew(5),
 				}
-				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA1",at="sha1",s="bCMJKH66jFi6W6YNjDg/dM+ev+w="`
+				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA1",at="sha1",s="RMO8GivXNDO8Xao/UukdtsmrpXw="`
 				w.ExpectedOutput.RespBody = `{}`
 			}),
 		tc.Copy().
@@ -190,7 +213,7 @@ func TestSignatureVerifier(t *testing.T) {
 					TimestampGetter(func() int64 { return 1234567890 }),
 					MaxTimestampSkew(5),
 				}
-				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA256",at="sha256",s="CitHJeETGak9c7epf4E9crzF7E3r2CEHC7CvR9QR/T8="`
+				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA256",at="sha256",s="tLw4yD4MEAzTd450AU4+3Hf2XC0yqmVHvdkbmkCixQ4="`
 				w.ExpectedOutput.RespBody = `{}`
 			}),
 		tc.Copy().
@@ -203,7 +226,7 @@ func TestSignatureVerifier(t *testing.T) {
 					TimestampGetter(func() int64 { return 1234567890 }),
 					MaxTimestampSkew(5),
 				}
-				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA512",at="sha512",s="8ybJd3HFkSYCMYlHMqFFbV5br931KBC1hHVGXcmiX6t7ymrJlZad/Vtue8zEovqzkPFX/QDI3wGqraYrTgAHDQ=="`
+				w.Input.HeaderStr = `Signature t=1234567890,sid="foo_SHA512",at="sha512",s="tWMG22uQHx2W7QHsUwFyyWLnMhOXk1KC25nEiQCV4iIqNZBuwPFkbifh/n3UNKV1N9wPh0GEuElh51+wjPq11Q=="`
 				w.ExpectedOutput.RespBody = `{}`
 			}),
 	)

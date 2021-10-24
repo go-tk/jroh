@@ -111,7 +111,7 @@ func makeSignature(
 	}
 	hash := hmac.New(f, key)
 	var buffer bytes.Buffer
-	fmt.Fprintf(&buffer, "t=%d,sid=%s,rid=%s,m=", timestamp, senderID, recipientID)
+	fmt.Fprintf(&buffer, "t=%d&sid=%s&rid=%s&m=", timestamp, senderID, recipientID)
 	hash.Write(buffer.Bytes())
 	hash.Write(message)
 	rawSignature := hash.Sum(nil)
