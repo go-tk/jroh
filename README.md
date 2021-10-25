@@ -35,9 +35,8 @@ $ mkdir temp && cd temp
 **2. Define JSON-RPC(s)**
 
 ```sh
-$ mkdir -p ./jroh/hello_world
-
-$ cat >./jroh/hello_world/greeter_service.yaml <<EOF
+# Create file ./jroh/hello_world/greeter_service.yaml
+$ install -Dm 644 /dev/stdin ./jroh/hello_world/greeter_service.yaml <<EOF
 ########## BEGIN greeter_service.yaml ##########
 namespace: Hello-World
 
@@ -90,7 +89,19 @@ $ docker run --rm \
     --oapi3_out=./oapi3 \
     ./jroh/hello_world/greeter_service.yaml
 
-$ ls --recursive -l ./api ./oapi3
+$ ls -R ./api ./oapi3
+# Output:
+# ./api:
+# helloworldapi
+#
+# ./api/helloworldapi:
+# errors.go  greeterclient.go  greeterserver.go  misc.go  models.go
+#
+# ./oapi3:
+# common.yaml  hello_world
+#
+# ./oapi3/hello_world:
+# greeter_service.yaml  models.yaml
 ```
 
 ---
@@ -98,9 +109,8 @@ $ ls --recursive -l ./api ./oapi3
 **4. Start up an RPC server**
 
 ```sh
-$ mkdir ./server
-
-$ cat >./server/server.go <<EOF
+# Create file ./server/server.go
+$ install -Dm 644 /dev/stdin ./server/server.go <<EOF
 ////////// BEGIN server.go //////////
 package main
 
@@ -141,7 +151,7 @@ func main() {
 ////////// END server.go //////////
 EOF
 
-$ go run ./server/server.go
+$ go run -v ./server/server.go
 ```
 
 ---
@@ -172,9 +182,8 @@ $ curl --data '{"name": "God"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.Say
 **5.b. Send RPC requests with Go client**
 
 ```sh
-$ mkdir ./client
-
-$ cat >./client/client.go <<EOF
+# Create file ./client/client.go
+$ install -Dm 644 /dev/stdin ./client/client.go <<EOF
 ////////// BEGIN client.go //////////
 package main
 
@@ -209,7 +218,7 @@ func main() {
 ////////// END client.go //////////
 EOF
 
-$ go run ./client/client.go
+$ go run -v ./client/client.go
 # Output:
 # 1 - helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
 # 2 - apicommon: rpc failed; namespace="HelloWorld" serviceName="Greeter" methodName="SayHello" traceID="lWbHTRADfE17uwQH0eLGSQ": api: user not allowed (1001)
