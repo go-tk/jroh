@@ -54,10 +54,6 @@ func MakeHandler(
 	}
 	handler = func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != "POST" {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
 			var buffer bytes.Buffer
 			if _, err := buffer.ReadFrom(r.Body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)

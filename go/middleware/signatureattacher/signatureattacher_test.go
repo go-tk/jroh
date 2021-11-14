@@ -27,7 +27,7 @@ func TestSignatureAttacher(t *testing.T) {
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			r := apicommon.NewRouter(nil)
+			r := apicommon.NewRouter()
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
@@ -57,7 +57,7 @@ func TestSignatureAttacher(t *testing.T) {
 					}
 					w.T().Logf("Authorization: %s", a)
 					responseRecorder := httptest.NewRecorder()
-					r.ServeMux().ServeHTTP(responseRecorder, request.WithContext(context.Background()))
+					r.ServeHTTP(responseRecorder, request.WithContext(context.Background()))
 					response := responseRecorder.Result()
 					return response, nil
 				}),

@@ -33,7 +33,7 @@ func TestSignatureVerifier(t *testing.T) {
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			r := apicommon.NewRouter(nil)
+			r := apicommon.NewRouter()
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 					apicommon.AnyMethod: {
@@ -62,7 +62,7 @@ func TestSignatureVerifier(t *testing.T) {
 						request.Header.Set("Authorization", headerStr)
 					}
 					responseRecorder := httptest.NewRecorder()
-					r.ServeMux().ServeHTTP(responseRecorder, request.WithContext(context.Background()))
+					r.ServeHTTP(responseRecorder, request.WithContext(context.Background()))
 					output.RespBody = string(responseRecorder.Body.Bytes())
 					response := responseRecorder.Result()
 					return response, nil

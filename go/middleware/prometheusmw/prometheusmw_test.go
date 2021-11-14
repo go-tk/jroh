@@ -18,7 +18,7 @@ import (
 func TestPrometheusHelper(t *testing.T) {
 	r := prometheus.NewRegistry()
 	MustRegisterCollectors(r)
-	rr := apicommon.NewRouter(nil)
+	rr := apicommon.NewRouter()
 	so := apicommon.ServerOptions{
 		Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
 			apicommon.AnyMethod: {
@@ -37,7 +37,7 @@ func TestPrometheusHelper(t *testing.T) {
 	co := apicommon.ClientOptions{
 		Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 			responseRecorder := httptest.NewRecorder()
-			rr.ServeMux().ServeHTTP(responseRecorder, request)
+			rr.ServeHTTP(responseRecorder, request)
 			response := responseRecorder.Result()
 			return response, nil
 		}),

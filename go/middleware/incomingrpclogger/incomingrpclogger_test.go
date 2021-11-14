@@ -38,7 +38,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 	}
 	tc := testcase.New().
 		AddTask(10, func(w *Workspace) {
-			r := apicommon.NewRouter(nil)
+			r := apicommon.NewRouter()
 			logger := zerolog.New(&w.Buf)
 			so := apicommon.ServerOptions{
 				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
@@ -54,7 +54,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 					request = request.Clone(request.Context())
 					request.RemoteAddr = "127.0.0.1:12345"
 					responseRecorder := httptest.NewRecorder()
-					r.ServeMux().ServeHTTP(responseRecorder, request)
+					r.ServeHTTP(responseRecorder, request)
 					response := responseRecorder.Result()
 					return response, nil
 				}),

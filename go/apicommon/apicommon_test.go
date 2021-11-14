@@ -1677,11 +1677,11 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 }
 
 func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
-	r := apicommon.NewRouter(nil)
+	r := apicommon.NewRouter()
 	fooapi.RegisterTestServer(&tsf, r, serverOptions)
 	clientOptions.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
 		responseRecorder := httptest.NewRecorder()
-		r.ServeMux().ServeHTTP(responseRecorder, request)
+		r.ServeHTTP(responseRecorder, request)
 		response := responseRecorder.Result()
 		return response, nil
 	})
