@@ -84,7 +84,7 @@ $ go mod init pkg.go.test
 $ docker run --rm \
   --volume="${PWD}:/workspace" \
   --workdir=/workspace \
-  ghcr.io/go-tk/jrohc:v0.5.0 \
+  ghcr.io/go-tk/jrohc:v0.5.1 \
     --go_out=./api:pkg.go.test/api \
     --oapi3_out=./oapi3 \
     ./jroh/hello_world/greeter_service.yaml
