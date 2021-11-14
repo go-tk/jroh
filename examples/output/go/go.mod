@@ -1,6 +1,6 @@
 module github.com/go-tk/jroh/examples/output/go
 
-go 1.15
+go 1.16
 
 require github.com/go-tk/jroh/go v0.5.0
 
