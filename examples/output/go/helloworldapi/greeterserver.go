@@ -13,9 +13,9 @@ type GreeterServer interface {
 
 func RegisterGreeterServer(server GreeterServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var serverMiddlewareTable [1][]apicommon.ServerMiddleware
+	var serverMiddlewareTable [NumberOfGreeterMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-	var rpcFiltersTable [1][]apicommon.RPCHandler
+	var rpcFiltersTable [NumberOfGreeterMethods][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
 		serverMiddlewares := serverMiddlewareTable[Greeter_SayHello]

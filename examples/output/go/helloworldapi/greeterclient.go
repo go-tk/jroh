@@ -16,8 +16,8 @@ type GreeterClient interface {
 type greeterClient struct {
 	apicommon.Client
 
-	rpcFiltersTable [1][]apicommon.RPCHandler
-	transportTable  [1]http.RoundTripper
+	rpcFiltersTable [NumberOfGreeterMethods][]apicommon.RPCHandler
+	transportTable  [NumberOfGreeterMethods]http.RoundTripper
 }
 
 func NewGreeterClient(rpcBaseURL string, options apicommon.ClientOptions) GreeterClient {

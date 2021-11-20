@@ -8,8 +8,8 @@ import (
 )
 
 type ClientOptions struct {
-	RPCFilters  map[MethodIndex][]RPCHandler
-	Middlewares map[MethodIndex][]ClientMiddleware
+	RPCFilters  RPCFilters
+	Middlewares ClientMiddlewares
 	Transport   http.RoundTripper
 	Timeout     time.Duration
 }
@@ -18,6 +18,15 @@ func (co *ClientOptions) Sanitize() {
 	if co.Transport == nil {
 		co.Transport = http.DefaultTransport
 	}
+}
+
+type ClientMiddlewares map[MethodIndex][]ClientMiddleware
+
+func (cm *ClientMiddlewares) Add(methodIndex MethodIndex, items ...ClientMiddleware) {
+	if *cm == nil {
+		*cm = make(map[MethodIndex][]ClientMiddleware)
+	}
+	(*cm)[methodIndex] = append((*cm)[methodIndex], items...)
 }
 
 type ClientMiddleware func(oldTransport http.RoundTripper) (newTransport http.RoundTripper)

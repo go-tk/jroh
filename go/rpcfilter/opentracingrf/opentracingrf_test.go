@@ -47,7 +47,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			mt := mocktracer.New()
 			w.MT = mt
 			so := apicommon.ServerOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
 						func(handler http.Handler) http.Handler {
 							return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +63,12 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}
 			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
 			co := apicommon.ClientOptions{
-				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
+				RPCFilters: apicommon.RPCFilters{
 					apicommon.AnyMethod: {
 						NewForClient(mt),
 					},
 				},
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
+				Middlewares: apicommon.ClientMiddlewares{
 					apicommon.AnyMethod: {
 						opentracingmw.NewForClient(),
 					},

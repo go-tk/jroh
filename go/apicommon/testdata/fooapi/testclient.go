@@ -18,8 +18,8 @@ type TestClient interface {
 type testClient struct {
 	apicommon.Client
 
-	rpcFiltersTable [3][]apicommon.RPCHandler
-	transportTable  [3]http.RoundTripper
+	rpcFiltersTable [NumberOfTestMethods][]apicommon.RPCHandler
+	transportTable  [NumberOfTestMethods]http.RoundTripper
 }
 
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {

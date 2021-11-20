@@ -19,8 +19,8 @@ type UserClient interface {
 type userClient struct {
 	apicommon.Client
 
-	rpcFiltersTable [4][]apicommon.RPCHandler
-	transportTable  [4]http.RoundTripper
+	rpcFiltersTable [NumberOfUserMethods][]apicommon.RPCHandler
+	transportTable  [NumberOfUserMethods]http.RoundTripper
 }
 
 func NewUserClient(rpcBaseURL string, options apicommon.ClientOptions) UserClient {

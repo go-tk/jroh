@@ -20,7 +20,7 @@ func TestPrometheusHelper(t *testing.T) {
 	MustRegisterCollectors(r)
 	rr := apicommon.NewRouter()
 	so := apicommon.ServerOptions{
-		Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+		Middlewares: apicommon.ServerMiddlewares{
 			apicommon.AnyMethod: {
 				NewForServer(),
 			},

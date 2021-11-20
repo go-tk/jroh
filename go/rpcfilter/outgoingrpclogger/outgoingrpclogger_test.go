@@ -44,7 +44,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}
 			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
 			co := apicommon.ClientOptions{
-				RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
+				RPCFilters: apicommon.RPCFilters{
 					apicommon.AnyMethod: {
 						NewForClient(logger, w.Input.OptionsBuilders...),
 					},

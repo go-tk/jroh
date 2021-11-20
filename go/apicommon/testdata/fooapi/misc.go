@@ -7,7 +7,9 @@ import (
 )
 
 const (
-	Test_DoSomething apicommon.MethodIndex = iota
-	Test_DoSomething2
-	Test_DoSomething3
+	Test_DoSomething  apicommon.MethodIndex = 0
+	Test_DoSomething2 apicommon.MethodIndex = 1
+	Test_DoSomething3 apicommon.MethodIndex = 2
 )
+
+const NumberOfTestMethods = 3

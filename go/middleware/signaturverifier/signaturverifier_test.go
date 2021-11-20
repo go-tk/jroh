@@ -35,7 +35,7 @@ func TestSignatureVerifier(t *testing.T) {
 		AddTask(10, func(w *Workspace) {
 			r := apicommon.NewRouter()
 			so := apicommon.ServerOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
 						NewForServer(w.Input.KeyFetcher, w.Input.OptionsBuilders...),
 					},

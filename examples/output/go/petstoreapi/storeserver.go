@@ -14,9 +14,9 @@ type StoreServer interface {
 
 func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var serverMiddlewareTable [2][]apicommon.ServerMiddleware
+	var serverMiddlewareTable [NumberOfStoreMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-	var rpcFiltersTable [2][]apicommon.RPCHandler
+	var rpcFiltersTable [NumberOfStoreMethods][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
 		serverMiddlewares := serverMiddlewareTable[Store_CreateOrder]

@@ -1087,7 +1087,7 @@ func TestError(t *testing.T) {
 
 	func() {
 		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
-			Middlewares: map[MethodIndex][]ServerMiddleware{
+			Middlewares: ServerMiddlewares{
 				fooapi.Test_DoSomething2: {
 					func(handler http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1257,7 +1257,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 
 	func() {
 		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
-			Middlewares: map[MethodIndex][]ServerMiddleware{
+			Middlewares: ServerMiddlewares{
 				AnyMethod: {
 					func(http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -1284,7 +1284,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 
 	func() {
 		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{}, ClientOptions{
-			Middlewares: map[MethodIndex][]ClientMiddleware{
+			Middlewares: ClientMiddlewares{
 				AnyMethod: {
 					func(transport http.RoundTripper) http.RoundTripper {
 						return TransportFunc(func(request *http.Request) (*http.Response, error) {
@@ -1355,7 +1355,7 @@ func TestTraceID(t *testing.T) {
 			return fmt.Sprintf("My-Trace-ID-%d", k)
 		},
 	}, ClientOptions{
-		RPCFilters: map[MethodIndex][]RPCHandler{
+		RPCFilters: RPCFilters{
 			fooapi.Test_DoSomething3: {
 				func(ctx context.Context, rpc *RPC) error {
 					traceIDs = append(traceIDs, "C1-"+rpc.TraceID())
@@ -1382,6 +1382,237 @@ func TestTraceID(t *testing.T) {
 func TestMiddlewareAndRPCFilter(t *testing.T) {
 	var k int
 	var s string
+
+	var so ServerOptions
+	so.Middlewares.Add(AnyMethod, func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			incomingRPC := MustGetRPCFromContext(r.Context()).IncomingRPC()
+			switch mn := incomingRPC.MethodName(); mn {
+			case "DoSomething2":
+				assert.Equal(t, "Foo", incomingRPC.Namespace())
+				assert.Equal(t, "Test", incomingRPC.ServiceName())
+				assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
+				assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
+				assert.NotNil(t, incomingRPC.RawParams())
+				assert.NotNil(t, incomingRPC.Params())
+				assert.Nil(t, incomingRPC.RawResp())
+				assert.NotNil(t, incomingRPC.Results())
+			case "DoSomething3":
+				assert.Equal(t, "Foo", incomingRPC.Namespace())
+				assert.Equal(t, "Test", incomingRPC.ServiceName())
+				assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
+				assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
+				assert.Nil(t, incomingRPC.RawParams())
+				assert.Nil(t, incomingRPC.Params())
+				assert.Nil(t, incomingRPC.RawResp())
+				assert.Nil(t, incomingRPC.Results())
+			default:
+				assert.Fail(t, "unknown method name: "+mn)
+			}
+			s += "A1"
+			handler.ServeHTTP(w, r)
+			s += "B1"
+			switch mn := incomingRPC.MethodName(); mn {
+			case "DoSomething2":
+				assert.NotNil(t, incomingRPC.RawResp())
+			case "DoSomething3":
+			default:
+				assert.Fail(t, "unknown method name: "+mn)
+			}
+		})
+	}, func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			s += "A2"
+			handler.ServeHTTP(w, r)
+			s += "B2"
+		})
+	})
+	so.Middlewares.Add(fooapi.Test_DoSomething2, func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			s += "C1"
+			handler.ServeHTTP(w, r)
+			s += "D1"
+		})
+	}, func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			s += "C2"
+			handler.ServeHTTP(w, r)
+			s += "D2"
+		})
+	})
+	so.RPCFilters.Add(AnyMethod, func(ctx context.Context, rpc *RPC) error {
+		incomingRPC := rpc.IncomingRPC()
+		switch mn := incomingRPC.MethodName(); mn {
+		case "DoSomething2":
+			assert.Equal(t, "Foo", incomingRPC.Namespace())
+			assert.Equal(t, "Test", incomingRPC.ServiceName())
+			assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
+			assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
+			assert.NotNil(t, incomingRPC.RawParams())
+			assert.NotNil(t, incomingRPC.Params())
+			assert.Nil(t, incomingRPC.RawResp())
+			assert.NotNil(t, incomingRPC.Results())
+		case "DoSomething3":
+			assert.Equal(t, "Foo", incomingRPC.Namespace())
+			assert.Equal(t, "Test", incomingRPC.ServiceName())
+			assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
+			assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
+			assert.Nil(t, incomingRPC.RawParams())
+			assert.Nil(t, incomingRPC.Params())
+			assert.Nil(t, incomingRPC.RawResp())
+			assert.Nil(t, incomingRPC.Results())
+		default:
+			assert.Fail(t, "unknown method name: "+mn)
+		}
+		s += "E1"
+		err := rpc.Do(ctx)
+		s += "F1"
+		switch mn := incomingRPC.MethodName(); mn {
+		case "DoSomething2":
+			assert.Nil(t, incomingRPC.RawResp())
+		case "DoSomething3":
+		default:
+			assert.Fail(t, "unknown method name: "+mn)
+		}
+		return err
+	}, func(ctx context.Context, rpc *RPC) error {
+		s += "E2"
+		err := rpc.Do(ctx)
+		s += "F2"
+		return err
+	})
+	so.RPCFilters.Add(fooapi.Test_DoSomething2, func(ctx context.Context, rpc *RPC) error {
+		s += "G1"
+		err := rpc.Do(ctx)
+		s += "H1"
+		return err
+	}, func(ctx context.Context, rpc *RPC) error {
+		s += "G2"
+		err := rpc.Do(ctx)
+		s += "H2"
+		return err
+	})
+	so.TraceIDGenerator = func() string {
+		k++
+		return fmt.Sprintf("My-Trace-ID-%d", k)
+	}
+
+	var co ClientOptions
+	co.RPCFilters.Add(AnyMethod, func(ctx context.Context, rpc *RPC) error {
+		outgoingRPC := rpc.OutgoingRPC()
+		switch mn := outgoingRPC.MethodName(); mn {
+		case "DoSomething2":
+			assert.Equal(t, "Foo", outgoingRPC.Namespace())
+			assert.Equal(t, "Test", outgoingRPC.ServiceName())
+			assert.Equal(t, "", outgoingRPC.TraceID())
+			assert.Nil(t, outgoingRPC.RawParams())
+			assert.NotNil(t, outgoingRPC.Params())
+			assert.Nil(t, outgoingRPC.RawResp())
+			assert.NotNil(t, outgoingRPC.Results())
+		case "DoSomething3":
+			assert.Equal(t, "Foo", outgoingRPC.Namespace())
+			assert.Equal(t, "Test", outgoingRPC.ServiceName())
+			assert.Equal(t, "", outgoingRPC.TraceID())
+			assert.Nil(t, outgoingRPC.RawParams())
+			assert.Nil(t, outgoingRPC.Params())
+			assert.Nil(t, outgoingRPC.RawResp())
+			assert.Nil(t, outgoingRPC.Results())
+		default:
+			assert.Fail(t, "unknown method name: "+mn)
+		}
+		s += "I1"
+		err := rpc.Do(ctx)
+		s += "J1"
+		switch mn := outgoingRPC.MethodName(); mn {
+		case "DoSomething2":
+			assert.NotNil(t, outgoingRPC.RawParams())
+			assert.NotNil(t, outgoingRPC.RawResp())
+			assert.Equal(t, "My-Trace-ID-1", outgoingRPC.TraceID())
+		case "DoSomething3":
+			assert.Equal(t, "My-Trace-ID-2", outgoingRPC.TraceID())
+		default:
+			assert.Fail(t, "unknown method name: "+mn)
+		}
+		return err
+	}, func(ctx context.Context, rpc *RPC) error {
+		s += "I2"
+		err := rpc.Do(ctx)
+		s += "J2"
+		return err
+	})
+	co.RPCFilters.Add(fooapi.Test_DoSomething2, func(ctx context.Context, rpc *RPC) error {
+		s += "K1"
+		err := rpc.Do(ctx)
+		s += "L1"
+		return err
+	}, func(ctx context.Context, rpc *RPC) error {
+		s += "K2"
+		err := rpc.Do(ctx)
+		s += "L2"
+		return err
+	})
+	co.Middlewares.Add(AnyMethod, func(transport http.RoundTripper) http.RoundTripper {
+		return TransportFunc(func(request *http.Request) (*http.Response, error) {
+			outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
+			switch mn := outgoingRPC.MethodName(); mn {
+			case "DoSomething2":
+				assert.Equal(t, "Foo", outgoingRPC.Namespace())
+				assert.Equal(t, "Test", outgoingRPC.ServiceName())
+				assert.Equal(t, "", outgoingRPC.TraceID())
+				assert.NotNil(t, outgoingRPC.RawParams())
+				assert.NotNil(t, outgoingRPC.Params())
+				assert.Nil(t, outgoingRPC.RawResp())
+				assert.NotNil(t, outgoingRPC.Results())
+			case "DoSomething3":
+				assert.Equal(t, "Foo", outgoingRPC.Namespace())
+				assert.Equal(t, "Test", outgoingRPC.ServiceName())
+				assert.Equal(t, "", outgoingRPC.TraceID())
+				assert.Nil(t, outgoingRPC.RawParams())
+				assert.Nil(t, outgoingRPC.Params())
+				assert.Nil(t, outgoingRPC.RawResp())
+				assert.Nil(t, outgoingRPC.Results())
+			default:
+				assert.Fail(t, "unknown method name: "+mn)
+			}
+			s += "M1"
+			response, err := transport.RoundTrip(request)
+			s += "N1"
+			switch mn := outgoingRPC.MethodName(); mn {
+			case "DoSomething2":
+				assert.NotNil(t, outgoingRPC.RawParams())
+				assert.NotNil(t, outgoingRPC.RawResp())
+				assert.Equal(t, "My-Trace-ID-1", outgoingRPC.TraceID())
+			case "DoSomething3":
+				assert.Equal(t, "My-Trace-ID-2", outgoingRPC.TraceID())
+			default:
+				assert.Fail(t, "unknown method name: "+mn)
+			}
+			return response, err
+		})
+	}, func(transport http.RoundTripper) http.RoundTripper {
+		return TransportFunc(func(request *http.Request) (*http.Response, error) {
+			s += "M2"
+			response, err := transport.RoundTrip(request)
+			s += "N2"
+			return response, err
+		})
+	})
+	co.Middlewares.Add(fooapi.Test_DoSomething2, func(transport http.RoundTripper) http.RoundTripper {
+		return TransportFunc(func(request *http.Request) (*http.Response, error) {
+			s += "O1"
+			response, err := transport.RoundTrip(request)
+			s += "P1"
+			return response, err
+		})
+	}, func(transport http.RoundTripper) http.RoundTripper {
+		return TransportFunc(func(request *http.Request) (*http.Response, error) {
+			s += "O2"
+			response, err := transport.RoundTrip(request)
+			s += "P2"
+			return response, err
+		})
+	})
+
 	c := makeTestClient(
 		fooapi.TestServerFuncs{
 			DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
@@ -1395,268 +1626,8 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 				return nil
 			},
 		},
-		ServerOptions{
-			Middlewares: map[MethodIndex][]ServerMiddleware{
-				AnyMethod: {
-					func(handler http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							incomingRPC := MustGetRPCFromContext(r.Context()).IncomingRPC()
-							switch mn := incomingRPC.MethodName(); mn {
-							case "DoSomething2":
-								assert.Equal(t, "Foo", incomingRPC.Namespace())
-								assert.Equal(t, "Test", incomingRPC.ServiceName())
-								assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
-								assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
-								assert.NotNil(t, incomingRPC.RawParams())
-								assert.NotNil(t, incomingRPC.Params())
-								assert.Nil(t, incomingRPC.RawResp())
-								assert.NotNil(t, incomingRPC.Results())
-							case "DoSomething3":
-								assert.Equal(t, "Foo", incomingRPC.Namespace())
-								assert.Equal(t, "Test", incomingRPC.ServiceName())
-								assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
-								assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
-								assert.Nil(t, incomingRPC.RawParams())
-								assert.Nil(t, incomingRPC.Params())
-								assert.Nil(t, incomingRPC.RawResp())
-								assert.Nil(t, incomingRPC.Results())
-							default:
-								assert.Fail(t, "unknown method name: "+mn)
-							}
-							s += "A1"
-							handler.ServeHTTP(w, r)
-							s += "B1"
-							switch mn := incomingRPC.MethodName(); mn {
-							case "DoSomething2":
-								assert.NotNil(t, incomingRPC.RawResp())
-							case "DoSomething3":
-							default:
-								assert.Fail(t, "unknown method name: "+mn)
-							}
-						})
-					},
-					func(handler http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							s += "A2"
-							handler.ServeHTTP(w, r)
-							s += "B2"
-						})
-					},
-				},
-				fooapi.Test_DoSomething2: {
-					func(handler http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							s += "C1"
-							handler.ServeHTTP(w, r)
-							s += "D1"
-						})
-					},
-					func(handler http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							s += "C2"
-							handler.ServeHTTP(w, r)
-							s += "D2"
-						})
-					},
-				},
-			},
-			RPCFilters: map[MethodIndex][]RPCHandler{
-				AnyMethod: {
-					func(ctx context.Context, rpc *RPC) error {
-						incomingRPC := rpc.IncomingRPC()
-						switch mn := incomingRPC.MethodName(); mn {
-						case "DoSomething2":
-							assert.Equal(t, "Foo", incomingRPC.Namespace())
-							assert.Equal(t, "Test", incomingRPC.ServiceName())
-							assert.Equal(t, "Foo.Test.DoSomething2", incomingRPC.FullMethodName())
-							assert.Equal(t, "My-Trace-ID-1", incomingRPC.TraceID())
-							assert.NotNil(t, incomingRPC.RawParams())
-							assert.NotNil(t, incomingRPC.Params())
-							assert.Nil(t, incomingRPC.RawResp())
-							assert.NotNil(t, incomingRPC.Results())
-						case "DoSomething3":
-							assert.Equal(t, "Foo", incomingRPC.Namespace())
-							assert.Equal(t, "Test", incomingRPC.ServiceName())
-							assert.Equal(t, "Foo.Test.DoSomething3", incomingRPC.FullMethodName())
-							assert.Equal(t, "My-Trace-ID-2", incomingRPC.TraceID())
-							assert.Nil(t, incomingRPC.RawParams())
-							assert.Nil(t, incomingRPC.Params())
-							assert.Nil(t, incomingRPC.RawResp())
-							assert.Nil(t, incomingRPC.Results())
-						default:
-							assert.Fail(t, "unknown method name: "+mn)
-						}
-						s += "E1"
-						err := rpc.Do(ctx)
-						s += "F1"
-						switch mn := incomingRPC.MethodName(); mn {
-						case "DoSomething2":
-							assert.Nil(t, incomingRPC.RawResp())
-						case "DoSomething3":
-						default:
-							assert.Fail(t, "unknown method name: "+mn)
-						}
-						return err
-					},
-					func(ctx context.Context, rpc *RPC) error {
-						s += "E2"
-						err := rpc.Do(ctx)
-						s += "F2"
-						return err
-					},
-				},
-				fooapi.Test_DoSomething2: {
-					func(ctx context.Context, rpc *RPC) error {
-						s += "G1"
-						err := rpc.Do(ctx)
-						s += "H1"
-						return err
-					},
-					func(ctx context.Context, rpc *RPC) error {
-						s += "G2"
-						err := rpc.Do(ctx)
-						s += "H2"
-						return err
-					},
-				},
-			},
-			TraceIDGenerator: func() string {
-				k++
-				return fmt.Sprintf("My-Trace-ID-%d", k)
-			},
-		},
-		ClientOptions{
-			RPCFilters: map[MethodIndex][]RPCHandler{
-				AnyMethod: {
-					func(ctx context.Context, rpc *RPC) error {
-						outgoingRPC := rpc.OutgoingRPC()
-						switch mn := outgoingRPC.MethodName(); mn {
-						case "DoSomething2":
-							assert.Equal(t, "Foo", outgoingRPC.Namespace())
-							assert.Equal(t, "Test", outgoingRPC.ServiceName())
-							assert.Equal(t, "", outgoingRPC.TraceID())
-							assert.Nil(t, outgoingRPC.RawParams())
-							assert.NotNil(t, outgoingRPC.Params())
-							assert.Nil(t, outgoingRPC.RawResp())
-							assert.NotNil(t, outgoingRPC.Results())
-						case "DoSomething3":
-							assert.Equal(t, "Foo", outgoingRPC.Namespace())
-							assert.Equal(t, "Test", outgoingRPC.ServiceName())
-							assert.Equal(t, "", outgoingRPC.TraceID())
-							assert.Nil(t, outgoingRPC.RawParams())
-							assert.Nil(t, outgoingRPC.Params())
-							assert.Nil(t, outgoingRPC.RawResp())
-							assert.Nil(t, outgoingRPC.Results())
-						default:
-							assert.Fail(t, "unknown method name: "+mn)
-						}
-						s += "I1"
-						err := rpc.Do(ctx)
-						s += "J1"
-						switch mn := outgoingRPC.MethodName(); mn {
-						case "DoSomething2":
-							assert.NotNil(t, outgoingRPC.RawParams())
-							assert.NotNil(t, outgoingRPC.RawResp())
-							assert.Equal(t, "My-Trace-ID-1", outgoingRPC.TraceID())
-						case "DoSomething3":
-							assert.Equal(t, "My-Trace-ID-2", outgoingRPC.TraceID())
-						default:
-							assert.Fail(t, "unknown method name: "+mn)
-						}
-						return err
-					},
-					func(ctx context.Context, rpc *RPC) error {
-						s += "I2"
-						err := rpc.Do(ctx)
-						s += "J2"
-						return err
-					},
-				},
-				fooapi.Test_DoSomething2: {
-					func(ctx context.Context, rpc *RPC) error {
-						s += "K1"
-						err := rpc.Do(ctx)
-						s += "L1"
-						return err
-					},
-					func(ctx context.Context, rpc *RPC) error {
-						s += "K2"
-						err := rpc.Do(ctx)
-						s += "L2"
-						return err
-					},
-				},
-			},
-			Middlewares: map[MethodIndex][]ClientMiddleware{
-				AnyMethod: {
-					func(transport http.RoundTripper) http.RoundTripper {
-						return TransportFunc(func(request *http.Request) (*http.Response, error) {
-							outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
-							switch mn := outgoingRPC.MethodName(); mn {
-							case "DoSomething2":
-								assert.Equal(t, "Foo", outgoingRPC.Namespace())
-								assert.Equal(t, "Test", outgoingRPC.ServiceName())
-								assert.Equal(t, "", outgoingRPC.TraceID())
-								assert.NotNil(t, outgoingRPC.RawParams())
-								assert.NotNil(t, outgoingRPC.Params())
-								assert.Nil(t, outgoingRPC.RawResp())
-								assert.NotNil(t, outgoingRPC.Results())
-							case "DoSomething3":
-								assert.Equal(t, "Foo", outgoingRPC.Namespace())
-								assert.Equal(t, "Test", outgoingRPC.ServiceName())
-								assert.Equal(t, "", outgoingRPC.TraceID())
-								assert.Nil(t, outgoingRPC.RawParams())
-								assert.Nil(t, outgoingRPC.Params())
-								assert.Nil(t, outgoingRPC.RawResp())
-								assert.Nil(t, outgoingRPC.Results())
-							default:
-								assert.Fail(t, "unknown method name: "+mn)
-							}
-							s += "M1"
-							response, err := transport.RoundTrip(request)
-							s += "N1"
-							switch mn := outgoingRPC.MethodName(); mn {
-							case "DoSomething2":
-								assert.NotNil(t, outgoingRPC.RawParams())
-								assert.NotNil(t, outgoingRPC.RawResp())
-								assert.Equal(t, "My-Trace-ID-1", outgoingRPC.TraceID())
-							case "DoSomething3":
-								assert.Equal(t, "My-Trace-ID-2", outgoingRPC.TraceID())
-							default:
-								assert.Fail(t, "unknown method name: "+mn)
-							}
-							return response, err
-						})
-					},
-					func(transport http.RoundTripper) http.RoundTripper {
-						return TransportFunc(func(request *http.Request) (*http.Response, error) {
-							s += "M2"
-							response, err := transport.RoundTrip(request)
-							s += "N2"
-							return response, err
-						})
-					},
-				},
-				fooapi.Test_DoSomething2: {
-					func(transport http.RoundTripper) http.RoundTripper {
-						return TransportFunc(func(request *http.Request) (*http.Response, error) {
-							s += "O1"
-							response, err := transport.RoundTrip(request)
-							s += "P1"
-							return response, err
-						})
-					},
-					func(transport http.RoundTripper) http.RoundTripper {
-						return TransportFunc(func(request *http.Request) (*http.Response, error) {
-							s += "O2"
-							response, err := transport.RoundTrip(request)
-							s += "P2"
-							return response, err
-						})
-					},
-				},
-			},
-		},
+		so,
+		co,
 	)
 	t1 := myStructString()
 	params := fooapi.DoSomething2Params{

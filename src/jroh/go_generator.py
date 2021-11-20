@@ -101,9 +101,9 @@ type ${service_name}Server interface {
 
 func Register${service_name}Server(server ${service_name}Server, router *${apicommon()}.Router, serverOptions ${apicommon()}.ServerOptions) {
     serverOptions.Sanitize()
-    var serverMiddlewareTable [${len(service.methods)}][]${apicommon()}.ServerMiddleware
+    var serverMiddlewareTable [NumberOf${service_name}Methods][]${apicommon()}.ServerMiddleware
     ${apicommon()}.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-    var rpcFiltersTable [${len(service.methods)}][]${apicommon()}.RPCHandler
+    var rpcFiltersTable [NumberOf${service_name}Methods][]${apicommon()}.RPCHandler
     ${apicommon()}.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 % for i, method in enumerate(service.methods):
 <%
@@ -256,8 +256,8 @@ err error)
 type ${service_name2}Client struct {
     ${apicommon()}.Client
 
-    rpcFiltersTable [${len(service.methods)}][]${apicommon()}.RPCHandler
-    transportTable [${len(service.methods)}]${http()}.RoundTripper
+    rpcFiltersTable [NumberOf${service_name}Methods][]${apicommon()}.RPCHandler
+    transportTable [NumberOf${service_name}Methods]${http()}.RoundTripper
 }
 
 func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOptions) ${service_name}Client {
@@ -781,17 +781,15 @@ package {self._make_package_name()}
 %>\
 
 const (
-    % for j, method in enumerate(service.methods):
+    % for i, method in enumerate(service.methods):
 <%
     method_name = utils.pascal_case(method.id)
 %>\
-        % if j == 0:
-    ${service_name}_${method_name} ${apicommon()}.MethodIndex = iota
-        % else:
-    ${service_name}_${method_name}
-        % endif
+    ${service_name}_${method_name} ${apicommon()}.MethodIndex = ${i}
     % endfor
 )
+
+const NumberOf${service_name}Methods = ${len(service.methods)}
 % endfor
 """
             ).render(

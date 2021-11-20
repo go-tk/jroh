@@ -41,7 +41,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			r := apicommon.NewRouter()
 			logger := zerolog.New(&w.Buf)
 			so := apicommon.ServerOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
 						NewForServer(logger, w.Input.OptionsBuilders...),
 					},

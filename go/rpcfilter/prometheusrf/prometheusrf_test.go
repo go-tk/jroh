@@ -31,7 +31,7 @@ func TestPrometheusHelper(t *testing.T) {
 	}, rr, so)
 	var transportErr error
 	co := apicommon.ClientOptions{
-		RPCFilters: map[apicommon.MethodIndex][]apicommon.RPCHandler{
+		RPCFilters: apicommon.RPCFilters{
 			apicommon.AnyMethod: {
 				NewForClient(),
 			},

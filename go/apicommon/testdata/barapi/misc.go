@@ -7,5 +7,7 @@ import (
 )
 
 const (
-	Test_DoSomething apicommon.MethodIndex = iota
+	Test_DoSomething apicommon.MethodIndex = 0
 )
+
+const NumberOfTestMethods = 1

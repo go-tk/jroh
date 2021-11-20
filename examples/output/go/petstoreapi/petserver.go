@@ -17,9 +17,9 @@ type PetServer interface {
 
 func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var serverMiddlewareTable [5][]apicommon.ServerMiddleware
+	var serverMiddlewareTable [NumberOfPetMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-	var rpcFiltersTable [5][]apicommon.RPCHandler
+	var rpcFiltersTable [NumberOfPetMethods][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
 		serverMiddlewares := serverMiddlewareTable[Pet_AddPet]

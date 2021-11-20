@@ -17,8 +17,8 @@ type StoreClient interface {
 type storeClient struct {
 	apicommon.Client
 
-	rpcFiltersTable [2][]apicommon.RPCHandler
-	transportTable  [2]http.RoundTripper
+	rpcFiltersTable [NumberOfStoreMethods][]apicommon.RPCHandler
+	transportTable  [NumberOfStoreMethods]http.RoundTripper
 }
 
 func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreClient {

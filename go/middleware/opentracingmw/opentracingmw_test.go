@@ -46,7 +46,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			w.MT = mt
 			so := apicommon.ServerOptions{
 				TraceIDGenerator: w.Input.TraceIDGenerator,
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
 						NewForServer(mt),
 					},
@@ -54,7 +54,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}
 			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
 			co := apicommon.ClientOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
+				Middlewares: apicommon.ClientMiddlewares{
 					apicommon.AnyMethod: {
 						NewForClient(),
 					},

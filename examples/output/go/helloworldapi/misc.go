@@ -7,5 +7,7 @@ import (
 )
 
 const (
-	Greeter_SayHello apicommon.MethodIndex = iota
+	Greeter_SayHello apicommon.MethodIndex = 0
 )
+
+const NumberOfGreeterMethods = 1

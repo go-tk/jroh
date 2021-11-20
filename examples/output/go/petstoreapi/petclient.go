@@ -20,8 +20,8 @@ type PetClient interface {
 type petClient struct {
 	apicommon.Client
 
-	rpcFiltersTable [5][]apicommon.RPCHandler
-	transportTable  [5]http.RoundTripper
+	rpcFiltersTable [NumberOfPetMethods][]apicommon.RPCHandler
+	transportTable  [NumberOfPetMethods]http.RoundTripper
 }
 
 func NewPetClient(rpcBaseURL string, options apicommon.ClientOptions) PetClient {

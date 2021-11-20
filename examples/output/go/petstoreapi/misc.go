@@ -7,21 +7,27 @@ import (
 )
 
 const (
-	Pet_AddPet apicommon.MethodIndex = iota
-	Pet_GetPet
-	Pet_GetPets
-	Pet_UpdatePet
-	Pet_FindPets
+	Pet_AddPet    apicommon.MethodIndex = 0
+	Pet_GetPet    apicommon.MethodIndex = 1
+	Pet_GetPets   apicommon.MethodIndex = 2
+	Pet_UpdatePet apicommon.MethodIndex = 3
+	Pet_FindPets  apicommon.MethodIndex = 4
 )
 
-const (
-	Store_CreateOrder apicommon.MethodIndex = iota
-	Store_GetOrder
-)
+const NumberOfPetMethods = 5
 
 const (
-	User_CreateUser apicommon.MethodIndex = iota
-	User_GetUser
-	User_GetUsers
-	User_UpdateUser
+	Store_CreateOrder apicommon.MethodIndex = 0
+	Store_GetOrder    apicommon.MethodIndex = 1
 )
+
+const NumberOfStoreMethods = 2
+
+const (
+	User_CreateUser apicommon.MethodIndex = 0
+	User_GetUser    apicommon.MethodIndex = 1
+	User_GetUsers   apicommon.MethodIndex = 2
+	User_UpdateUser apicommon.MethodIndex = 3
+)
+
+const NumberOfUserMethods = 4

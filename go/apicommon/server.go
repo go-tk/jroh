@@ -6,8 +6,8 @@ import (
 )
 
 type ServerOptions struct {
-	Middlewares      map[MethodIndex][]ServerMiddleware
-	RPCFilters       map[MethodIndex][]RPCHandler
+	Middlewares      ServerMiddlewares
+	RPCFilters       RPCFilters
 	TraceIDGenerator TraceIDGenerator
 }
 
@@ -15,6 +15,15 @@ func (so *ServerOptions) Sanitize() {
 	if so.TraceIDGenerator == nil {
 		so.TraceIDGenerator = generateTraceID
 	}
+}
+
+type ServerMiddlewares map[MethodIndex][]ServerMiddleware
+
+func (sm *ServerMiddlewares) Add(methodIndex MethodIndex, items ...ServerMiddleware) {
+	if *sm == nil {
+		*sm = make(map[MethodIndex][]ServerMiddleware)
+	}
+	(*sm)[methodIndex] = append((*sm)[methodIndex], items...)
 }
 
 type ServerMiddleware func(oldHandler http.Handler) (newHandler http.Handler)

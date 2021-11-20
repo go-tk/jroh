@@ -15,9 +15,9 @@ type TestServer interface {
 
 func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var serverMiddlewareTable [3][]apicommon.ServerMiddleware
+	var serverMiddlewareTable [NumberOfTestMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-	var rpcFiltersTable [3][]apicommon.RPCHandler
+	var rpcFiltersTable [NumberOfTestMethods][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
 		serverMiddlewares := serverMiddlewareTable[Test_DoSomething]

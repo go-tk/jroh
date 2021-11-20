@@ -6,6 +6,15 @@ import (
 	"net/http"
 )
 
+type RPCFilters map[MethodIndex][]RPCHandler
+
+func (rf *RPCFilters) Add(methodIndex MethodIndex, items ...RPCHandler) {
+	if *rf == nil {
+		*rf = make(map[MethodIndex][]RPCHandler)
+	}
+	(*rf)[methodIndex] = append((*rf)[methodIndex], items...)
+}
+
 const AnyMethod MethodIndex = -1
 
 func FillRPCFiltersTable(rpcFiltersTable [][]RPCHandler, rpcFilters map[MethodIndex][]RPCHandler) {

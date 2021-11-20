@@ -16,9 +16,9 @@ type UserServer interface {
 
 func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
-	var serverMiddlewareTable [4][]apicommon.ServerMiddleware
+	var serverMiddlewareTable [NumberOfUserMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
-	var rpcFiltersTable [4][]apicommon.RPCHandler
+	var rpcFiltersTable [NumberOfUserMethods][]apicommon.RPCHandler
 	apicommon.FillRPCFiltersTable(rpcFiltersTable[:], serverOptions.RPCFilters)
 	{
 		serverMiddlewares := serverMiddlewareTable[User_CreateUser]

@@ -29,7 +29,7 @@ func TestSignatureAttacher(t *testing.T) {
 		AddTask(10, func(w *Workspace) {
 			r := apicommon.NewRouter()
 			so := apicommon.ServerOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ServerMiddleware{
+				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
 						signaturverifier.NewForServer(func(ctx context.Context, senderID string) (key []byte, ok bool, err error) {
 							if senderID != w.Input.SenderID {
@@ -45,7 +45,7 @@ func TestSignatureAttacher(t *testing.T) {
 			}, r, so)
 			obs := append(w.Input.OptionsBuilders, TimestampGetter(func() int64 { return 1234567890 }))
 			co := apicommon.ClientOptions{
-				Middlewares: map[apicommon.MethodIndex][]apicommon.ClientMiddleware{
+				Middlewares: apicommon.ClientMiddlewares{
 					apicommon.AnyMethod: {
 						NewForClient(w.Input.SenderID, w.Input.Key, obs...),
 					},
