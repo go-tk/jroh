@@ -81,25 +81,22 @@ type TestServerFuncs struct {
 var _ TestServer = (*TestServerFuncs)(nil)
 
 func (sf *TestServerFuncs) DoSomething(ctx context.Context, params *DoSomethingParams) error {
-	f := sf.DoSomethingFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.DoSomethingFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *TestServerFuncs) DoSomething2(ctx context.Context, params *DoSomething2Params, results *DoSomething2Results) error {
-	f := sf.DoSomething2Func
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.DoSomething2Func; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *TestServerFuncs) DoSomething3(ctx context.Context) error {
-	f := sf.DoSomething3Func
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.DoSomething3Func; f != nil {
+		return f(ctx)
 	}
-	return f(ctx)
+	return apicommon.ErrNotImplemented
 }

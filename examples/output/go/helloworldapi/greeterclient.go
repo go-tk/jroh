@@ -53,9 +53,8 @@ type GreeterClientFuncs struct {
 var _ GreeterClient = (*GreeterClientFuncs)(nil)
 
 func (cf *GreeterClientFuncs) SayHello(ctx context.Context, params *SayHelloParams) (*SayHelloResults, error) {
-	f := cf.SayHelloFunc
-	if f == nil {
-		return nil, apicommon.ErrNotImplemented
+	if f := cf.SayHelloFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return nil, apicommon.ErrNotImplemented
 }

@@ -102,33 +102,29 @@ type UserServerFuncs struct {
 var _ UserServer = (*UserServerFuncs)(nil)
 
 func (sf *UserServerFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
-	f := sf.CreateUserFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.CreateUserFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
-	f := sf.GetUserFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.GetUserFunc; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
-	f := sf.GetUsersFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.GetUsersFunc; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *UserServerFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
-	f := sf.UpdateUserFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.UpdateUserFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }

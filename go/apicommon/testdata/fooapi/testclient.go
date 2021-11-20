@@ -87,25 +87,22 @@ type TestClientFuncs struct {
 var _ TestClient = (*TestClientFuncs)(nil)
 
 func (cf *TestClientFuncs) DoSomething(ctx context.Context, params *DoSomethingParams) error {
-	f := cf.DoSomethingFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := cf.DoSomethingFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *TestClientFuncs) DoSomething2(ctx context.Context, params *DoSomething2Params) (*DoSomething2Results, error) {
-	f := cf.DoSomething2Func
-	if f == nil {
-		return nil, apicommon.ErrNotImplemented
+	if f := cf.DoSomething2Func; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *TestClientFuncs) DoSomething3(ctx context.Context) error {
-	f := cf.DoSomething3Func
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := cf.DoSomething3Func; f != nil {
+		return f(ctx)
 	}
-	return f(ctx)
+	return apicommon.ErrNotImplemented
 }

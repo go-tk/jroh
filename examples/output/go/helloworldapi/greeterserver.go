@@ -44,9 +44,8 @@ type GreeterServerFuncs struct {
 var _ GreeterServer = (*GreeterServerFuncs)(nil)
 
 func (sf *GreeterServerFuncs) SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) error {
-	f := sf.SayHelloFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.SayHelloFunc; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }

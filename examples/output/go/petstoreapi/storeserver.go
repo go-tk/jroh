@@ -64,17 +64,15 @@ type StoreServerFuncs struct {
 var _ StoreServer = (*StoreServerFuncs)(nil)
 
 func (sf *StoreServerFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) error {
-	f := sf.CreateOrderFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.CreateOrderFunc; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }
 
 func (sf *StoreServerFuncs) GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) error {
-	f := sf.GetOrderFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := sf.GetOrderFunc; f != nil {
+		return f(ctx, params, results)
 	}
-	return f(ctx, params, results)
+	return apicommon.ErrNotImplemented
 }

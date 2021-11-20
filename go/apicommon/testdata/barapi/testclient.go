@@ -51,9 +51,8 @@ type TestClientFuncs struct {
 var _ TestClient = (*TestClientFuncs)(nil)
 
 func (cf *TestClientFuncs) DoSomething(ctx context.Context) (*DoSomethingResults, error) {
-	f := cf.DoSomethingFunc
-	if f == nil {
-		return nil, apicommon.ErrNotImplemented
+	if f := cf.DoSomethingFunc; f != nil {
+		return f(ctx)
 	}
-	return f(ctx)
+	return nil, apicommon.ErrNotImplemented
 }

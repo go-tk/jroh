@@ -108,33 +108,29 @@ type UserClientFuncs struct {
 var _ UserClient = (*UserClientFuncs)(nil)
 
 func (cf *UserClientFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
-	f := cf.CreateUserFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := cf.CreateUserFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
-	f := cf.GetUserFunc
-	if f == nil {
-		return nil, apicommon.ErrNotImplemented
+	if f := cf.GetUserFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) GetUsers(ctx context.Context, params *GetUsersParams) (*GetUsersResults, error) {
-	f := cf.GetUsersFunc
-	if f == nil {
-		return nil, apicommon.ErrNotImplemented
+	if f := cf.GetUsersFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return nil, apicommon.ErrNotImplemented
 }
 
 func (cf *UserClientFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
-	f := cf.UpdateUserFunc
-	if f == nil {
-		return apicommon.ErrNotImplemented
+	if f := cf.UpdateUserFunc; f != nil {
+		return f(ctx, params)
 	}
-	return f(ctx, params)
+	return apicommon.ErrNotImplemented
 }

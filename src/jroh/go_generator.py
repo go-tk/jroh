@@ -190,11 +190,8 @@ func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
 , results *${method_name}Results\
     % endif
 ) error {
-    f := sf.${method_name}Func
-    if f == nil {
-        return ${apicommon()}.ErrNotImplemented
-    }
-    return f(ctx\
+    if f := sf.${method_name}Func; f != nil {
+        return f(ctx\
     % if method.params is not None:
 , params\
     % endif
@@ -202,6 +199,8 @@ func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
 , results\
     % endif
 )
+    }
+    return ${apicommon()}.ErrNotImplemented
 }
 % endfor
 """
@@ -366,19 +365,18 @@ error {
     % else:
 (*${method_name}Results, error) {
     % endif
-    f := cf.${method_name}Func
-    if f == nil {
-        return \
+    if f := cf.${method_name}Func; f != nil {
+        return f(ctx\
+        % if method.params is not None:
+, params\
+        % endif
+)
+    }
+    return \
     % if method.results is not None:
 nil, \
     % endif
 ${apicommon()}.ErrNotImplemented
-    }
-    return f(ctx\
-    % if method.params is not None:
-, params\
-    % endif
-)
 }
 % endfor
 """
