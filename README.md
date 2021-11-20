@@ -140,12 +140,12 @@ func main() {
             return nil
         },
     }
-    router := apicommon.NewRouter(nil)
+    router := apicommon.NewRouter()
     helloworldapi.RegisterGreeterServer(&server, router, apicommon.ServerOptions{})
     log.Printf("route infos: %#v", router.RouteInfos())
 
     apicommon.DebugMode = true
-    err := http.ListenAndServe(":2220", router.ServeMux())
+    err := http.ListenAndServe(":2220", router)
     log.Fatal(err)
 }
 ////////// END server.go //////////
@@ -210,10 +210,9 @@ func main() {
     _, err = client.SayHello(context.Background(), &helloworldapi.SayHelloParams{
         Name: "God",
     })
-    if !errors.Is(err, helloworldapi.ErrUserNotAllowed) {
-        log.Fatal(err)
+    if errors.Is(err, helloworldapi.ErrUserNotAllowed) {
+        fmt.Printf("2 - %v\n", err)
     }
-    fmt.Printf("2 - %v\n", err)
 }
 ////////// END client.go //////////
 EOF
@@ -221,7 +220,7 @@ EOF
 $ go run -v ./client/client.go
 # Output:
 # 1 - helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
-# 2 - apicommon: rpc failed; namespace="HelloWorld" serviceName="Greeter" methodName="SayHello" traceID="lWbHTRADfE17uwQH0eLGSQ": api: user not allowed (1001)
+# 2 - rpc failed; fullMethodName="HelloWorld.Greeter.SayHello" traceID="ZpTSxCKs0gigByk5SH9pmQ": api: user not allowed (1001)
 ```
 
 ---
