@@ -7,7 +7,7 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-type PetServer interface {
+type PetService interface {
 	AddPet(ctx context.Context, params *AddPetParams) (err error)
 	GetPet(ctx context.Context, params *GetPetParams, results *GetPetResults) (err error)
 	GetPets(ctx context.Context, params *GetPetsParams, results *GetPetsResults) (err error)
@@ -15,7 +15,7 @@ type PetServer interface {
 	FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) (err error)
 }
 
-func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
+func RegisterPetService(service PetService, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [NumberOfPetMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -30,7 +30,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 				Params      AddPetParams
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.AddPet(ctx, rpc.Params().(*AddPetParams))
+				return service.AddPet(ctx, rpc.Params().(*AddPetParams))
 			}
 			s.IncomingRPC.Init("Petstore", "Pet", "AddPet", "Petstore.Pet.AddPet", Pet_AddPet, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -48,7 +48,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 				Results     GetPetResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.GetPet(ctx, rpc.Params().(*GetPetParams), rpc.Results().(*GetPetResults))
+				return service.GetPet(ctx, rpc.Params().(*GetPetParams), rpc.Results().(*GetPetResults))
 			}
 			s.IncomingRPC.Init("Petstore", "Pet", "GetPet", "Petstore.Pet.GetPet", Pet_GetPet, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -66,7 +66,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 				Results     GetPetsResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.GetPets(ctx, rpc.Params().(*GetPetsParams), rpc.Results().(*GetPetsResults))
+				return service.GetPets(ctx, rpc.Params().(*GetPetsParams), rpc.Results().(*GetPetsResults))
 			}
 			s.IncomingRPC.Init("Petstore", "Pet", "GetPets", "Petstore.Pet.GetPets", Pet_GetPets, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -83,7 +83,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 				Params      UpdatePetParams
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.UpdatePet(ctx, rpc.Params().(*UpdatePetParams))
+				return service.UpdatePet(ctx, rpc.Params().(*UpdatePetParams))
 			}
 			s.IncomingRPC.Init("Petstore", "Pet", "UpdatePet", "Petstore.Pet.UpdatePet", Pet_UpdatePet, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -101,7 +101,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 				Results     FindPetsResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.FindPets(ctx, rpc.Params().(*FindPetsParams), rpc.Results().(*FindPetsResults))
+				return service.FindPets(ctx, rpc.Params().(*FindPetsParams), rpc.Results().(*FindPetsResults))
 			}
 			s.IncomingRPC.Init("Petstore", "Pet", "FindPets", "Petstore.Pet.FindPets", Pet_FindPets, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -111,7 +111,7 @@ func RegisterPetServer(server PetServer, router *apicommon.Router, serverOptions
 	}
 }
 
-type PetServerFuncs struct {
+type PetServiceFuncs struct {
 	AddPetFunc    func(context.Context, *AddPetParams) error
 	GetPetFunc    func(context.Context, *GetPetParams, *GetPetResults) error
 	GetPetsFunc   func(context.Context, *GetPetsParams, *GetPetsResults) error
@@ -119,37 +119,37 @@ type PetServerFuncs struct {
 	FindPetsFunc  func(context.Context, *FindPetsParams, *FindPetsResults) error
 }
 
-var _ PetServer = (*PetServerFuncs)(nil)
+var _ PetService = (*PetServiceFuncs)(nil)
 
-func (sf *PetServerFuncs) AddPet(ctx context.Context, params *AddPetParams) error {
+func (sf *PetServiceFuncs) AddPet(ctx context.Context, params *AddPetParams) error {
 	if f := sf.AddPetFunc; f != nil {
 		return f(ctx, params)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *PetServerFuncs) GetPet(ctx context.Context, params *GetPetParams, results *GetPetResults) error {
+func (sf *PetServiceFuncs) GetPet(ctx context.Context, params *GetPetParams, results *GetPetResults) error {
 	if f := sf.GetPetFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *PetServerFuncs) GetPets(ctx context.Context, params *GetPetsParams, results *GetPetsResults) error {
+func (sf *PetServiceFuncs) GetPets(ctx context.Context, params *GetPetsParams, results *GetPetsResults) error {
 	if f := sf.GetPetsFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *PetServerFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
+func (sf *PetServiceFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	if f := sf.UpdatePetFunc; f != nil {
 		return f(ctx, params)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *PetServerFuncs) FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) error {
+func (sf *PetServiceFuncs) FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) error {
 	if f := sf.FindPetsFunc; f != nil {
 		return f(ctx, params, results)
 	}

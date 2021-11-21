@@ -83,7 +83,7 @@ package {self._make_package_name()}
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
 %>\
-type ${service_name}Server interface {
+type ${service_name}Service interface {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
@@ -99,7 +99,7 @@ type ${service_name}Server interface {
 % endfor
 }
 
-func Register${service_name}Server(server ${service_name}Server, router *${apicommon()}.Router, serverOptions ${apicommon()}.ServerOptions) {
+func Register${service_name}Service(service ${service_name}Service, router *${apicommon()}.Router, serverOptions ${apicommon()}.ServerOptions) {
     serverOptions.Sanitize()
     var serverMiddlewareTable [NumberOf${service_name}Methods][]${apicommon()}.ServerMiddleware
     ${apicommon()}.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -125,7 +125,7 @@ func Register${service_name}Server(server ${service_name}Server, router *${apico
     % endif
             }
             rpcHandler := func(ctx ${context1()}.Context, rpc *${apicommon()}.RPC) error {
-                return server.${method_name}(ctx\
+                return service.${method_name}(ctx\
     % if method.params is not None:
 , rpc.Params().(*${method_name}Params)\
     % endif
@@ -160,7 +160,7 @@ rpcFilters)
 % endfor
 }
 
-type ${service_name}ServerFuncs struct {
+type ${service_name}ServiceFuncs struct {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
@@ -176,13 +176,13 @@ type ${service_name}ServerFuncs struct {
 % endfor
 }
 
-var _ ${service_name}Server = (*${service_name}ServerFuncs)(nil)
+var _ ${service_name}Service = (*${service_name}ServiceFuncs)(nil)
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
 %>\
 
-func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
+func (sf *${service_name}ServiceFuncs) ${method_name}(ctx ${context1()}.Context\
     % if method.params is not None:
 , params *${method_name}Params\
     % endif
@@ -211,7 +211,7 @@ func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        file_name = f"{utils.flat_case(service.id)}server.go"
+        file_name = f"{utils.flat_case(service.id)}service.go"
         self._flush(file_name)
 
     def _generate_client_code(self, service: Service) -> None:

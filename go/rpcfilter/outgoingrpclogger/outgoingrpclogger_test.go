@@ -18,7 +18,7 @@ import (
 
 func TestOutgoingRPCLogger(t *testing.T) {
 	type Input struct {
-		TestServerFuncs  fooapi.TestServerFuncs
+		TestServiceFuncs fooapi.TestServiceFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator
 		OptionsBuilders  []OptionsBuilder
 		Params           fooapi.DoSomething2Params
@@ -42,7 +42,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			so := apicommon.ServerOptions{
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
+			fooapi.RegisterTestService(&w.Input.TestServiceFuncs, r, so)
 			co := apicommon.ClientOptions{
 				RPCFilters: apicommon.RPCFilters{
 					apicommon.AnyMethod: {
@@ -67,7 +67,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 	testcase.RunList(t,
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -88,7 +88,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -106,7 +106,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -122,7 +122,7 @@ func TestOutgoingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					logger := zerolog.Ctx(ctx)
 					logger.UpdateContext(func(context zerolog.Context) zerolog.Context {
 						return context.Str("foo", "bar")

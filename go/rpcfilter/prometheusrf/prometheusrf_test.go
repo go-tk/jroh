@@ -21,7 +21,7 @@ func TestPrometheusHelper(t *testing.T) {
 	MustRegisterCollectors(r)
 	rr := apicommon.NewRouter()
 	so := apicommon.ServerOptions{}
-	fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
+	fooapi.RegisterTestService(&fooapi.TestServiceFuncs{
 		DoSomethingFunc: func(context.Context, *fooapi.DoSomethingParams) error {
 			return nil
 		},

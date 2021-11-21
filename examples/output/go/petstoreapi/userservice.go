@@ -7,14 +7,14 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-type UserServer interface {
+type UserService interface {
 	CreateUser(ctx context.Context, params *CreateUserParams) (err error)
 	GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) (err error)
 	GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) (err error)
 	UpdateUser(ctx context.Context, params *UpdateUserParams) (err error)
 }
 
-func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
+func RegisterUserService(service UserService, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [NumberOfUserMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -29,7 +29,7 @@ func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptio
 				Params      CreateUserParams
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.CreateUser(ctx, rpc.Params().(*CreateUserParams))
+				return service.CreateUser(ctx, rpc.Params().(*CreateUserParams))
 			}
 			s.IncomingRPC.Init("Petstore", "User", "CreateUser", "Petstore.User.CreateUser", User_CreateUser, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -47,7 +47,7 @@ func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptio
 				Results     GetUserResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.GetUser(ctx, rpc.Params().(*GetUserParams), rpc.Results().(*GetUserResults))
+				return service.GetUser(ctx, rpc.Params().(*GetUserParams), rpc.Results().(*GetUserResults))
 			}
 			s.IncomingRPC.Init("Petstore", "User", "GetUser", "Petstore.User.GetUser", User_GetUser, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -65,7 +65,7 @@ func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptio
 				Results     GetUsersResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.GetUsers(ctx, rpc.Params().(*GetUsersParams), rpc.Results().(*GetUsersResults))
+				return service.GetUsers(ctx, rpc.Params().(*GetUsersParams), rpc.Results().(*GetUsersResults))
 			}
 			s.IncomingRPC.Init("Petstore", "User", "GetUsers", "Petstore.User.GetUsers", User_GetUsers, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -82,7 +82,7 @@ func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptio
 				Params      UpdateUserParams
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.UpdateUser(ctx, rpc.Params().(*UpdateUserParams))
+				return service.UpdateUser(ctx, rpc.Params().(*UpdateUserParams))
 			}
 			s.IncomingRPC.Init("Petstore", "User", "UpdateUser", "Petstore.User.UpdateUser", User_UpdateUser, &s.Params, nil, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -92,37 +92,37 @@ func RegisterUserServer(server UserServer, router *apicommon.Router, serverOptio
 	}
 }
 
-type UserServerFuncs struct {
+type UserServiceFuncs struct {
 	CreateUserFunc func(context.Context, *CreateUserParams) error
 	GetUserFunc    func(context.Context, *GetUserParams, *GetUserResults) error
 	GetUsersFunc   func(context.Context, *GetUsersParams, *GetUsersResults) error
 	UpdateUserFunc func(context.Context, *UpdateUserParams) error
 }
 
-var _ UserServer = (*UserServerFuncs)(nil)
+var _ UserService = (*UserServiceFuncs)(nil)
 
-func (sf *UserServerFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
+func (sf *UserServiceFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
 	if f := sf.CreateUserFunc; f != nil {
 		return f(ctx, params)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *UserServerFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
+func (sf *UserServiceFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
 	if f := sf.GetUserFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *UserServerFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
+func (sf *UserServiceFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
 	if f := sf.GetUsersFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *UserServerFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
+func (sf *UserServiceFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
 	if f := sf.UpdateUserFunc; f != nil {
 		return f(ctx, params)
 	}

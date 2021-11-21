@@ -42,7 +42,7 @@ func TestSignatureVerifier(t *testing.T) {
 				},
 				TraceIDGenerator: func() string { return "tid" },
 			}
-			fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
+			fooapi.RegisterTestService(&fooapi.TestServiceFuncs{
 				DoSomething3Func: func(ctx context.Context) error {
 					sid1, ok := GetSenderIDFromContext(ctx)
 					if !assert.True(w.T(), ok) {

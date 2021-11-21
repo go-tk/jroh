@@ -21,7 +21,7 @@ import (
 
 func TestOpenTracingMiddleware(t *testing.T) {
 	type Input struct {
-		TestServerFuncs  fooapi.TestServerFuncs
+		TestServiceFuncs fooapi.TestServiceFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator
 		Ctx              context.Context
 		Params           fooapi.DoSomething2Params
@@ -52,7 +52,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 					},
 				},
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
+			fooapi.RegisterTestService(&w.Input.TestServiceFuncs, r, so)
 			co := apicommon.ClientOptions{
 				Middlewares: apicommon.ClientMiddlewares{
 					apicommon.AnyMethod: {
@@ -79,7 +79,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 	testcase.RunList(t,
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -110,7 +110,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					return errors.New("just wrong")
 				}
 				lastTID := 0
@@ -143,7 +143,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					tmp := fooapi.MyStructString{}
 					tmp.TheStringA = "taboo"
 					results.MyStructString = &tmp
@@ -210,7 +210,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				w.AddCleanup(func() {
 					apicommon.DebugMode = false
 				})
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -243,7 +243,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					ms := opentracing.SpanFromContext(ctx).(*mocktracer.MockSpan)
 					assert.Equal(w.T(), "Foo.Test.DoSomething2", ms.OperationName)
 					results.MyOnOff = true

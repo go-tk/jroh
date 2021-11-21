@@ -1027,7 +1027,7 @@ func TestModelFurtherValidation(t *testing.T) {
 }
 
 func TestModelMarshalingAndUnmarshaling(t *testing.T) {
-	c := makeTestClient(fooapi.TestServerFuncs{
+	c := makeTestClient(fooapi.TestServiceFuncs{
 		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 			results.MyStructInt32 = params.MyStructInt32
 			results.MyStructInt64 = params.MyStructInt64
@@ -1065,7 +1065,7 @@ func TestModelMarshalingAndUnmarshaling(t *testing.T) {
 
 func TestError(t *testing.T) {
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{}, ClientOptions{})
+		c := makeTestClient(fooapi.TestServiceFuncs{}, ServerOptions{}, ClientOptions{})
 		t1 := myStructString()
 		t1.TheXStringA = "a.c"
 		t2 := myStructString()
@@ -1086,7 +1086,7 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
+		c := makeTestClient(fooapi.TestServiceFuncs{}, ServerOptions{
 			Middlewares: ServerMiddlewares{
 				fooapi.Test_DoSomething2: {
 					func(handler http.Handler) http.Handler {
@@ -1117,7 +1117,7 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServiceFuncs{
 			DoSomething3Func: func(context.Context) error {
 				err := fooapi.NewSomethingWrongError()
 				err.Details = "hello world"
@@ -1140,7 +1140,7 @@ func TestError(t *testing.T) {
 
 	func() {
 		DebugMode = true
-		c := makeTestClient(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServiceFuncs{
 			DoSomething3Func: func(context.Context) error {
 				err := fooapi.NewSomethingWrongError()
 				err.Details = "hello world"
@@ -1174,7 +1174,7 @@ func TestError(t *testing.T) {
 
 	func() {
 		DebugMode = true
-		c := makeTestClient(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServiceFuncs{
 			DoSomething3Func: func(context.Context) error {
 				panic("NOOOOO!")
 			},
@@ -1203,7 +1203,7 @@ func TestError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServiceFuncs{
 			DoSomething2Func: func(ctx context.Context, _ *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 				t2 := myStructString()
 				t2.TheXStringA = "a.c"
@@ -1232,7 +1232,7 @@ func TestError(t *testing.T) {
 
 func TestUnexpectedStatusCodeError(t *testing.T) {
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{
+		c := makeTestClient(fooapi.TestServiceFuncs{
 			DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 				tmp := myStructString()
 				tmp.TheStringA = "taboo"
@@ -1256,7 +1256,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{
+		c := makeTestClient(fooapi.TestServiceFuncs{}, ServerOptions{
 			Middlewares: ServerMiddlewares{
 				AnyMethod: {
 					func(http.Handler) http.Handler {
@@ -1283,7 +1283,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 	}()
 
 	func() {
-		c := makeTestClient(fooapi.TestServerFuncs{}, ServerOptions{}, ClientOptions{
+		c := makeTestClient(fooapi.TestServiceFuncs{}, ServerOptions{}, ClientOptions{
 			Middlewares: ClientMiddlewares{
 				AnyMethod: {
 					func(transport http.RoundTripper) http.RoundTripper {
@@ -1312,7 +1312,7 @@ func TestUnexpectedStatusCodeError(t *testing.T) {
 }
 
 func TestInvalidResults(t *testing.T) {
-	c := makeTestClient(fooapi.TestServerFuncs{
+	c := makeTestClient(fooapi.TestServiceFuncs{
 		DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 			tmp := myStructString()
 			tmp.TheCountLimitedRepeatedStringA = []string{"1", "2"}
@@ -1334,14 +1334,14 @@ func TestInvalidResults(t *testing.T) {
 func TestTraceID(t *testing.T) {
 	var k int
 	var traceIDs []string
-	c2 := makeTestClient(fooapi.TestServerFuncs{
+	c2 := makeTestClient(fooapi.TestServiceFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
 			rpc := MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "A-"+rpc.TraceID())
 			return nil
 		},
 	}, ServerOptions{}, ClientOptions{})
-	c1 := makeTestClient(fooapi.TestServerFuncs{
+	c1 := makeTestClient(fooapi.TestServiceFuncs{
 		DoSomething3Func: func(ctx context.Context) error {
 			rpc := MustGetRPCFromContext(ctx)
 			traceIDs = append(traceIDs, "B1-"+rpc.TraceID())
@@ -1614,7 +1614,7 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 	})
 
 	c := makeTestClient(
-		fooapi.TestServerFuncs{
+		fooapi.TestServiceFuncs{
 			DoSomething2Func: func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 				assert.NotNil(t, params)
 				assert.NotNil(t, results)
@@ -1647,9 +1647,9 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 	assert.Equal(t, "I1I2M1M2A1A2E1E2YYF2F1B2B1N2N1J2J1", s)
 }
 
-func makeTestClient(tsf fooapi.TestServerFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
+func makeTestClient(tsf fooapi.TestServiceFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
 	r := apicommon.NewRouter()
-	fooapi.RegisterTestServer(&tsf, r, serverOptions)
+	fooapi.RegisterTestService(&tsf, r, serverOptions)
 	clientOptions.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
 		responseRecorder := httptest.NewRecorder()
 		r.ServeHTTP(responseRecorder, request)

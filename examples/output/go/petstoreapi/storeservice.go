@@ -7,12 +7,12 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-type StoreServer interface {
+type StoreService interface {
 	CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) (err error)
 	GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) (err error)
 }
 
-func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
+func RegisterStoreService(service StoreService, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [NumberOfStoreMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -28,7 +28,7 @@ func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOpt
 				Results     CreateOrderResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.CreateOrder(ctx, rpc.Params().(*CreateOrderParams), rpc.Results().(*CreateOrderResults))
+				return service.CreateOrder(ctx, rpc.Params().(*CreateOrderParams), rpc.Results().(*CreateOrderResults))
 			}
 			s.IncomingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", Store_CreateOrder, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -46,7 +46,7 @@ func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOpt
 				Results     GetOrderResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.GetOrder(ctx, rpc.Params().(*GetOrderParams), rpc.Results().(*GetOrderResults))
+				return service.GetOrder(ctx, rpc.Params().(*GetOrderParams), rpc.Results().(*GetOrderResults))
 			}
 			s.IncomingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", Store_GetOrder, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -56,21 +56,21 @@ func RegisterStoreServer(server StoreServer, router *apicommon.Router, serverOpt
 	}
 }
 
-type StoreServerFuncs struct {
+type StoreServiceFuncs struct {
 	CreateOrderFunc func(context.Context, *CreateOrderParams, *CreateOrderResults) error
 	GetOrderFunc    func(context.Context, *GetOrderParams, *GetOrderResults) error
 }
 
-var _ StoreServer = (*StoreServerFuncs)(nil)
+var _ StoreService = (*StoreServiceFuncs)(nil)
 
-func (sf *StoreServerFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) error {
+func (sf *StoreServiceFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) error {
 	if f := sf.CreateOrderFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.ErrNotImplemented
 }
 
-func (sf *StoreServerFuncs) GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) error {
+func (sf *StoreServiceFuncs) GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) error {
 	if f := sf.GetOrderFunc; f != nil {
 		return f(ctx, params, results)
 	}

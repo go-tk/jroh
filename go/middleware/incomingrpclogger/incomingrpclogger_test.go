@@ -19,7 +19,7 @@ import (
 
 func TestIncomingRPCLogger(t *testing.T) {
 	type Input struct {
-		TestServerFuncs  fooapi.TestServerFuncs
+		TestServiceFuncs fooapi.TestServiceFuncs
 		OptionsBuilders  []OptionsBuilder
 		TraceIDGenerator apicommon.TraceIDGenerator
 		Params           fooapi.DoSomething2Params
@@ -48,7 +48,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
+			fooapi.RegisterTestService(&w.Input.TestServiceFuncs, r, so)
 			co := apicommon.ClientOptions{
 				Transport: apicommon.TransportFunc(func(request *http.Request) (*http.Response, error) {
 					request = request.Clone(request.Context())
@@ -70,7 +70,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 	testcase.RunList(t,
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -81,7 +81,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -97,7 +97,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -113,7 +113,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					tmp := fooapi.MyStructString{}
 					tmp.TheStringA = "taboo"
 					results.MyStructString = &tmp
@@ -127,7 +127,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					panic("hello")
 				}
 				lastTID := 0
@@ -156,7 +156,7 @@ func TestIncomingRPCLogger(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					logger := zerolog.Ctx(ctx)
 					logger.UpdateContext(func(context zerolog.Context) zerolog.Context {
 						return context.Str("foo", "bar")

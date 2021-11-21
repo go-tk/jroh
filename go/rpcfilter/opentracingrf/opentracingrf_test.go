@@ -22,7 +22,7 @@ import (
 
 func TestOpenTracingMiddleware(t *testing.T) {
 	type Input struct {
-		TestServerFuncs  fooapi.TestServerFuncs
+		TestServiceFuncs fooapi.TestServiceFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator
 		Ctx              context.Context
 		Params           fooapi.DoSomething2Params
@@ -61,7 +61,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				},
 				TraceIDGenerator: w.Input.TraceIDGenerator,
 			}
-			fooapi.RegisterTestServer(&w.Input.TestServerFuncs, r, so)
+			fooapi.RegisterTestService(&w.Input.TestServiceFuncs, r, so)
 			co := apicommon.ClientOptions{
 				RPCFilters: apicommon.RPCFilters{
 					apicommon.AnyMethod: {
@@ -93,7 +93,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 	testcase.RunList(t,
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -126,7 +126,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					return errors.New("just wrong")
 				}
 				lastTID := 0
@@ -159,7 +159,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -198,7 +198,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 				w.AddCleanup(func() {
 					apicommon.DebugMode = false
 				})
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					results.MyOnOff = true
 					return nil
 				}
@@ -233,7 +233,7 @@ func TestOpenTracingMiddleware(t *testing.T) {
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.Input.TestServerFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
+				w.Input.TestServiceFuncs.DoSomething2Func = func(ctx context.Context, params *fooapi.DoSomething2Params, results *fooapi.DoSomething2Results) error {
 					r := ctx.Value(ReqKey{}).(*http.Request)
 					sc, err := w.MT.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
 					if assert.NoError(w.T(), err) {

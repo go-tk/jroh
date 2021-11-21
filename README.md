@@ -95,7 +95,7 @@ $ ls -R ./api ./oapi3
 # helloworldapi
 #
 # ./api/helloworldapi:
-# errors.go  greeterclient.go  greeterserver.go  misc.go  models.go
+# errors.go  greeterclient.go  greeterservice.go  misc.go  models.go
 #
 # ./oapi3:
 # common.yaml  hello_world
@@ -125,7 +125,7 @@ import (
 )
 
 func main() {
-    server := helloworldapi.GreeterServerFuncs{
+    service := helloworldapi.GreeterServiceFuncs{
         SayHelloFunc: func(
             ctx context.Context,
             params *helloworldapi.SayHelloParams,
@@ -141,7 +141,7 @@ func main() {
         },
     }
     router := apicommon.NewRouter()
-    helloworldapi.RegisterGreeterServer(&server, router, apicommon.ServerOptions{})
+    helloworldapi.RegisterGreeterService(&service, router, apicommon.ServerOptions{})
     log.Printf("route infos: %#v", router.RouteInfos())
 
     apicommon.DebugMode = true

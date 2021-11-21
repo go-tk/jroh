@@ -40,7 +40,7 @@ func TestSignatureAttacher(t *testing.T) {
 					},
 				},
 			}
-			fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
+			fooapi.RegisterTestService(&fooapi.TestServiceFuncs{
 				DoSomething3Func: func(context.Context) error { return nil },
 			}, r, so)
 			obs := append(w.Input.OptionsBuilders, TimestampGetter(func() int64 { return 1234567890 }))

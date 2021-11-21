@@ -26,7 +26,7 @@ func TestPrometheusHelper(t *testing.T) {
 			},
 		},
 	}
-	fooapi.RegisterTestServer(&fooapi.TestServerFuncs{
+	fooapi.RegisterTestService(&fooapi.TestServiceFuncs{
 		DoSomethingFunc: func(context.Context, *fooapi.DoSomethingParams) error {
 			return nil
 		},

@@ -7,11 +7,11 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-type GreeterServer interface {
+type GreeterService interface {
 	SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) (err error)
 }
 
-func RegisterGreeterServer(server GreeterServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
+func RegisterGreeterService(service GreeterService, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [NumberOfGreeterMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -27,7 +27,7 @@ func RegisterGreeterServer(server GreeterServer, router *apicommon.Router, serve
 				Results     SayHelloResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.SayHello(ctx, rpc.Params().(*SayHelloParams), rpc.Results().(*SayHelloResults))
+				return service.SayHello(ctx, rpc.Params().(*SayHelloParams), rpc.Results().(*SayHelloResults))
 			}
 			s.IncomingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", Greeter_SayHello, &s.Params, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -37,13 +37,13 @@ func RegisterGreeterServer(server GreeterServer, router *apicommon.Router, serve
 	}
 }
 
-type GreeterServerFuncs struct {
+type GreeterServiceFuncs struct {
 	SayHelloFunc func(context.Context, *SayHelloParams, *SayHelloResults) error
 }
 
-var _ GreeterServer = (*GreeterServerFuncs)(nil)
+var _ GreeterService = (*GreeterServiceFuncs)(nil)
 
-func (sf *GreeterServerFuncs) SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) error {
+func (sf *GreeterServiceFuncs) SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) error {
 	if f := sf.SayHelloFunc; f != nil {
 		return f(ctx, params, results)
 	}

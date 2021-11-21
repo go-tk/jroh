@@ -7,11 +7,11 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-type TestServer interface {
+type TestService interface {
 	DoSomething(ctx context.Context, results *DoSomethingResults) (err error)
 }
 
-func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
+func RegisterTestService(service TestService, router *apicommon.Router, serverOptions apicommon.ServerOptions) {
 	serverOptions.Sanitize()
 	var serverMiddlewareTable [NumberOfTestMethods][]apicommon.ServerMiddleware
 	apicommon.FillServerMiddlewareTable(serverMiddlewareTable[:], serverOptions.Middlewares)
@@ -26,7 +26,7 @@ func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptio
 				Results     DoSomethingResults
 			}
 			rpcHandler := func(ctx context.Context, rpc *apicommon.RPC) error {
-				return server.DoSomething(ctx, rpc.Results().(*DoSomethingResults))
+				return service.DoSomething(ctx, rpc.Results().(*DoSomethingResults))
 			}
 			s.IncomingRPC.Init("Bar", "Test", "DoSomething", "Bar.Test.DoSomething", Test_DoSomething, nil, &s.Results, rpcHandler, rpcFilters)
 			return &s.IncomingRPC
@@ -36,13 +36,13 @@ func RegisterTestServer(server TestServer, router *apicommon.Router, serverOptio
 	}
 }
 
-type TestServerFuncs struct {
+type TestServiceFuncs struct {
 	DoSomethingFunc func(context.Context, *DoSomethingResults) error
 }
 
-var _ TestServer = (*TestServerFuncs)(nil)
+var _ TestService = (*TestServiceFuncs)(nil)
 
-func (sf *TestServerFuncs) DoSomething(ctx context.Context, results *DoSomethingResults) error {
+func (sf *TestServiceFuncs) DoSomething(ctx context.Context, results *DoSomethingResults) error {
 	if f := sf.DoSomethingFunc; f != nil {
 		return f(ctx, results)
 	}
