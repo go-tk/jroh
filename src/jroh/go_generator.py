@@ -263,7 +263,7 @@ type ${service_name2}Client struct {
 func New${service_name}Client(rpcBaseURL string, options ${apicommon()}.ClientOptions) ${service_name}Client {
     options.Sanitize()
     var c ${service_name2}Client
-    c.Init(options.Timeout, rpcBaseURL)
+    c.Init(rpcBaseURL, options.Timeout)
     ${apicommon()}.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
     ${apicommon()}.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
     return &c

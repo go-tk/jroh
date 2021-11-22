@@ -81,27 +81,28 @@ func FillTransportTable(transportTable []http.RoundTripper, transport http.Round
 }
 
 type Client struct {
-	c          http.Client
 	rpcBaseURL string
+	timeout    time.Duration
 }
 
-func (c *Client) Init(timeout time.Duration, rpcBaseURL string) {
-	c.c.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
-		outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
-		return outgoingRPC.transport.RoundTrip(request)
-	})
-	c.c.Timeout = timeout
+func (c *Client) Init(rpcBaseURL string, timeout time.Duration) {
 	c.rpcBaseURL = rpcBaseURL
+	c.timeout = timeout
 }
 
 func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport http.RoundTripper, rpcPath string) error {
 	if rpc, ok := GetRPCFromContext(ctx); ok {
 		outgoingRPC.traceID = rpc.traceID
 	}
-	outgoingRPC.client = &c.c
 	outgoingRPC.transport = transport
 	outgoingRPC.url = c.rpcBaseURL + rpcPath
-	return outgoingRPC.Do(makeContextWithRPC(ctx, &outgoingRPC.RPC))
+	ctx = makeContextWithRPC(ctx, &outgoingRPC.RPC)
+	if timeout := c.timeout; timeout >= 1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	return outgoingRPC.Do(ctx)
 }
 
 type TransportFunc func(request *http.Request) (response *http.Response, err error)

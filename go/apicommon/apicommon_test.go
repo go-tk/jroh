@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-tk/jroh/go/apicommon"
 	. "github.com/go-tk/jroh/go/apicommon"
@@ -1647,14 +1648,36 @@ func TestMiddlewareAndRPCFilter(t *testing.T) {
 	assert.Equal(t, "I1I2M1M2A1A2E1E2YYF2F1B2B1N2N1J2J1", s)
 }
 
+func TestClientTimeout(t *testing.T) {
+	c := makeTestClient(fooapi.TestServiceFuncs{
+		DoSomething3Func: func(ctx context.Context) error {
+			time.Sleep(100 * time.Millisecond)
+			return ctx.Err()
+		},
+	}, ServerOptions{}, ClientOptions{Timeout: 10 * time.Millisecond})
+	err := c.DoSomething3(context.Background())
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+}
+
 func makeTestClient(tsf fooapi.TestServiceFuncs, serverOptions ServerOptions, clientOptions ClientOptions) fooapi.TestClient {
 	r := apicommon.NewRouter()
 	fooapi.RegisterTestService(&tsf, r, serverOptions)
 	clientOptions.Transport = TransportFunc(func(request *http.Request) (*http.Response, error) {
-		responseRecorder := httptest.NewRecorder()
-		r.ServeHTTP(responseRecorder, request)
-		response := responseRecorder.Result()
-		return response, nil
+		ctx := request.Context()
+		request = request.Clone(context.Background())
+		responseCh := make(chan *http.Response, 1)
+		go func() {
+			responseRecorder := httptest.NewRecorder()
+			r.ServeHTTP(responseRecorder, request)
+			responseCh <- responseRecorder.Result()
+		}()
+		select {
+		case <-ctx.Done():
+			<-responseCh
+			return nil, ctx.Err()
+		case response := <-responseCh:
+			return response, nil
+		}
 	})
 	c := fooapi.NewTestClient("http://127.0.0.1", clientOptions)
 	return c

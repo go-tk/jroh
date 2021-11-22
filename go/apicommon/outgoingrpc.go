@@ -20,7 +20,6 @@ func (r *RPC) OutgoingRPC() *OutgoingRPC {
 type OutgoingRPC struct {
 	RPC
 
-	client    *http.Client
 	transport http.RoundTripper
 
 	url         string
@@ -88,7 +87,7 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("http request failed (1): %v", err)
 	}
-	if _, err := or.client.Do(request); err != nil {
+	if _, err := or.transport.RoundTrip(request); err != nil {
 		return fmt.Errorf("http request failed (2): %w", err)
 	}
 	if or.statusCode != http.StatusOK {

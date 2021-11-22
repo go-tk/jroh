@@ -24,7 +24,7 @@ type storeClient struct {
 func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreClient {
 	options.Sanitize()
 	var c storeClient
-	c.Init(options.Timeout, rpcBaseURL)
+	c.Init(rpcBaseURL, options.Timeout)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c

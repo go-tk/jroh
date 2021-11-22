@@ -27,7 +27,7 @@ type petClient struct {
 func NewPetClient(rpcBaseURL string, options apicommon.ClientOptions) PetClient {
 	options.Sanitize()
 	var c petClient
-	c.Init(options.Timeout, rpcBaseURL)
+	c.Init(rpcBaseURL, options.Timeout)
 	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
 	return &c
