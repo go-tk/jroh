@@ -9,4 +9,9 @@ require (
 	github.com/prometheus/common v0.26.0
 	github.com/rs/zerolog v1.25.0
 	github.com/stretchr/testify v1.7.0
+	go.opencensus.io v0.23.0
+	go.opentelemetry.io/otel v1.2.0
+	go.opentelemetry.io/otel/sdk v1.2.0
+	go.opentelemetry.io/otel/trace v1.2.0
+	google.golang.org/grpc v1.33.2
 )
