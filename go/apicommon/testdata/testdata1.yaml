@@ -655,3 +655,4 @@ models:
 errors:
   Something-Wrong:
     code: 1
+    status_code: 500

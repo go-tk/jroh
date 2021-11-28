@@ -745,6 +745,7 @@ const Error${error_name} ${apicommon()}.ErrorCode = ${error.code}
 func New${error_name}Error() *${apicommon()}.Error {
     return &${apicommon()}.Error{
         Code: Error${error_name},
+        StatusCode: ${error.status_code},
         Message: "${error.id.lower().replace("-", " ")}",
     }
 }

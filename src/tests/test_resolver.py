@@ -86,11 +86,13 @@ models:
 errors:
   Err:
     code: 1
+    status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Err:
     code: 2
+    status_code: 400
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -111,6 +113,7 @@ models:
 errors:
   Err:
     code: 1
+    status_code: 400
 """,
                     "foo2.yaml": """
 namespace: New
@@ -126,6 +129,7 @@ models:
 errors:
   Err:
     code: 1
+    status_code: 400
 """,
                 },
             ),
@@ -140,11 +144,13 @@ errors:
 errors:
   Foo:
     code: 1
+    status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Bar:
     code: 1
+    status_code: 400
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -157,11 +163,13 @@ namespace: New
 errors:
   Foo:
     code: 1
+    status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Bar:
     code: 1
+    status_code: 400
 """,
                 },
             ),
@@ -185,12 +193,14 @@ methods:
 errors:
   Foo:
     code: 1000
+    status_code: 400
 """,
                     "foo2.yaml": """
 namespace: New
 errors:
   Bar:
     code: 1000
+    status_code: 400
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -310,6 +320,7 @@ methods:
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """
                 },
             ),
@@ -330,6 +341,7 @@ methods:
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -352,6 +364,7 @@ namespace: New
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
                 out_exception_type=InvalidSpecError,
@@ -373,6 +386,7 @@ methods:
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
             ),
@@ -393,6 +407,7 @@ methods:
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
             ),
@@ -413,6 +428,7 @@ namespace: New
 errors:
   Something-Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
             ),
@@ -570,6 +586,7 @@ models:
 errors:
   Wrong:
     code: 1000
+    status_code: 403
 """,
                 },
                 out_unused_node_uris={

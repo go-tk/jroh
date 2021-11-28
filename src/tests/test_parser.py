@@ -481,6 +481,7 @@ methods:
 errors:
   EEE:
     code: 123
+    status_code: 400
 """
                 },
                 out_ignored_node_uris={"foo.yaml#/methods/AAA/error_cases/EEE/xyz"},
@@ -1693,6 +1694,7 @@ errors:
 errors:
   EEE:
     code: 100
+    status_code: 400
     description: 1
 """
                 },
@@ -1723,10 +1725,47 @@ errors:
             ),
             common.TestData(
                 in_file_path_2_file_data={
+                    "foo.yaml": f"""
+errors:
+  EEE:
+    code: 100
+    status_code: s
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: invalid node kind: node_uri='foo\.yaml#/errors/EEE/status_code' node_kind=string expected_node_kind=integer",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": f"""
+errors:
+  EEE:
+    code: 100
+    status_code: 99
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: number too small: node_uri='foo\.yaml#/errors/EEE/status_code' number=99 min_number=100",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
+                    "foo.yaml": f"""
+errors:
+  EEE:
+    code: 100
+    status_code: 600
+"""
+                },
+                out_exception_type=InvalidSpecError,
+                out_exception_re=r"invalid specification: number too large: node_uri='foo\.yaml#/errors/EEE/status_code' number=600 max_number=599",
+            ),
+            common.TestData(
+                in_file_path_2_file_data={
                     "foo.yaml": """
 errors:
   EEE:
     code: 100
+    status_code: 400
     xyz: 1
 """
                 },

@@ -389,16 +389,19 @@ _COMMON_OPEN_API = {
 _PARSE_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
 _PARSE_ERROR_CASE.error = Error("", "Parse-Error")
 _PARSE_ERROR_CASE.error.code = -32700
+_PARSE_ERROR_CASE.error.status_code = 400
 _PARSE_ERROR_CASE.error.description = "Invalid JSON was received by the server."
 
 _INVALID_PARAMS_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
 _INVALID_PARAMS_ERROR_CASE.error = Error("", "Invalid-Params")
 _INVALID_PARAMS_ERROR_CASE.error.code = -32602
+_INVALID_PARAMS_ERROR_CASE.error.status_code = 400
 _INVALID_PARAMS_ERROR_CASE.error.description = "Invalid method parameter(s)."
 
 _INTERNAL_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
 _INTERNAL_ERROR_CASE.error = Error("", "Internal-Error")
 _INTERNAL_ERROR_CASE.error.code = -32603
+_INTERNAL_ERROR_CASE.error.status_code = 500
 _INTERNAL_ERROR_CASE.error.description = "Internal JSON-RPC error."
 
 
@@ -446,8 +449,8 @@ def _translate_primitive_type_and_constraints(
 
 def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
     lines = []
-    lines.append("| Code | Message | Description |")
-    lines.append("| - | - | - |")
+    lines.append("| Code | Status | Message | Description |")
+    lines.append("| - | - | - | - |")
     for error_case in error_cases:
         error = error_case.error
         assert error is not None
@@ -463,7 +466,9 @@ def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
                 description = description[1:]
                 if error.description is not None:
                     description = error.description + description
-        lines.append(f"| {error.code} | {message} | {description} |")
+        lines.append(
+            f"| {error.code} | {error.status_code} | {message} | {description} |"
+        )
     return "\n".join(lines)
 
 

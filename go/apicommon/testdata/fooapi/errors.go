@@ -10,8 +10,9 @@ const ErrorSomethingWrong apicommon.ErrorCode = 1
 
 func NewSomethingWrongError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorSomethingWrong,
-		Message: "something wrong",
+		Code:       ErrorSomethingWrong,
+		StatusCode: 500,
+		Message:    "something wrong",
 	}
 }
 

@@ -412,6 +412,11 @@ class _Parser:
         error_code = _ensure_node_kind(error_code, int, node_uri)
         _check_number(error_code, 1, _MAX_INT32, node_uri)
         error.code = error_code
+        node_uri = error.node_uri + "/status_code"
+        status_code = _pop_node(raw_error, "status_code", node_uri)
+        status_code = _ensure_node_kind(status_code, int, node_uri)
+        _check_number(status_code, 100, 599, node_uri)
+        error.status_code = status_code
         if (description := raw_error.pop("description", None)) is not None:
             description = _ensure_node_kind(
                 description, str, error.node_uri + "/description"

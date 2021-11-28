@@ -53,9 +53,9 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -81,9 +81,9 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -131,9 +131,9 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -214,9 +214,9 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -240,11 +240,11 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -32602 | 400 | invalid params | Invalid method parameter(s). |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -263,9 +263,9 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -296,11 +296,11 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -32602 | 400 | invalid params | Invalid method parameter(s). |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -439,11 +439,11 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -32602 | 400 | invalid params | Invalid method parameter(s). |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -619,11 +619,11 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -32602 | 400 | invalid params | Invalid method parameter(s). |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -737,8 +737,10 @@ methods:
 errors:
   Fail:
     code: 300
+    status_code: 400
   Bad-Situation:
     code: 400
+    status_code: 500
     description: None
 """,
                     "default/c.yaml": """
@@ -746,6 +748,7 @@ namespace: Abc
 errors:
   Xyz:
     code: 123
+    status_code: 400
     description: Too Bad!
 """,
                 },
@@ -764,12 +767,12 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | 123 | xyz | Too Bad! (>_<) |
-            | 300 | fail | Failed |
-            | 400 | bad situation | None |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | 123 | 400 | xyz | Too Bad! (>_<) |
+            | 300 | 400 | fail | Failed |
+            | 400 | 500 | bad situation | None |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.
@@ -927,11 +930,11 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Code | Status | Message | Description |
+            | - | - | - | - |
+            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
+            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -32602 | 400 | invalid params | Invalid method parameter(s). |
           headers:
             X-JROH-Trace-ID:
               description: The trace identifier.

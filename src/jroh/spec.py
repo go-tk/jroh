@@ -233,6 +233,7 @@ class Error:
         self.id: str = id
 
         self.code: int = 0
+        self.status_code: int = 0
         self.description: Optional[str] = None
 
         # resolution

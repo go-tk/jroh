@@ -1,6 +1,7 @@
 package apicommon
 
 import (
+	"net/http"
 	"strconv"
 )
 
@@ -8,8 +9,9 @@ const ErrorParse ErrorCode = -32700
 
 func NewParseError() *Error {
 	return &Error{
-		Code:    ErrorParse,
-		Message: "parse error",
+		Code:       ErrorParse,
+		StatusCode: http.StatusBadRequest,
+		Message:    "parse error",
 	}
 }
 
@@ -20,8 +22,9 @@ const ErrorInvalidParams ErrorCode = -32602
 
 func NewInvalidParamsError() *Error {
 	return &Error{
-		Code:    ErrorInvalidParams,
-		Message: "invalid params",
+		Code:       ErrorInvalidParams,
+		StatusCode: http.StatusBadRequest,
+		Message:    "invalid params",
 	}
 }
 
@@ -32,8 +35,9 @@ const ErrorInternal ErrorCode = -32603
 
 func NewInternalError() *Error {
 	return &Error{
-		Code:    ErrorInternal,
-		Message: "internal error",
+		Code:       ErrorInternal,
+		StatusCode: http.StatusInternalServerError,
+		Message:    "internal error",
 	}
 }
 
@@ -44,8 +48,9 @@ const ErrorNotImplemented ErrorCode = -32000
 
 func NewNotImplementedError() *Error {
 	return &Error{
-		Code:    ErrorNotImplemented,
-		Message: "not implemented",
+		Code:       ErrorNotImplemented,
+		StatusCode: http.StatusNotImplemented,
+		Message:    "not implemented",
 	}
 }
 
@@ -55,10 +60,11 @@ var ErrNotImplemented error = errNotImplemented
 type ErrorCode int32
 
 type Error struct {
-	Code    ErrorCode `json:"code"`
-	Message string    `json:"message"`
-	Details string    `json:"details,omitempty"`
-	Data    ErrorData `json:"data,omitempty"`
+	Code       ErrorCode `json:"code"`
+	StatusCode int       `json:"-"`
+	Message    string    `json:"message"`
+	Details    string    `json:"details,omitempty"`
+	Data       ErrorData `json:"data,omitempty"`
 }
 
 var _ error = (*Error)(nil)
