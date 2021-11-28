@@ -1,4 +1,4 @@
-package outgoingrpclogger
+package loggerrf
 
 import (
 	"context"
@@ -41,8 +41,14 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 		// Before
 		returnedErr = outgoingRPC.Do(ctx)
 		// After
+		var err error
+		switch returnedErr.(type) {
+		case *apicommon.UnexpectedStatusCodeError, *apicommon.Error:
+		default:
+			err = returnedErr
+		}
 		var event *zerolog.Event
-		if !outgoingRPC.IsRequested() && returnedErr != nil {
+		if err != nil {
 			event = subLogger.Error()
 		} else {
 			event = subLogger.Info()
@@ -77,10 +83,8 @@ func NewForClient(logger zerolog.Logger, optionsBuilders ...OptionsBuilder) apic
 				}
 			}
 		}
-		if returnedErr != nil {
-			if _, ok := returnedErr.(*apicommon.Error); !ok {
-				event.AnErr("err", returnedErr)
-			}
+		if err != nil {
+			event.AnErr("err", returnedErr)
 		}
 		event.Msg("outgoing rpc")
 		return

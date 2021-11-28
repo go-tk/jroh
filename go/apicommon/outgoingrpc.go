@@ -77,6 +77,8 @@ type UnexpectedStatusCodeError struct {
 	StatusCode int
 }
 
+var _ error = (*UnexpectedStatusCodeError)(nil)
+
 func (usce *UnexpectedStatusCodeError) Error() string {
 	return "unexpected status code - " + strconv.Itoa(usce.StatusCode)
 }
@@ -89,9 +91,6 @@ func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
 	}
 	if _, err := or.transport.RoundTrip(request); err != nil {
 		return fmt.Errorf("http request failed (2): %w", err)
-	}
-	if or.statusCode != http.StatusOK {
-		return fmt.Errorf("http request failed (3): %w", &UnexpectedStatusCodeError{or.statusCode})
 	}
 	return nil
 }
@@ -134,6 +133,9 @@ func handleRPC(ctx context.Context, rpc *RPC) error {
 	}
 	if err := outgoingRPC.requestHTTP(ctx); err != nil {
 		return err
+	}
+	if outgoingRPC.statusCode != http.StatusOK {
+		return &UnexpectedStatusCodeError{outgoingRPC.statusCode}
 	}
 	if err := outgoingRPC.decodeResp(ctx); err != nil {
 		return err

@@ -1,4 +1,4 @@
-package signatureattacher
+package signatureattachermw
 
 import (
 	"bytes"

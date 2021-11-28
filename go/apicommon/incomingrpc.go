@@ -125,7 +125,7 @@ func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 	}
 	if err := encoder.Encode(resp); err != nil {
 		err = fmt.Errorf("resp encoding failed: %v", err)
-		ir.RespondHTTPWithErr(responseWriter, http.StatusInternalServerError, err, "")
+		ir.Abort(http.StatusInternalServerError, err, responseWriter)
 		return false
 	}
 	ir.rawResp = buffer.Bytes()
@@ -136,12 +136,12 @@ func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
 	return true
 }
 
-func (ir *IncomingRPC) RespondHTTPWithErr(responseWriter http.ResponseWriter, statusCode int, err error, stackTrace string) {
+func (ir *IncomingRPC) Abort(statusCode int, err error, responseWriter http.ResponseWriter) {
 	ir.error = Error{}
 	ir.err = err
-	ir.stackTrace = stackTrace
+	ir.stackTrace = ""
 	ir.rawResp = nil
-	if !DebugMode && statusCode == http.StatusInternalServerError {
+	if statusCode == http.StatusInternalServerError && !DebugMode {
 		responseWriter.WriteHeader(statusCode)
 		return
 	}
@@ -150,10 +150,5 @@ func (ir *IncomingRPC) RespondHTTPWithErr(responseWriter http.ResponseWriter, st
 	var buffer bytes.Buffer
 	buffer.WriteString(err.Error())
 	buffer.WriteByte('\n')
-	if stackTrace != "" {
-		buffer.WriteString("stack trace:\n")
-		buffer.WriteString(stackTrace)
-		buffer.WriteByte('\n')
-	}
 	responseWriter.Write(buffer.Bytes())
 }

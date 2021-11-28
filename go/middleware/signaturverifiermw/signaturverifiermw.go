@@ -1,4 +1,4 @@
-package signaturverifier
+package signaturverifiermw
 
 import (
 	"bytes"
@@ -63,29 +63,29 @@ func NewForServer(keyFetcher KeyFetcher, optionsBuilders ...OptionsBuilder) apic
 			if headerStrLength := len(headerStr); headerStrLength > options.MaxHeaderStrLength {
 				err := fmt.Errorf("signaturverifier: header str too long; headerStrLength=%v maxHeaderStrLength=%v",
 					headerStrLength, options.MaxHeaderStrLength)
-				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
+				incomingRPC.Abort(http.StatusUnprocessableEntity, err, w)
 				return
 			}
 			header, err := parseHeaderStr(headerStr)
 			if err != nil {
-				incomingRPC.RespondHTTPWithErr(w, http.StatusBadRequest, err, "")
+				incomingRPC.Abort(http.StatusBadRequest, err, w)
 				return
 			}
 			if now := options.TimestampGetter(); !checkTimestamp(header.Timestamp, now, options.MaxTimestampSkew) {
 				err := fmt.Errorf("signaturverifier: unexpected timestamp; timestamp=%v maxTimestampSkew=%v",
 					header.Timestamp, options.MaxTimestampSkew)
-				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
+				incomingRPC.Abort(http.StatusUnprocessableEntity, err, w)
 				return
 			}
 			key, ok, err := keyFetcher(ctx, header.SenderID)
 			if err != nil {
 				err := fmt.Errorf("signaturverifier: key fetching failed: %v", err)
-				incomingRPC.RespondHTTPWithErr(w, http.StatusInternalServerError, err, "")
+				incomingRPC.Abort(http.StatusInternalServerError, err, w)
 				return
 			}
 			if !ok {
 				err := fmt.Errorf("signaturverifier: key not found; senderID=%q", header.SenderID)
-				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
+				incomingRPC.Abort(http.StatusUnprocessableEntity, err, w)
 				return
 			}
 			signature := makeSignature(
@@ -98,7 +98,7 @@ func NewForServer(keyFetcher KeyFetcher, optionsBuilders ...OptionsBuilder) apic
 			)
 			if header.Signature != signature {
 				err := fmt.Errorf("signaturverifier: unexpected signature; signature=%q", header.Signature)
-				incomingRPC.RespondHTTPWithErr(w, http.StatusUnprocessableEntity, err, "")
+				incomingRPC.Abort(http.StatusUnprocessableEntity, err, w)
 				return
 			}
 			ctx = makeContextWithSenderID(ctx, header.SenderID)

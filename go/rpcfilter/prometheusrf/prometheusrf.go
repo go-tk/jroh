@@ -10,6 +10,17 @@ import (
 )
 
 var (
+	errorsTotalCounterVec = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "jroh_client_errors_total",
+		},
+		[]string{
+			"jroh_namespace",
+			"jroh_service_name",
+			"jroh_method_name",
+		},
+	)
+
 	rpcDurationSecondsHistogramVec = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "jroh_client_rpc_duration_seconds",
@@ -67,6 +78,20 @@ func NewForClient() apicommon.RPCHandler {
 		// Before
 		returnedErr = outgoingRPC.Do(ctx)
 		// After
+		var err error
+		switch returnedErr.(type) {
+		case *apicommon.UnexpectedStatusCodeError, *apicommon.Error:
+		default:
+			err = returnedErr
+		}
+		if err != nil {
+			counter := errorsTotalCounterVec.WithLabelValues(
+				outgoingRPC.Namespace(),
+				outgoingRPC.ServiceName(),
+				outgoingRPC.MethodName(),
+			)
+			counter.Add(1)
+		}
 		if !outgoingRPC.IsRequested() {
 			return
 		}
@@ -111,6 +136,7 @@ func NewForClient() apicommon.RPCHandler {
 
 func MustRegisterCollectors(registerer prometheus.Registerer) {
 	registerer.MustRegister(
+		errorsTotalCounterVec,
 		rpcDurationSecondsHistogramVec,
 		rpcsTotalCounterVec,
 		paramsSizeBytesHistogramVec,

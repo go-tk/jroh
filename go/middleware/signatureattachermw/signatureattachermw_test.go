@@ -1,4 +1,4 @@
-package signatureattacher_test
+package signatureattachermw_test
 
 import (
 	"context"
@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/middleware/signatureattacher"
-	"github.com/go-tk/jroh/go/middleware/signaturverifier"
+	. "github.com/go-tk/jroh/go/middleware/signatureattachermw"
+	"github.com/go-tk/jroh/go/middleware/signaturverifiermw"
 	"github.com/go-tk/testcase"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSignatureAttacher(t *testing.T) {
+func TestForClient(t *testing.T) {
 	type Input struct {
 		SenderID        string
 		Key             []byte
@@ -31,12 +31,12 @@ func TestSignatureAttacher(t *testing.T) {
 			so := apicommon.ServerOptions{
 				Middlewares: apicommon.ServerMiddlewares{
 					apicommon.AnyMethod: {
-						signaturverifier.NewForServer(func(ctx context.Context, senderID string) (key []byte, ok bool, err error) {
+						signaturverifiermw.NewForServer(func(ctx context.Context, senderID string) (key []byte, ok bool, err error) {
 							if senderID != w.Input.SenderID {
 								return nil, false, nil
 							}
 							return w.Input.Key, true, nil
-						}, signaturverifier.TimestampGetter(func() int64 { return 1234567890 })),
+						}, signaturverifiermw.TimestampGetter(func() int64 { return 1234567890 })),
 					},
 				},
 			}

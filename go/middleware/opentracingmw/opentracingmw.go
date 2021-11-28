@@ -23,12 +23,12 @@ func NewForServer(tracer opentracing.Tracer) apicommon.ServerMiddleware {
 				incomingRPC.FullMethodName(),
 				ext.RPCServerOption(spanContext),
 			)
-			ext.Component.Set(span, "JROH")
 			ctx = opentracing.ContextWithSpan(ctx, span)
 			r = r.WithContext(ctx)
 			// Before
 			handler.ServeHTTP(w, r)
 			// After
+			ext.Component.Set(span, "JROH")
 			ext.HTTPStatusCode.Set(span, uint16(incomingRPC.StatusCode()))
 			span.SetTag("jroh.error_code", int32(incomingRPC.Error().Code))
 			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {

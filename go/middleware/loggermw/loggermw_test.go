@@ -1,4 +1,4 @@
-package incomingrpclogger_test
+package loggermw_test
 
 import (
 	"bytes"
@@ -11,13 +11,13 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/middleware/incomingrpclogger"
+	. "github.com/go-tk/jroh/go/middleware/loggermw"
 	"github.com/go-tk/testcase"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIncomingRPCLogger(t *testing.T) {
+func TestForServer(t *testing.T) {
 	type Input struct {
 		TestServiceFuncs fooapi.TestServiceFuncs
 		OptionsBuilders  []OptionsBuilder

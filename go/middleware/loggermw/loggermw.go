@@ -1,4 +1,4 @@
-package incomingrpclogger
+package loggermw
 
 import (
 	"net/http"

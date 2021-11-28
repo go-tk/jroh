@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOpenTracingMiddleware(t *testing.T) {
+func TestForServer(t *testing.T) {
 	type Input struct {
 		TestServiceFuncs fooapi.TestServiceFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator

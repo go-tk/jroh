@@ -10,6 +10,17 @@ import (
 )
 
 var (
+	errorsTotalCounterVec = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "jroh_server_errors_total",
+		},
+		[]string{
+			"jroh_namespace",
+			"jroh_service_name",
+			"jroh_method_name",
+		},
+	)
+
 	rpcDurationSecondsHistogramVec = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "jroh_server_rpc_duration_seconds",
@@ -69,6 +80,14 @@ func NewForServer() apicommon.ServerMiddleware {
 			handler.ServeHTTP(w, r)
 			// After
 			t1 := time.Now()
+			if incomingRPC.StatusCode()/100 == 5 || incomingRPC.Error().Code == apicommon.ErrorInternal {
+				counter := errorsTotalCounterVec.WithLabelValues(
+					incomingRPC.Namespace(),
+					incomingRPC.ServiceName(),
+					incomingRPC.MethodName(),
+				)
+				counter.Add(1)
+			}
 			{
 				observer := rpcDurationSecondsHistogramVec.WithLabelValues(
 					incomingRPC.Namespace(),
@@ -109,6 +128,7 @@ func NewForServer() apicommon.ServerMiddleware {
 
 func MustRegisterCollectors(registerer prometheus.Registerer) {
 	registerer.MustRegister(
+		errorsTotalCounterVec,
 		rpcDurationSecondsHistogramVec,
 		rpcsTotalCounterVec,
 		paramsSizeBytesHistogramVec,

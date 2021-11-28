@@ -23,19 +23,24 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 			opentracing.ChildOf(spanParentContext),
 			ext.SpanKindRPCClient,
 		)
-		ext.Component.Set(span, "JROH")
 		ctx = opentracing.ContextWithSpan(ctx, span)
 		// Before
 		returnedErr = outgoingRPC.Do(ctx)
 		// After
+		var err error
+		switch returnedErr.(type) {
+		case *apicommon.UnexpectedStatusCodeError, *apicommon.Error:
+		default:
+			err = returnedErr
+		}
+		ext.Component.Set(span, "JROH")
 		span.SetTag("jroh.is_requested", outgoingRPC.IsRequested())
 		if outgoingRPC.IsRequested() {
 			ext.HTTPStatusCode.Set(span, uint16(outgoingRPC.StatusCode()))
 			span.SetTag("jroh.error_code", int32(outgoingRPC.Error().Code))
-		} else {
-			if returnedErr != nil {
-				ext.Error.Set(span, true)
-			}
+		}
+		if err != nil {
+			ext.Error.Set(span, true)
 		}
 		logFields := []log.Field{log.Event("outgoing rpc")}
 		if traceID := outgoingRPC.TraceID(); traceID != "" {
@@ -57,10 +62,8 @@ func NewForClient(tracer opentracing.Tracer) apicommon.RPCHandler {
 				logFields = append(logFields, log.String("api_error", outgoingRPC.Error().Message))
 			}
 		}
-		if returnedErr != nil {
-			if _, ok := returnedErr.(*apicommon.Error); !ok {
-				logFields = append(logFields, log.String("native_error", returnedErr.Error()))
-			}
+		if err != nil {
+			logFields = append(logFields, log.String("native_error", err.Error()))
 		}
 		span.LogFields(logFields...)
 		span.Finish()

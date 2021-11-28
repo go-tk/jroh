@@ -1,4 +1,4 @@
-package signaturverifier_test
+package signaturverifiermw_test
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/middleware/signaturverifier"
+	. "github.com/go-tk/jroh/go/middleware/signaturverifiermw"
 	"github.com/go-tk/testcase"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSignatureVerifier(t *testing.T) {
+func TestForServer(t *testing.T) {
 	type Input struct {
 		KeyFetcher      KeyFetcher
 		OptionsBuilders []OptionsBuilder
@@ -79,26 +79,26 @@ func TestSignatureVerifier(t *testing.T) {
 		t,
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 401`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 401`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.OptionsBuilders = []OptionsBuilder{MaxHeaderStrLength(3)}
 				w.Input.HeaderStr = "1234"
 				w.ExpectedOutput.RespBody = `signaturverifier: header str too long; headerStrLength=4 maxHeaderStrLength=3` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 422`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 422`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.HeaderStr = "aslkdfjasldf"
 				w.ExpectedOutput.RespBody = `signaturverifier: invalid header str; headerStr="aslkdfjasldf"` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 400`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 400`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
 				w.Input.HeaderStr = `Signature t=0,sid="",at="abc",s=""`
 				w.ExpectedOutput.RespBody = `signaturverifier: unknown algorithm type; algorithmTypeStr="abc"` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 400`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 400`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -108,7 +108,7 @@ func TestSignatureVerifier(t *testing.T) {
 				}
 				w.Input.HeaderStr = `Signature t=106,sid="",at="sha1",s=""`
 				w.ExpectedOutput.RespBody = `signaturverifier: unexpected timestamp; timestamp=106 maxTimestampSkew=5` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 422`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 422`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -120,7 +120,7 @@ func TestSignatureVerifier(t *testing.T) {
 					MaxTimestampSkew(5),
 				}
 				w.Input.HeaderStr = `Signature t=1234567890,sid="",at="sha1",s=""`
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 500`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 500`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -135,7 +135,7 @@ func TestSignatureVerifier(t *testing.T) {
 				}
 				w.Input.HeaderStr = `Signature t=1234567890,sid="",at="sha1",s=""`
 				w.ExpectedOutput.RespBody = `signaturverifier: key fetching failed: something wrong` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 500`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 500`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -147,7 +147,7 @@ func TestSignatureVerifier(t *testing.T) {
 					MaxTimestampSkew(5),
 				}
 				w.Input.HeaderStr = `Signature t=1234567890,sid="",at="sha1",s=""`
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 500`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 500`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -161,7 +161,7 @@ func TestSignatureVerifier(t *testing.T) {
 				}
 				w.Input.HeaderStr = `Signature t=1234567890,sid="user",at="sha1",s=""`
 				w.ExpectedOutput.RespBody = `signaturverifier: key not found; senderID="user"` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 422`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 422`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {
@@ -175,7 +175,7 @@ func TestSignatureVerifier(t *testing.T) {
 				}
 				w.Input.HeaderStr = `Signature t=1234567890,sid="user",at="sha1",s="123"`
 				w.ExpectedOutput.RespBody = `signaturverifier: unexpected signature; signature="123"` + "\n"
-				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": http request failed (3): unexpected status code - 422`
+				w.ExpectedOutput.ErrStr = `rpc failed; fullMethodName="Foo.Test.DoSomething3" traceID="tid": unexpected status code - 422`
 			}),
 		tc.Copy().
 			AddTask(9, func(w *Workspace) {

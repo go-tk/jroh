@@ -1,4 +1,4 @@
-package outgoingrpclogger_test
+package loggerrf_test
 
 import (
 	"bytes"
@@ -10,13 +10,13 @@ import (
 
 	"github.com/go-tk/jroh/go/apicommon"
 	"github.com/go-tk/jroh/go/apicommon/testdata/fooapi"
-	. "github.com/go-tk/jroh/go/rpcfilter/outgoingrpclogger"
+	. "github.com/go-tk/jroh/go/rpcfilter/loggerrf"
 	"github.com/go-tk/testcase"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOutgoingRPCLogger(t *testing.T) {
+func TestForClient(t *testing.T) {
 	type Input struct {
 		TestServiceFuncs fooapi.TestServiceFuncs
 		TraceIDGenerator apicommon.TraceIDGenerator
