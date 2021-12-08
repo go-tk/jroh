@@ -1,56 +1,65 @@
 package apicommon
 
 import (
-	"encoding/base64"
-	"math/rand"
+	"bytes"
+	"context"
+	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
+	"unsafe"
 )
 
-type RPCFilters map[MethodIndex][]RPCHandler
+func BytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }
 
-func (rf *RPCFilters) Add(methodIndex MethodIndex, items ...RPCHandler) {
-	if *rf == nil {
-		*rf = make(map[MethodIndex][]RPCHandler)
-	}
-	(*rf)[methodIndex] = append((*rf)[methodIndex], items...)
-}
-
-const AnyMethod MethodIndex = -1
-
-func FillRPCFiltersTable(rpcFiltersTable [][]RPCHandler, rpcFilters map[MethodIndex][]RPCHandler) {
-	commonRPCFilters := rpcFilters[AnyMethod]
-	for i := range rpcFiltersTable {
-		methodIndex := MethodIndex(i)
-		oldRPCFilters := rpcFilters[methodIndex]
-		if len(oldRPCFilters) == 0 {
-			rpcFiltersTable[i] = commonRPCFilters
-			continue
+func ErrIsTemporary(err error) bool {
+	for {
+		if v, ok := err.(interface{ Temporary() bool }); ok && v.Temporary() {
+			return true
 		}
-		if len(commonRPCFilters) == 0 {
-			rpcFiltersTable[i] = oldRPCFilters
-			continue
+		err = errors.Unwrap(err)
+		if err == nil {
+			return false
 		}
-		newRPCFilters := make([]RPCHandler, len(commonRPCFilters)+len(oldRPCFilters))
-		copy(newRPCFilters, commonRPCFilters)
-		copy(newRPCFilters[len(commonRPCFilters):], oldRPCFilters)
-		rpcFiltersTable[i] = newRPCFilters
 	}
 }
 
-func generateTraceID() string {
-	var buffer [16]byte
-	rand.Read(buffer[:])
-	traceID := base64.RawURLEncoding.EncodeToString(buffer[:])
-	return traceID
+type TransportFunc func(request *http.Request) (response *http.Response, err error)
+
+var _ http.RoundTripper = TransportFunc(nil)
+
+func (tf TransportFunc) RoundTrip(request *http.Request) (*http.Response, error) { return tf(request) }
+
+func MakeInMemoryTransport(handler http.Handler) http.RoundTripper {
+	return TransportFunc(func(request *http.Request) (*http.Response, error) {
+		newCtx, cancel := context.WithCancel(context.Background())
+		responseCh := make(chan *http.Response, 1)
+		go func() {
+			responseRecorder := httptest.NewRecorder()
+			newRequest := request.Clone(newCtx)
+			if newRequest.Body == nil {
+				newRequest.Body = ioutil.NopCloser(bytes.NewReader(nil))
+			}
+			handler.ServeHTTP(responseRecorder, newRequest)
+			response := responseRecorder.Result()
+			responseCh <- response
+		}()
+		ctx := request.Context()
+		select {
+		case <-ctx.Done():
+			cancel()
+			<-responseCh
+			return nil, ctx.Err()
+		case response := <-responseCh:
+			cancel()
+			return response, nil
+		}
+	})
 }
 
-const traceIDHeaderKey = "X-JROH-Trace-ID"
+type ReaderFunc func(buffer []byte) (dataSize int, err error)
 
-func injectTraceID(traceID string, header http.Header) { header[traceIDHeaderKey] = []string{traceID} }
+var _ io.Reader = (ReaderFunc)(nil)
 
-func extractTraceID(header http.Header) string {
-	if values := header[traceIDHeaderKey]; len(values) >= 1 {
-		return values[0]
-	}
-	return ""
-}
+func (rf ReaderFunc) Read(buffer []byte) (int, error) { return rf(buffer) }

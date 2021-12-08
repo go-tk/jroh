@@ -6,7 +6,6 @@ import (
 	context "context"
 	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type GreeterClient interface {
@@ -14,36 +13,54 @@ type GreeterClient interface {
 }
 
 type greeterClient struct {
-	apicommon.Client
-
-	rpcFiltersTable [NumberOfGreeterMethods][]apicommon.RPCHandler
-	transportTable  [NumberOfGreeterMethods]http.RoundTripper
+	rpcBaseURL      string
+	options         apicommon.ClientOptions
+	rpcFiltersTable [NumberOfGreeterMethods][]apicommon.OutgoingRPCHandler
 }
 
 func NewGreeterClient(rpcBaseURL string, options apicommon.ClientOptions) GreeterClient {
-	options.Sanitize()
 	var c greeterClient
-	c.Init(rpcBaseURL, options.Timeout)
-	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
-	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
+	c.rpcBaseURL = rpcBaseURL
+	c.options = options
+	c.options.Sanitize()
+	apicommon.FillOutgoingRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	return &c
 }
 
 func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*SayHelloResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      SayHelloParams
-		Results     SayHelloResults
+		rpc     apicommon.OutgoingRPC
+		params  SayHelloParams
+		results SayHelloResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Greeter_SayHello]
-	s.OutgoingRPC.Init("HelloWorld", "Greeter", "SayHello", "HelloWorld.Greeter.SayHello", Greeter_SayHello, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Greeter_SayHello]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "HelloWorld"
+	s.rpc.ServiceName = "Greeter"
+	s.rpc.MethodName = "SayHello"
+	s.rpc.FullMethodName = "HelloWorld.Greeter.SayHello"
+	s.rpc.MethodIndex = Greeter_SayHello
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
+}
+
+func (c *greeterClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {
+	if timeout := c.options.Timeout; timeout >= 1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	rpc.Transport = c.options.Transport
+	rpc.URL = c.rpcBaseURL + rpcPath
+	rpc.SetHandler(apicommon.HandleOutgoingRPC)
+	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
+	if err := rpc.Do(ctx); err != nil {
+		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
+	}
+	return nil
 }
 
 type GreeterClientFuncs struct {
@@ -56,5 +73,5 @@ func (cf *GreeterClientFuncs) SayHello(ctx context.Context, params *SayHelloPara
 	if f := cf.SayHelloFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }

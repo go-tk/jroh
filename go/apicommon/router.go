@@ -26,8 +26,7 @@ func (r *Router) AddRoute(
 	rpcPath string,
 	handler http.Handler,
 	fullMethodName string,
-	serverMiddlewares []ServerMiddleware,
-	rpcFilters []RPCHandler,
+	rpcFilters []IncomingRPCHandler,
 ) {
 	rpcPath2Handler := r.rpcPath2Handler
 	if rpcPath2Handler == nil {
@@ -38,37 +37,30 @@ func (r *Router) AddRoute(
 		panic(fmt.Sprintf("duplicate route; rpcPath=%q", rpcPath))
 	}
 	rpcPath2Handler[rpcPath] = handler
-	r.addRouteInfo(rpcPath, fullMethodName, serverMiddlewares, rpcFilters)
+	r.addRouteInfo(rpcPath, fullMethodName, rpcFilters)
 }
 
 func (r *Router) addRouteInfo(
 	rpcPath string,
 	fullMethodName string,
-	serverMiddlewares []ServerMiddleware,
-	rpcFilters []RPCHandler,
+	rpcFilters []IncomingRPCHandler,
 ) {
-	serverMiddlewares2 := make([]string, len(serverMiddlewares))
-	for i, serverMiddleware := range serverMiddlewares {
-		serverMiddlewares2[i] = runtime.FuncForPC(reflect.ValueOf(serverMiddleware).Pointer()).Name()
-	}
 	rpcFilters2 := make([]string, len(rpcFilters))
 	for i, rpcFilter := range rpcFilters {
 		rpcFilters2[i] = runtime.FuncForPC(reflect.ValueOf(rpcFilter).Pointer()).Name()
 	}
 	routeInfo := RouteInfo{
-		RPCPath:           rpcPath,
-		FullMethodName:    fullMethodName,
-		ServerMiddlewares: serverMiddlewares2,
-		RPCFilters:        rpcFilters2,
+		RPCPath:        rpcPath,
+		FullMethodName: fullMethodName,
+		RPCFilters:     rpcFilters2,
 	}
 	r.routeInfos = append(r.routeInfos, routeInfo)
 }
 
 type RouteInfo struct {
-	RPCPath           string
-	FullMethodName    string
-	ServerMiddlewares []string
-	RPCFilters        []string
+	RPCPath        string
+	FullMethodName string
+	RPCFilters     []string
 }
 
 func (r *Router) RouteInfos() []RouteInfo { return r.routeInfos }

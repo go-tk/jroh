@@ -37,7 +37,7 @@ $ mkdir temp && cd temp
 ```sh
 # Create file ./jroh/hello_world/greeter_service.yaml
 $ install -Dm 644 /dev/stdin ./jroh/hello_world/greeter_service.yaml <<EOF
-########## BEGIN greeter_service.yaml ##########
+######### BEGIN greeter_service.yaml ##########
 namespace: Hello-World
 
 services:
@@ -68,7 +68,8 @@ methods:
 
 errors:
   User-Not-Allowed:
-    code: 1001
+    code: 1000
+    status_code: 403
     description: The user is in the blacklist.
 ########## END greeter_service.yaml ##########
 EOF
@@ -115,38 +116,38 @@ $ install -Dm 644 /dev/stdin ./server/server.go <<EOF
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
-    "net/http"
+        "context"
+        "fmt"
+        "log"
+        "net/http"
 
-    "github.com/go-tk/jroh/go/apicommon"
-    "pkg.go.test/api/helloworldapi"
+        "github.com/go-tk/jroh/go/apicommon"
+        "pkg.go.test/api/helloworldapi"
 )
 
 func main() {
-    service := helloworldapi.GreeterServiceFuncs{
-        SayHelloFunc: func(
-            ctx context.Context,
-            params *helloworldapi.SayHelloParams,
-            results *helloworldapi.SayHelloResults,
-        ) error {
-            log.Printf("Received: %v", params.Name)
+        server := helloworldapi.GreeterServerFuncs{
+                SayHelloFunc: func(
+                        ctx context.Context,
+                        params *helloworldapi.SayHelloParams,
+                        results *helloworldapi.SayHelloResults,
+                ) error {
+                        log.Printf("Received: %v", params.Name)
 
-            if params.Name == "God" {
-                return helloworldapi.ErrUserNotAllowed
-            }
-            results.Message = fmt.Sprintf("Hi, %v!", params.Name)
-            return nil
-        },
-    }
-    router := apicommon.NewRouter()
-    helloworldapi.RegisterGreeterService(&service, router, apicommon.ServerOptions{})
-    log.Printf("route infos: %#v", router.RouteInfos())
+                        if params.Name == "God" {
+                                return helloworldapi.NewUserNotAllowedError()
+                        }
+                        results.Message = fmt.Sprintf("Hi, %v!", params.Name)
+                        return nil
+                },
+        }
+        router := apicommon.NewRouter()
+        helloworldapi.RegisterGreeterServer(&server, router, apicommon.ServerOptions{})
+        log.Printf("route infos: %#v", router.RouteInfos())
 
-    apicommon.DebugMode = true
-    err := http.ListenAndServe(":2220", router)
-    log.Fatal(err)
+        apicommon.DebugMode = true
+        err := http.ListenAndServe(":2220", router)
+        log.Fatal(err)
 }
 ////////// END server.go //////////
 EOF
@@ -159,21 +160,29 @@ $ go run -v ./server/server.go
 **5.a. Send RPC requests with `curl`**
 
 ```sh
-$ curl --data '{"name": "Roy"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+$ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
+# HTTP/1.1 200 OK
+# Content-Type: application/json; charset=utf-8
+# X-Jroh-Trace-Id: Uv38ByGCZU8WP18PmmIdcg
+# Date: Sun, 02 Jan 2022 07:34:15 GMT
+# Content-Length: 28
+#
 # {
-#   "results": {
-#     "message": "Hi, Roy!"
-#   }
+#   "message": "Hi, Roy!"
 # }
 
-$ curl --data '{"name": "God"}' http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+$ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
+# HTTP/1.1 403 Forbidden
+# Content-Type: application/json; charset=utf-8
+# X-Jroh-Error-Code: 1000
+# X-Jroh-Trace-Id: lWbHTRADfE17uwQH0eLGSQ
+# Date: Sun, 02 Jan 2022 07:35:01 GMT
+# Content-Length: 36
+#
 # {
-#   "error": {
-#     "code": 1001,
-#     "message": "user not allowed"
-#   }
+#   "message": "user not allowed"
 # }
 ```
 
@@ -188,39 +197,40 @@ $ install -Dm 644 /dev/stdin ./client/client.go <<EOF
 package main
 
 import (
-    "context"
-    "errors"
-    "fmt"
-    "log"
+        "context"
+        "errors"
+        "fmt"
+        "log"
 
-    "github.com/go-tk/jroh/go/apicommon"
-    "pkg.go.test/api/helloworldapi"
+        "github.com/go-tk/jroh/go/apicommon"
+        "pkg.go.test/api/helloworldapi"
 )
 
 func main() {
-    client := helloworldapi.NewGreeterClient("http://127.0.0.1:2220", apicommon.ClientOptions{})
-    results1, err := client.SayHello(context.Background(), &helloworldapi.SayHelloParams{
-        Name: "Roy",
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("1 - %#v\n", *results1)
+        client := helloworldapi.NewGreeterClient("http://127.0.0.1:2220", apicommon.ClientOptions{})
+        results, err := client.SayHello(context.Background(), &helloworldapi.SayHelloParams{
+                Name: "Roy",
+        })
+        if err != nil {
+                log.Fatal(err)
+        }
+        fmt.Printf("1 - %#v\n", *results)
 
-    _, err = client.SayHello(context.Background(), &helloworldapi.SayHelloParams{
-        Name: "God",
-    })
-    if errors.Is(err, helloworldapi.ErrUserNotAllowed) {
-        fmt.Printf("2 - %v\n", err)
-    }
+        _, err = client.SayHello(context.Background(), &helloworldapi.SayHelloParams{
+                Name: "God",
+        })
+        if error := (*apicommon.Error)(nil); errors.As(err, &error) && error.Code == helloworldapi.ErrorUserNotAllowed {
+                fmt.Printf("2 - %#v\n", error)
+        }
 }
+
 ////////// END client.go //////////
 EOF
 
 $ go run -v ./client/client.go
 # Output:
-# 1 - helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
-# 2 - rpc failed; fullMethodName="HelloWorld.Greeter.SayHello" traceID="ZpTSxCKs0gigByk5SH9pmQ": api: user not allowed (1001)
+# 1 - &helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
+# 2 - &apicommon.Error{Code:1000, StatusCode:403, Message:"user not allowed", Details:"", Data:apicommon.ErrorData(nil)}
 ```
 
 ---

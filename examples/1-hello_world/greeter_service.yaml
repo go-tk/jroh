@@ -29,4 +29,5 @@ methods:
 errors:
   User-Not-Allowed:
     code: 1001
+    status_code: 403
     description: The user is in the blacklist.

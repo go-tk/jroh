@@ -1,66 +1,13 @@
 package apicommon
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
-	"strconv"
 )
 
-const ErrorParse ErrorCode = -32700
-
-func NewParseError() *Error {
-	return &Error{
-		Code:       ErrorParse,
-		StatusCode: http.StatusBadRequest,
-		Message:    "parse error",
-	}
-}
-
-var errParse *Error = NewParseError()
-var ErrParse error = errParse
-
-const ErrorInvalidParams ErrorCode = -32602
-
-func NewInvalidParamsError() *Error {
-	return &Error{
-		Code:       ErrorInvalidParams,
-		StatusCode: http.StatusBadRequest,
-		Message:    "invalid params",
-	}
-}
-
-var errInvalidParams *Error = NewInvalidParamsError()
-var ErrInvalidParams error = errInvalidParams
-
-const ErrorInternal ErrorCode = -32603
-
-func NewInternalError() *Error {
-	return &Error{
-		Code:       ErrorInternal,
-		StatusCode: http.StatusInternalServerError,
-		Message:    "internal error",
-	}
-}
-
-var errInternal *Error = NewInternalError()
-var ErrInternal error = errInternal
-
-const ErrorNotImplemented ErrorCode = -32000
-
-func NewNotImplementedError() *Error {
-	return &Error{
-		Code:       ErrorNotImplemented,
-		StatusCode: http.StatusNotImplemented,
-		Message:    "not implemented",
-	}
-}
-
-var errNotImplemented *Error = NewNotImplementedError()
-var ErrNotImplemented error = errNotImplemented
-
-type ErrorCode int32
-
 type Error struct {
-	Code       ErrorCode `json:"code"`
+	Code       ErrorCode `json:"-"`
 	StatusCode int       `json:"-"`
 	Message    string    `json:"message"`
 	Details    string    `json:"details,omitempty"`
@@ -70,18 +17,21 @@ type Error struct {
 var _ error = (*Error)(nil)
 
 func (e *Error) Error() string {
-	if e.Details == "" {
-		return "api: " + e.Message + " (" + strconv.FormatInt(int64(e.Code), 10) + ")"
+	if e.Code < 0 {
+		if e.Details == "" {
+			return fmt.Sprintf("http: %v", e.Message)
+		}
+		return fmt.Sprintf("http: %v: %v", e.Message, e.Details)
 	}
-	return "api: " + e.Message + " (" + strconv.FormatInt(int64(e.Code), 10) + "): " + e.Details
+	if e.Details == "" {
+		return fmt.Sprintf("api: %v", e.Message)
+	}
+	return fmt.Sprintf("api: %v: %v", e.Message, e.Details)
 }
 
-func (e *Error) Is(err error) bool {
-	if e2, ok := err.(*Error); ok && e.Code == e2.Code {
-		return true
-	}
-	return false
-}
+func (e *Error) Temporary() bool { return e.StatusCode == http.StatusServiceUnavailable }
+
+type ErrorCode int32
 
 type ErrorData map[string]interface{}
 
@@ -95,3 +45,28 @@ func (ed *ErrorData) SetValue(key string, value interface{}) {
 
 func (ed ErrorData) GetValue(key string) (interface{}, bool) { value, ok := ed[key]; return value, ok }
 func (ed ErrorData) ClearValue(key string)                   { delete(ed, key) }
+
+const ErrorNotImplemented ErrorCode = 1
+
+func NewNotImplementedError() *Error {
+	return &Error{
+		Code:       ErrorNotImplemented,
+		StatusCode: http.StatusNotImplemented,
+		Message:    "not implemented",
+	}
+}
+
+const ErrorInvalidParams ErrorCode = 2
+
+func NewInvalidParamsError() *Error {
+	return &Error{
+		Code:       ErrorInvalidParams,
+		StatusCode: http.StatusUnprocessableEntity,
+		Message:    "invalid params",
+	}
+}
+
+var (
+	ErrInvalidResults       = errors.New("invalid results")
+	ErrUnexpectedStatusCode = errors.New("unexpected status code")
+)

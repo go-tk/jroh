@@ -9,11 +9,6 @@ components:
     error:
       type: object
       properties:
-        code:
-          type: integer
-          format: int32
-          description: The error type that occurred.
-          example: -32700
         message:
           type: string
           description: A short description of the error.
@@ -29,5 +24,4 @@ components:
           example:
             key: value
       required:
-      - code
       - message

@@ -6,7 +6,6 @@ import (
 	context "context"
 	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type PetClient interface {
@@ -18,102 +17,134 @@ type PetClient interface {
 }
 
 type petClient struct {
-	apicommon.Client
-
-	rpcFiltersTable [NumberOfPetMethods][]apicommon.RPCHandler
-	transportTable  [NumberOfPetMethods]http.RoundTripper
+	rpcBaseURL      string
+	options         apicommon.ClientOptions
+	rpcFiltersTable [NumberOfPetMethods][]apicommon.OutgoingRPCHandler
 }
 
 func NewPetClient(rpcBaseURL string, options apicommon.ClientOptions) PetClient {
-	options.Sanitize()
 	var c petClient
-	c.Init(rpcBaseURL, options.Timeout)
-	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
-	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
+	c.rpcBaseURL = rpcBaseURL
+	c.options = options
+	c.options.Sanitize()
+	apicommon.FillOutgoingRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	return &c
 }
 
 func (c *petClient) AddPet(ctx context.Context, params *AddPetParams) error {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      AddPetParams
+		rpc     apicommon.OutgoingRPC
+		params  AddPetParams
+		results apicommon.DummyModel
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Pet_AddPet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "AddPet", "Petstore.Pet.AddPet", Pet_AddPet, &s.Params, nil, rpcFilters)
-	transport := c.transportTable[Pet_AddPet]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.AddPet"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.AddPet\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Pet"
+	s.rpc.MethodName = "AddPet"
+	s.rpc.FullMethodName = "Petstore.Pet.AddPet"
+	s.rpc.MethodIndex = Pet_AddPet
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.AddPet"); err != nil {
+		return err
 	}
 	return nil
 }
 
 func (c *petClient) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      GetPetParams
-		Results     GetPetResults
+		rpc     apicommon.OutgoingRPC
+		params  GetPetParams
+		results GetPetResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Pet_GetPet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "GetPet", "Petstore.Pet.GetPet", Pet_GetPet, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Pet_GetPet]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.GetPet"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPet\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Pet"
+	s.rpc.MethodName = "GetPet"
+	s.rpc.FullMethodName = "Petstore.Pet.GetPet"
+	s.rpc.MethodIndex = Pet_GetPet
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPet"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
 }
 
 func (c *petClient) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      GetPetsParams
-		Results     GetPetsResults
+		rpc     apicommon.OutgoingRPC
+		params  GetPetsParams
+		results GetPetsResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Pet_GetPets]
-	s.OutgoingRPC.Init("Petstore", "Pet", "GetPets", "Petstore.Pet.GetPets", Pet_GetPets, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Pet_GetPets]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.GetPets"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPets\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Pet"
+	s.rpc.MethodName = "GetPets"
+	s.rpc.FullMethodName = "Petstore.Pet.GetPets"
+	s.rpc.MethodIndex = Pet_GetPets
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPets"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
 }
 
 func (c *petClient) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      UpdatePetParams
+		rpc     apicommon.OutgoingRPC
+		params  UpdatePetParams
+		results apicommon.DummyModel
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Pet_UpdatePet]
-	s.OutgoingRPC.Init("Petstore", "Pet", "UpdatePet", "Petstore.Pet.UpdatePet", Pet_UpdatePet, &s.Params, nil, rpcFilters)
-	transport := c.transportTable[Pet_UpdatePet]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.UpdatePet"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.UpdatePet\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Pet"
+	s.rpc.MethodName = "UpdatePet"
+	s.rpc.FullMethodName = "Petstore.Pet.UpdatePet"
+	s.rpc.MethodIndex = Pet_UpdatePet
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.UpdatePet"); err != nil {
+		return err
 	}
 	return nil
 }
 
 func (c *petClient) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      FindPetsParams
-		Results     FindPetsResults
+		rpc     apicommon.OutgoingRPC
+		params  FindPetsParams
+		results FindPetsResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Pet_FindPets]
-	s.OutgoingRPC.Init("Petstore", "Pet", "FindPets", "Petstore.Pet.FindPets", Pet_FindPets, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Pet_FindPets]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Pet.FindPets"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Pet"
+	s.rpc.MethodName = "FindPets"
+	s.rpc.FullMethodName = "Petstore.Pet.FindPets"
+	s.rpc.MethodIndex = Pet_FindPets
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.FindPets"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
+}
+
+func (c *petClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {
+	if timeout := c.options.Timeout; timeout >= 1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	rpc.Transport = c.options.Transport
+	rpc.URL = c.rpcBaseURL + rpcPath
+	rpc.SetHandler(apicommon.HandleOutgoingRPC)
+	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
+	if err := rpc.Do(ctx); err != nil {
+		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
+	}
+	return nil
 }
 
 type PetClientFuncs struct {
@@ -130,33 +161,33 @@ func (cf *PetClientFuncs) AddPet(ctx context.Context, params *AddPetParams) erro
 	if f := cf.AddPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.ErrNotImplemented
+	return apicommon.NewNotImplementedError()
 }
 
 func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
 	if f := cf.GetPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }
 
 func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
 	if f := cf.GetPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }
 
 func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	if f := cf.UpdatePetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.ErrNotImplemented
+	return apicommon.NewNotImplementedError()
 }
 
 func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
 	if f := cf.FindPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }

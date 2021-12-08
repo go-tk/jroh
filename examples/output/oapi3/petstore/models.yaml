@@ -15,13 +15,6 @@ components:
           - description: Information of pet.
       required:
       - pet
-    addPetResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
     getPetParams:
       type: object
       properties:
@@ -31,19 +24,6 @@ components:
           - description: The identifier of pet.
       required:
       - petID
-    getPetResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/getPetResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     getPetResults:
       type: object
       properties:
@@ -66,19 +46,6 @@ components:
             - description: The identifier of pet.
       required:
       - petIDs
-    getPetsResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/getPetsResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     getPetsResults:
       type: object
       properties:
@@ -97,13 +64,6 @@ components:
           - description: Updated information of pet.
       required:
       - petPatch
-    updatePetResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
     findPetsParams:
       type: object
       properties:
@@ -120,19 +80,6 @@ components:
               - PET_SOLD(3): Pet is sold.
       required:
       - petStatus
-    findPetsResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/findPetsResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     findPetsResults:
       type: object
       properties:
@@ -151,19 +98,6 @@ components:
           - description: Information of order.
       required:
       - order
-    createOrderResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/createOrderResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     createOrderResults:
       type: object
       properties:
@@ -182,19 +116,6 @@ components:
           - description: The identifier of order.
       required:
       - orderID
-    getOrderResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/getOrderResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     getOrderResults:
       type: object
       properties:
@@ -213,13 +134,6 @@ components:
           - description: Information of user.
       required:
       - user
-    createUserResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
     getUserParams:
       type: object
       properties:
@@ -229,19 +143,6 @@ components:
           - description: The identifier of user.
       required:
       - userID
-    getUserResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/getUserResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     getUserResults:
       type: object
       properties:
@@ -264,19 +165,6 @@ components:
             - description: The identifier of user.
       required:
       - userIDs
-    getUsersResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/getUsersResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     getUsersResults:
       type: object
       properties:
@@ -295,13 +183,6 @@ components:
           - description: Updated information of user.
       required:
       - userPatch
-    updateUserResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
     pet:
       type: object
       properties:

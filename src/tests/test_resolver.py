@@ -85,13 +85,13 @@ models:
                     "foo.yaml": """
 errors:
   Err:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Err:
-    code: 2
+    code: 2000
     status_code: 400
 """,
                 },
@@ -112,7 +112,7 @@ models:
     type: struct
 errors:
   Err:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                     "foo2.yaml": """
@@ -128,7 +128,7 @@ models:
     type: struct
 errors:
   Err:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                 },
@@ -143,13 +143,13 @@ errors:
                     "foo.yaml": """
 errors:
   Foo:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Bar:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                 },
@@ -162,13 +162,13 @@ errors:
 namespace: New
 errors:
   Foo:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                     "foo2.yaml": """
 errors:
   Bar:
-    code: 1
+    code: 1000
     status_code: 400
 """,
                 },

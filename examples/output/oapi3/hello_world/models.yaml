@@ -16,19 +16,6 @@ components:
           example: Roy
       required:
       - name
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/sayHelloResults'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     sayHelloResults:
       type: object
       properties:

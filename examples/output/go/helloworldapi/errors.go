@@ -10,10 +10,8 @@ const ErrorUserNotAllowed apicommon.ErrorCode = 1001
 
 func NewUserNotAllowedError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorUserNotAllowed,
-		Message: "user not allowed",
+		Code:       ErrorUserNotAllowed,
+		StatusCode: 403,
+		Message:    "user not allowed",
 	}
 }
-
-var errUserNotAllowed *apicommon.Error = NewUserNotAllowedError()
-var ErrUserNotAllowed error = errUserNotAllowed

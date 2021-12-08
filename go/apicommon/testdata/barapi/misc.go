@@ -2,12 +2,8 @@
 
 package barapi
 
-import (
-	apicommon "github.com/go-tk/jroh/go/apicommon"
-)
-
 const (
-	Test_DoSomething apicommon.MethodIndex = 0
+	Test_DoSomething = 0
 )
 
 const NumberOfTestMethods = 1

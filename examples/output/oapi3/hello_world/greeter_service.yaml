@@ -20,18 +20,24 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
-            | 1001 | user not allowed | The user is in the blacklist. |
+            | Error Code | Status Code | Message | Description |
+            | - | - | - | - |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
+            | 1001 | 403 | user not allowed | The user is in the blacklist. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - $ref: models.yaml#/components/schemas/sayHelloResults
+                - $ref: ../common.yaml#/components/schemas/error

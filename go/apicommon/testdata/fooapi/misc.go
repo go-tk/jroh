@@ -2,14 +2,11 @@
 
 package fooapi
 
-import (
-	apicommon "github.com/go-tk/jroh/go/apicommon"
-)
-
 const (
-	Test_DoSomething  apicommon.MethodIndex = 0
-	Test_DoSomething2 apicommon.MethodIndex = 1
-	Test_DoSomething3 apicommon.MethodIndex = 2
+	Test_DoSomething  = 0
+	Test_DoSomething1 = 1
+	Test_DoSomething2 = 2
+	Test_DoSomething3 = 3
 )
 
-const NumberOfTestMethods = 3
+const NumberOfTestMethods = 4

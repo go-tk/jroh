@@ -2,127 +2,183 @@ package apicommon
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"math/rand"
 	"net/http"
+	"strings"
 )
 
 type ServerOptions struct {
-	Middlewares      ServerMiddlewares
-	RPCFilters       RPCFilters
+	RPCFilters       map[int][]IncomingRPCHandler
 	TraceIDGenerator TraceIDGenerator
 }
 
-func (so *ServerOptions) Sanitize() {
-	if so.TraceIDGenerator == nil {
-		so.TraceIDGenerator = generateTraceID
-	}
-}
-
-type ServerMiddlewares map[MethodIndex][]ServerMiddleware
-
-func (sm *ServerMiddlewares) Add(methodIndex MethodIndex, items ...ServerMiddleware) {
-	if *sm == nil {
-		*sm = make(map[MethodIndex][]ServerMiddleware)
-	}
-	(*sm)[methodIndex] = append((*sm)[methodIndex], items...)
-}
-
-type ServerMiddleware func(oldHandler http.Handler) (newHandler http.Handler)
-
-func FillServerMiddlewareTable(serverMiddlewareTable [][]ServerMiddleware, serverMiddlewares map[MethodIndex][]ServerMiddleware) {
-	commonServerMiddlewares := serverMiddlewares[AnyMethod]
-	for i := range serverMiddlewareTable {
-		methodIndex := MethodIndex(i)
-		oldServerMiddlewares := serverMiddlewares[methodIndex]
-		if len(oldServerMiddlewares) == 0 {
-			serverMiddlewareTable[i] = commonServerMiddlewares
-			continue
-		}
-		if len(commonServerMiddlewares) == 0 {
-			serverMiddlewareTable[i] = oldServerMiddlewares
-			continue
-		}
-		newServerMiddlewares := make([]ServerMiddleware, len(commonServerMiddlewares)+len(oldServerMiddlewares))
-		copy(newServerMiddlewares, commonServerMiddlewares)
-		copy(newServerMiddlewares[len(commonServerMiddlewares):], oldServerMiddlewares)
-		serverMiddlewareTable[i] = newServerMiddlewares
-	}
-}
-
-type IncomingRPCFactory func() (incomingRPC *IncomingRPC)
 type TraceIDGenerator func() (traceID string)
 
-func MakeHandler(
-	serverMiddlewares []ServerMiddleware,
-	incomingRPCFactory IncomingRPCFactory,
-	traceIDGenerator TraceIDGenerator,
-) http.Handler {
-	handler := http.Handler(http.HandlerFunc(handleHTTP))
-	for i := len(serverMiddlewares) - 1; i >= 0; i-- {
-		serverMiddleware := serverMiddlewares[i]
-		handler = serverMiddleware(handler)
+func (so *ServerOptions) Sanitize() {
+	if so.TraceIDGenerator == nil {
+		so.TraceIDGenerator = defaultTraceIDGenerator
 	}
-	handler = func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var buffer bytes.Buffer
-			if _, err := buffer.ReadFrom(r.Body); err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			incomingRPC := incomingRPCFactory()
-			traceID := extractTraceID(r.Header)
-			if traceID == "" {
-				traceID = traceIDGenerator()
-				injectTraceID(traceID, w.Header())
-			}
-			incomingRPC.traceID = traceID
-			if buffer.Len() >= 1 {
-				incomingRPC.rawParams = buffer.Bytes()
-			}
-			ctx := makeContextWithRPC(r.Context(), &incomingRPC.RPC)
-			handler.ServeHTTP(responseWriterWrapper{w, incomingRPC}, r.WithContext(ctx))
-		})
-	}(handler)
-	return handler
 }
 
-func handleHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	incomingRPC := MustGetRPCFromContext(ctx).IncomingRPC()
-	defer func() {
-		if v := recover(); v != nil {
-			incomingRPC.savePanic(v)
+func defaultTraceIDGenerator() string {
+	var buffer [16]byte
+	rand.Read(buffer[:])
+	traceID := base64.RawURLEncoding.EncodeToString(buffer[:])
+	return traceID
+}
+
+func (so *ServerOptions) AddCommonRPCFilters(rpcFilters ...IncomingRPCHandler) {
+	so.AddRPCFilters(-1, rpcFilters...)
+}
+
+func (so *ServerOptions) AddRPCFilters(methodIndex int, rpcFilters ...IncomingRPCHandler) {
+	if so.RPCFilters == nil {
+		so.RPCFilters = make(map[int][]IncomingRPCHandler)
+	}
+	so.RPCFilters[methodIndex] = append(so.RPCFilters[methodIndex], rpcFilters...)
+}
+
+func FillIncomingRPCFiltersTable(rpcFiltersTable [][]IncomingRPCHandler, rpcFilters map[int][]IncomingRPCHandler) {
+	commonRPCFilters := rpcFilters[-1]
+	for i := range rpcFiltersTable {
+		oldRPCFilters := rpcFilters[i]
+		if len(oldRPCFilters) == 0 {
+			rpcFiltersTable[i] = commonRPCFilters
+			continue
 		}
-		if !incomingRPC.encodeResp(w) {
-			return
+		if len(commonRPCFilters) == 0 {
+			rpcFiltersTable[i] = oldRPCFilters
+			continue
 		}
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write(incomingRPC.rawResp)
-	}()
-	if !incomingRPC.decodeParams(ctx) {
+		newRPCFilters := make([]IncomingRPCHandler, len(commonRPCFilters)+len(oldRPCFilters))
+		copy(newRPCFilters, commonRPCFilters)
+		copy(newRPCFilters[len(commonRPCFilters):], oldRPCFilters)
+		rpcFiltersTable[i] = newRPCFilters
+	}
+}
+
+func HandleRequest(
+	request *http.Request,
+	incomingRPC *IncomingRPC,
+	traceIDGenerator TraceIDGenerator,
+	responseWriter http.ResponseWriter,
+) {
+	incomingRPC.RemoteIP = getRemoteIP(request)
+	incomingRPC.InboundHeader = request.Header
+	incomingRPC.OutboundHeader = responseWriter.Header()
+	traceID, ok := getTraceID(incomingRPC.InboundHeader)
+	if !ok {
+		traceID = traceIDGenerator()
+		setTraceID(traceID, incomingRPC.OutboundHeader)
+	}
+	incomingRPC.TraceID = traceID
+	incomingRPC.StatusCode = http.StatusOK
+	incomingRPC.SetReader(request.Body)
+	if err := incomingRPC.Do(request.Context()); err != nil {
+		error, ok := err.(*Error)
+		if !ok {
+			error = &Error{
+				Code:       -1,
+				StatusCode: incomingRPC.StatusCode,
+				Message:    statusCode2Message[incomingRPC.StatusCode],
+			}
+			if error.StatusCode/100 != 5 {
+				error.Details = err.Error()
+			}
+		}
+		rawError, err := encodeError(error)
+		if err != nil {
+			panic(err)
+		}
+		setContentTypeAsJSON(incomingRPC.OutboundHeader)
+		setErrorCode(error.Code, incomingRPC.OutboundHeader)
+		responseWriter.WriteHeader(incomingRPC.StatusCode)
+		responseWriter.Write(rawError)
 		return
 	}
-	if err := incomingRPC.Do(ctx); err != nil {
-		incomingRPC.saveErr(err)
+	incomingRPC.EncodeResults()
+	setContentTypeAsJSON(incomingRPC.OutboundHeader)
+	responseWriter.WriteHeader(incomingRPC.StatusCode)
+	responseWriter.Write(incomingRPC.RawResults)
+}
+
+func getRemoteIP(request *http.Request) string {
+	if values := request.Header["X-Forwarded-For"]; len(values) >= 1 {
+		ips := values[0]
+		i := strings.IndexByte(ips, ',')
+		if i < 0 {
+			i = len(ips)
+		}
+		if i >= 1 {
+			return ips[:i]
+		}
 	}
+	remoteAddr := request.RemoteAddr
+	i := strings.LastIndexByte(remoteAddr, ':')
+	if i < 0 {
+		i = len(remoteAddr)
+	}
+	return remoteAddr[:i]
 }
 
-var _ http.HandlerFunc = handleHTTP
-
-type responseWriterWrapper struct {
-	http.ResponseWriter
-
-	incomingRPC *IncomingRPC
+var statusCode2Message = map[int]string{
+	// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+	400: "bad request",
+	401: "unauthorized",
+	402: "payment required",
+	403: "forbidden",
+	404: "not found",
+	405: "method not allowed",
+	406: "not acceptable",
+	407: "proxy authentication required",
+	408: "request timeout",
+	409: "conflict",
+	410: "gone",
+	411: "length required",
+	412: "precondition failed",
+	413: "payload too large",
+	414: "uri too long",
+	415: "unsupported media type",
+	416: "range not satisfiable",
+	417: "expectation failed",
+	418: "i'm a teapot",
+	422: "unprocessable entity",
+	425: "too early",
+	426: "upgrade required",
+	428: "precondition required",
+	429: "too many requests",
+	431: "request header fields too large",
+	451: "unavailable for legal reasons",
+	500: "internal server error",
+	501: "not implemented",
+	502: "bad gateway",
+	503: "service unavailable",
+	504: "gateway timeout",
+	505: "http version not supported",
+	506: "variant also negotiates",
+	507: "insufficient storage",
+	508: "loop detected",
+	510: "not extended",
+	511: "network authentication required",
 }
 
-var _ http.ResponseWriter = responseWriterWrapper{}
-
-func (rww responseWriterWrapper) WriteHeader(statusCode int) {
-	rww.ResponseWriter.WriteHeader(statusCode)
-	rww.incomingRPC.statusCode = statusCode
-}
-
-func (rww responseWriterWrapper) Write(data []byte) (int, error) {
-	n, err := rww.ResponseWriter.Write(data)
-	rww.incomingRPC.responseWriteErr = err
-	return n, err
+func encodeError(error *Error) ([]byte, error) {
+	var buffer bytes.Buffer
+	encoder := json.NewEncoder(&buffer)
+	encoder.SetEscapeHTML(false)
+	if DebugMode {
+		encoder.SetIndent("", "  ")
+	}
+	if err := encoder.Encode(error); err != nil {
+		return nil, fmt.Errorf("error encoding failed: %w", err)
+	}
+	rawError := buffer.Bytes()
+	if !DebugMode {
+		// Remove trailing '\n'
+		rawError = rawError[:len(rawError)-1]
+	}
+	return rawError, nil
 }

@@ -5,145 +5,162 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"strconv"
-	"unsafe"
 )
 
-func (r *RPC) OutgoingRPC() *OutgoingRPC {
-	if r.mark != 'o' {
-		panic("not outgoing rpc")
-	}
-	return (*OutgoingRPC)(unsafe.Pointer(r))
-}
-
 type OutgoingRPC struct {
-	RPC
+	Namespace      string
+	ServiceName    string
+	MethodName     string
+	FullMethodName string
+	MethodIndex    int
+	Params         Model
+	Results        Model
 
-	transport http.RoundTripper
+	Transport      http.RoundTripper
+	URL            string
+	OutboundHeader http.Header
+	RawParams      []byte
+	StatusCode     int
+	InboundHeader  http.Header
+	TraceID        string
+	ErrorCode      ErrorCode
+	RawResults     []byte
 
-	url         string
-	rawParams   []byte
-	isRequested bool
-	statusCode  int
-	rawResp     []byte
-	error       Error
-}
+	handler         OutgoingRPCHandler
+	filters         []OutgoingRPCHandler
+	nextFilterIndex int
+	readCloser      io.ReadCloser
 
-func (or *OutgoingRPC) Init(
-	namespace string,
-	serviceName string,
-	methodName string,
-	fullMethodName string,
-	methodIndex MethodIndex,
-	params Model,
-	results Model,
-	filters []RPCHandler,
-) {
-	or.mark = 'o'
-	or.init(namespace, serviceName, methodName, fullMethodName, methodIndex, params, results, handleRPC, filters)
-}
-
-func (or *OutgoingRPC) URL() string                  { return or.url }
-func (or *OutgoingRPC) RawParams() []byte            { return or.rawParams }
-func (or *OutgoingRPC) IsRequested() bool            { return or.isRequested }
-func (or *OutgoingRPC) StatusCode() int              { return or.statusCode }
-func (or *OutgoingRPC) RawResp() []byte              { return or.rawResp }
-func (or *OutgoingRPC) UpdateRawResp(rawResp []byte) { or.rawResp = rawResp }
-func (or *OutgoingRPC) Error() Error                 { return or.error }
-
-func (or *OutgoingRPC) encodeParams() error {
-	if or.params == nil {
-		return nil
+	encodeParamsCache struct {
+		err error
+		has bool
 	}
+
+	readRawResultsCache struct {
+		err error
+		has bool
+	}
+
+	loadResultsCache struct {
+		err error
+		has bool
+	}
+}
+
+func (or *OutgoingRPC) SetHandler(handler OutgoingRPCHandler)   { or.handler = handler }
+func (or *OutgoingRPC) SetFilters(filters []OutgoingRPCHandler) { or.filters = filters }
+func (or *OutgoingRPC) SetReadCloser(readCloser io.ReadCloser)  { or.readCloser = readCloser }
+
+func (or *OutgoingRPC) Do(ctx context.Context) error {
+	i := or.nextFilterIndex
+	or.nextFilterIndex++
+	n := len(or.filters)
+	if i > n {
+		panic("too many calls")
+	}
+	if i == 0 {
+		or.OutboundHeader = outboundHeaderPool.Get().(http.Header)
+		defer func() {
+			if or.readCloser != nil {
+				or.readCloser.Close()
+			}
+		}()
+	}
+	var err error
+	if i < n {
+		err = or.filters[i](ctx, or)
+	} else {
+		err = or.handler(ctx, or)
+	}
+	if i >= 1 || err != nil {
+		return err
+	}
+	if err := or.LoadResults(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (or *OutgoingRPC) EncodeParams() error {
+	cache := &or.encodeParamsCache
+	if !cache.has {
+		cache.err = or.doEncodeParams()
+		cache.has = true
+	}
+	return cache.err
+}
+
+func (or *OutgoingRPC) doEncodeParams() error {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
 	if DebugMode {
 		encoder.SetIndent("", "  ")
 	}
-	if err := encoder.Encode(or.params); err != nil {
-		return fmt.Errorf("params encoding failed: %v", err)
+	if err := encoder.Encode(or.Params); err != nil {
+		return fmt.Errorf("params encoding failed: %w", err)
 	}
-	or.rawParams = buffer.Bytes()
+	rawParams := buffer.Bytes()
 	if !DebugMode {
-		// Remove '\n'
-		or.rawParams = or.rawParams[:len(or.rawParams)-1]
+		// Remove trailing '\n'
+		rawParams = rawParams[:len(rawParams)-1]
+	}
+	or.RawParams = rawParams
+	return nil
+}
+
+func (or *OutgoingRPC) LoadResults(ctx context.Context) error {
+	cache := &or.loadResultsCache
+	if !cache.has {
+		cache.err = or.doLoadResults(ctx)
+		cache.has = true
+	}
+	return cache.err
+}
+
+func (or *OutgoingRPC) doLoadResults(ctx context.Context) error {
+	if err := or.ReadRawResults(); err != nil {
+		return err
+	}
+	if err := or.decodeRawResults(ctx); err != nil {
+		return err
+	}
+	validationContext := NewValidationContext(ctx)
+	if !or.Results.Validate(validationContext) {
+		return fmt.Errorf("%w: %v", ErrInvalidResults, validationContext.ErrorDetails())
 	}
 	return nil
 }
 
-type UnexpectedStatusCodeError struct {
-	StatusCode int
+func (or *OutgoingRPC) decodeRawResults(ctx context.Context) error {
+	if err := json.Unmarshal(or.RawResults, or.Results); err != nil {
+		return fmt.Errorf("raw results decoding failed: %w", err)
+	}
+	return nil
 }
 
-var _ error = (*UnexpectedStatusCodeError)(nil)
-
-func (usce *UnexpectedStatusCodeError) Error() string {
-	return "unexpected status code - " + strconv.Itoa(usce.StatusCode)
+func (or *OutgoingRPC) ReadRawResults() error {
+	cache := &or.readRawResultsCache
+	if !cache.has {
+		cache.err = or.doReadRawResults()
+		cache.has = true
+	}
+	return cache.err
 }
 
-func (or *OutgoingRPC) requestHTTP(ctx context.Context) error {
-	requestBody := bytes.NewReader(or.rawParams)
-	request, err := http.NewRequestWithContext(ctx, "POST", or.url, requestBody)
+func (or *OutgoingRPC) doReadRawResults() error {
+	var buffer bytes.Buffer
+	n, err := buffer.ReadFrom(or.readCloser)
 	if err != nil {
-		return fmt.Errorf("http request failed (1): %v", err)
+		return fmt.Errorf("raw results read failed: %w", err)
 	}
-	if _, err := or.transport.RoundTrip(request); err != nil {
-		return fmt.Errorf("http request failed (2): %w", err)
-	}
-	return nil
-}
-
-func (or *OutgoingRPC) decodeResp(ctx context.Context) error {
-	if or.results == nil {
-		resp := struct {
-			Error *Error `json:"error"`
-		}{
-			Error: &or.error,
-		}
-		if err := json.Unmarshal(or.rawResp, &resp); err != nil {
-			return fmt.Errorf("resp decoding failed (1): %v", err)
-		}
+	if n == 0 {
 		return nil
 	}
-	resp := struct {
-		Error   *Error      `json:"error"`
-		Results interface{} `json:"results"`
-	}{
-		Error:   &or.error,
-		Results: or.results,
-	}
-	if err := json.Unmarshal(or.rawResp, &resp); err != nil {
-		return fmt.Errorf("resp decoding failed (2): %v", err)
-	}
-	if or.error.Code == 0 {
-		validationContext := NewValidationContext(ctx)
-		if !or.results.Validate(validationContext) {
-			return fmt.Errorf("resp decoding failed (3): invalid results: %s", validationContext.ErrorDetails())
-		}
-	}
+	or.RawResults = buffer.Bytes()
 	return nil
 }
 
-func handleRPC(ctx context.Context, rpc *RPC) error {
-	outgoingRPC := rpc.OutgoingRPC()
-	if err := outgoingRPC.encodeParams(); err != nil {
-		return err
-	}
-	if err := outgoingRPC.requestHTTP(ctx); err != nil {
-		return err
-	}
-	if outgoingRPC.statusCode != http.StatusOK {
-		return &UnexpectedStatusCodeError{outgoingRPC.statusCode}
-	}
-	if err := outgoingRPC.decodeResp(ctx); err != nil {
-		return err
-	}
-	if outgoingRPC.error.Code != 0 {
-		return &outgoingRPC.error
-	}
-	return nil
-}
-
-var _ RPCHandler = handleRPC
+type OutgoingRPCHandler func(ctx context.Context, outgoingRPC *OutgoingRPC) (err error)

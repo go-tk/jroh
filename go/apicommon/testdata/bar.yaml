@@ -1,0 +1,11 @@
+namespace: Bar
+
+services:
+  Test:
+    version: 0.0.0
+
+methods:
+  Do-Something:
+    service_id: Test
+    error_cases:
+      Foo.Something-Wrong: {}

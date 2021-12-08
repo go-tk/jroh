@@ -6,149 +6,192 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"runtime"
-	"unsafe"
 )
 
-func (r *RPC) IncomingRPC() *IncomingRPC {
-	if r.mark != 'i' {
-		panic("not incoming rpc")
-	}
-	return (*IncomingRPC)(unsafe.Pointer(r))
-}
-
 type IncomingRPC struct {
-	RPC
+	Namespace      string
+	ServiceName    string
+	MethodName     string
+	FullMethodName string
+	MethodIndex    int
+	Params         Model
+	Results        Model
 
-	rawParams        []byte
-	error            Error
-	err              error
-	stackTrace       string
-	rawResp          []byte
-	statusCode       int
-	responseWriteErr error
-}
+	RemoteIP       string
+	InboundHeader  http.Header
+	OutboundHeader http.Header
+	TraceID        string
+	RawParams      []byte
+	StatusCode     int
+	ErrorCode      ErrorCode
+	RawResults     []byte
 
-func (ir *IncomingRPC) Init(
-	namespace string,
-	serviceName string,
-	methodName string,
-	fullMethodName string,
-	methodIndex MethodIndex,
-	params Model,
-	results Model,
-	handler RPCHandler,
-	filters []RPCHandler,
-) {
-	ir.mark = 'i'
-	ir.init(namespace, serviceName, methodName, fullMethodName, methodIndex, params, results, handler, filters)
-	ir.statusCode = http.StatusOK
-}
+	handler         IncomingRPCHandler
+	filters         []IncomingRPCHandler
+	nextFilterIndex int
+	reader          io.Reader
 
-func (ir *IncomingRPC) RawParams() []byte                { return ir.rawParams }
-func (ir *IncomingRPC) UpdateRawParams(rawParams []byte) { ir.rawParams = rawParams }
-func (ir *IncomingRPC) Error() Error                     { return ir.error }
-func (ir *IncomingRPC) Err() error                       { return ir.err }
-func (ir *IncomingRPC) StackTrace() string               { return ir.stackTrace }
-func (ir *IncomingRPC) RawResp() []byte                  { return ir.rawResp }
-func (ir *IncomingRPC) StatusCode() int                  { return ir.statusCode }
-func (ir *IncomingRPC) ResponseWriteErr() error          { return ir.responseWriteErr }
-
-func (ir *IncomingRPC) decodeParams(ctx context.Context) bool {
-	if ir.params == nil {
-		return true
+	readRawParamsCache struct {
+		err error
+		has bool
 	}
-	if err := json.Unmarshal(ir.rawParams, ir.params); err != nil {
-		switch err.(type) {
-		case *json.SyntaxError:
-			ir.error = *errParse
-			ir.error.Details = err.Error()
-		case *json.UnmarshalTypeError:
-			ir.error = *errInvalidParams
-			ir.error.Details = err.Error()
-		default:
-			ir.saveErr(err)
+
+	loadParamsCache struct {
+		err error
+		has bool
+	}
+
+	encodeResultsCache struct {
+		err error
+		has bool
+	}
+}
+
+func (ir *IncomingRPC) SetHandler(handler IncomingRPCHandler)   { ir.handler = handler }
+func (ir *IncomingRPC) SetFilters(filters []IncomingRPCHandler) { ir.filters = filters }
+func (ir *IncomingRPC) SetReader(reader io.Reader)              { ir.reader = reader }
+
+func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
+	i := ir.nextFilterIndex
+	ir.nextFilterIndex++
+	n := len(ir.filters)
+	if i > n {
+		panic("too many calls")
+	}
+	if i == 0 {
+		ctx = MakeContextWithIncomingRPC(ctx, ir)
+		defer func() {
+			if v := recover(); v != nil {
+				ir.StatusCode = http.StatusInternalServerError
+				buffer := make([]byte, 4096)
+				i := copy(buffer, fmt.Sprintf("panic: %v\n\n", v))
+				i += runtime.Stack(buffer[i:], false)
+				returnedErr = errors.New(BytesToString(buffer[:i]))
+			}
+		}()
+	}
+	if i < n {
+		return ir.filters[i](ctx, ir)
+	}
+	if err := ir.LoadParams(ctx); err != nil {
+		if error, ok := err.(*Error); ok {
+			ir.StatusCode = error.StatusCode
+			ir.ErrorCode = error.Code
+		} else {
+			ir.StatusCode = http.StatusBadRequest
 		}
-		return false
+		return err
+	}
+	if err := ir.handler(ctx, ir); err != nil {
+		if error, ok := err.(*Error); ok {
+			ir.StatusCode = error.StatusCode
+			ir.ErrorCode = error.Code
+		} else {
+			if ErrIsTemporary(err) {
+				ir.StatusCode = http.StatusServiceUnavailable
+			} else {
+				ir.StatusCode = http.StatusInternalServerError
+			}
+		}
+		return err
+	}
+	return nil
+}
+
+func (ir *IncomingRPC) LoadParams(ctx context.Context) error {
+	cache := &ir.loadParamsCache
+	if !cache.has {
+		cache.err = ir.doLoadParams(ctx)
+		cache.has = true
+	}
+	return cache.err
+}
+
+func (ir *IncomingRPC) doLoadParams(ctx context.Context) error {
+	if err := ir.ReadRawParams(); err != nil {
+		return err
+	}
+	if err := ir.decodeRawParams(ctx); err != nil {
+		return err
 	}
 	validationContext := NewValidationContext(ctx)
-	if !ir.params.Validate(validationContext) {
-		ir.error = *errInvalidParams
-		ir.error.Details = validationContext.ErrorDetails()
-		return false
+	if !ir.Params.Validate(validationContext) {
+		error := NewInvalidParamsError()
+		error.Details = validationContext.ErrorDetails()
+		return error
 	}
-	return true
+	return nil
 }
 
-func (ir *IncomingRPC) saveErr(err error) {
-	if error, ok := err.(*Error); ok {
-		ir.error = *error
-		return
+func (ir *IncomingRPC) decodeRawParams(ctx context.Context) error {
+	if err := json.Unmarshal(ir.RawParams, ir.Params); err != nil {
+		return fmt.Errorf("raw params decoding failed: %w", err)
 	}
-	ir.error = *errInternal
-	if DebugMode {
-		ir.error.Details = err.Error()
-	}
-	ir.err = err
+	return nil
 }
 
-func (ir *IncomingRPC) savePanic(v interface{}) {
-	ir.error = *errInternal
-	errText := fmt.Sprintf("%v", v)
-	buffer := make([]byte, 4096)
-	n := runtime.Stack(buffer, false)
-	stackTrace := string(buffer[:n])
-	if DebugMode {
-		ir.error.Details = errText
-		ir.error.Data.SetValue("stackTrace", stackTrace)
+func (ir *IncomingRPC) ReadRawParams() error {
+	cache := &ir.readRawParamsCache
+	if !cache.has {
+		cache.err = ir.doReadRawParams()
+		cache.has = true
 	}
-	ir.err = errors.New(errText)
-	ir.stackTrace = stackTrace
+	return cache.err
 }
 
-func (ir *IncomingRPC) encodeResp(responseWriter http.ResponseWriter) bool {
+func (ir *IncomingRPC) doReadRawParams() error {
+	var buffer bytes.Buffer
+	n, err := buffer.ReadFrom(ir.reader)
+	if err != nil {
+		return fmt.Errorf("raw params read failed: %w", err)
+	}
+	if n == 0 {
+		return nil
+	}
+	ir.RawParams = buffer.Bytes()
+	return nil
+}
+
+func (ir *IncomingRPC) EncodeResults() error {
+	cache := &ir.encodeResultsCache
+	if !cache.has {
+		cache.err = ir.doEncodeResults()
+		cache.has = true
+	}
+	return cache.err
+}
+
+func (ir *IncomingRPC) doEncodeResults() error {
 	var buffer bytes.Buffer
 	encoder := json.NewEncoder(&buffer)
 	encoder.SetEscapeHTML(false)
 	if DebugMode {
 		encoder.SetIndent("", "  ")
 	}
-	resp := struct {
-		Error   *Error      `json:"error,omitempty"`
-		Results interface{} `json:"results,omitempty"`
-	}{}
-	if ir.error.Code == 0 {
-		resp.Results = ir.results
-	} else {
-		resp.Error = &ir.error
+	if err := encoder.Encode(ir.Results); err != nil {
+		return fmt.Errorf("results encoding failed: %w", err)
 	}
-	if err := encoder.Encode(resp); err != nil {
-		err = fmt.Errorf("resp encoding failed: %v", err)
-		ir.Abort(http.StatusInternalServerError, err, responseWriter)
-		return false
-	}
-	ir.rawResp = buffer.Bytes()
+	rawResults := buffer.Bytes()
 	if !DebugMode {
-		// Remove '\n'
-		ir.rawResp = ir.rawResp[:len(ir.rawResp)-1]
+		// Remove trailing '\n'
+		rawResults = rawResults[:len(rawResults)-1]
 	}
-	return true
+	ir.RawResults = rawResults
+	return nil
 }
 
-func (ir *IncomingRPC) Abort(statusCode int, err error, responseWriter http.ResponseWriter) {
-	ir.error = Error{}
-	ir.err = err
-	ir.stackTrace = ""
-	ir.rawResp = nil
-	if statusCode == http.StatusInternalServerError && !DebugMode {
-		responseWriter.WriteHeader(statusCode)
-		return
-	}
-	responseWriter.Header().Set("Content-Type", "text/plain; charest=utf-8")
-	responseWriter.WriteHeader(statusCode)
-	var buffer bytes.Buffer
-	buffer.WriteString(err.Error())
-	buffer.WriteByte('\n')
-	responseWriter.Write(buffer.Bytes())
+type IncomingRPCHandler func(ctx context.Context, incomingRPC *IncomingRPC) (err error)
+
+type contextValueIncomingRPC struct{}
+
+func MakeContextWithIncomingRPC(ctx context.Context, incomingRPC *IncomingRPC) context.Context {
+	return context.WithValue(ctx, contextValueIncomingRPC{}, incomingRPC)
+}
+
+func GetIncomingRPCFromContext(ctx context.Context) (*IncomingRPC, bool) {
+	incomingRPC, ok := ctx.Value(contextValueIncomingRPC{}).(*IncomingRPC)
+	return incomingRPC, ok
 }

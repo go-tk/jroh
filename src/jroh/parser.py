@@ -410,7 +410,7 @@ class _Parser:
         node_uri = error.node_uri + "/code"
         error_code = _pop_node(raw_error, "code", node_uri)
         error_code = _ensure_node_kind(error_code, int, node_uri)
-        _check_number(error_code, 1, _MAX_INT32, node_uri)
+        _check_number(error_code, 1000, _MAX_INT32, node_uri)
         error.code = error_code
         node_uri = error.node_uri + "/status_code"
         status_code = _pop_node(raw_error, "status_code", node_uri)

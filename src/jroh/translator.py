@@ -6,7 +6,6 @@ import yaml
 from . import utils
 from .spec import (
     BOOL,
-    DEFAULT,
     ENUM,
     FLOAT32,
     FLOAT64,
@@ -68,10 +67,7 @@ class _Translator:
     def translate_specs(self, specs: list[Spec]) -> None:
         for spec in specs:
             self._namespace = spec.namespace
-            if spec.namespace == DEFAULT:
-                self._common_file_path = _COMMON_YAML
-            else:
-                self._common_file_path = "../" + _COMMON_YAML
+            self._common_file_path = "../" + _COMMON_YAML
             open_apis: dict[str, dict] = {}
             schemas = {}
             self._schemas = schemas
@@ -121,19 +117,23 @@ class _Translator:
             operation["summary"] = method.summary
         if method.description is not None:
             operation["description"] = method.description
+        operation["requestBody"] = self._emit_request_body(method.params, method.id)
+        error_cases = [_NOT_IMPLEMENTED_ERROR_CASE]
         if method.params is not None:
-            operation["requestBody"] = self._emit_request_body(method.params, method.id)
-        error_cases = [_INTERNAL_ERROR_CASE]
-        if method.params is not None:
-            error_cases.append(_PARSE_ERROR_CASE)
             error_cases.append(_INVALID_PARAMS_ERROR_CASE)
         error_cases.extend(method.error_cases)
-        error_cases.sort(key=lambda x: x.error.code)
+
+        def get_error_code(error_case: ErrorCase) -> int:
+            error = error_case.error
+            assert error is not None
+            return error.code
+
+        error_cases.sort(key=get_error_code)
         operation["responses"] = self._emit_responses(
             error_cases, method.results, method.id
         )
 
-    def _emit_request_body(self, params: Params, method_id: str) -> dict:
+    def _emit_request_body(self, params: Optional[Params], method_id: str) -> dict:
         schema = {}
         request_body = {
             "content": {
@@ -145,7 +145,12 @@ class _Translator:
         self._translate_params(params, method_id, schema)
         return request_body
 
-    def _translate_params(self, params: Params, method_id: str, schema: dict) -> None:
+    def _translate_params(
+        self, params: Optional[Params], method_id: str, schema: dict
+    ) -> None:
+        if params is None:
+            schema["type"] = "object"
+            return
         schema_id = utils.camel_case(method_id) + "Params"
         schema["$ref"] = _MODELS_YAML + "#/components/schemas/" + schema_id
         if schema_id in self._schemas:
@@ -164,59 +169,47 @@ class _Translator:
             "200": {
                 "description": "\n\n".join(description_parts),
                 "headers": {
-                    "X-JROH-Trace-ID": {
+                    "X-Jroh-Trace-Id": {
                         "description": "The trace identifier.",
                         "schema": {
                             "type": "string",
                         },
-                    }
+                    },
+                    "X-Jroh-Error-Code": {
+                        "description": "The error code. This header is present only if error occurs.",
+                        "schema": {
+                            "type": "int32",
+                        },
+                    },
                 },
                 "content": {
                     "application/json": {
-                        "schema": schema,
+                        "schema": {
+                            "oneOf": [
+                                schema,
+                                {
+                                    "$ref": self._common_file_path
+                                    + "#/components/schemas/error"
+                                },
+                            ]
+                        },
                     },
                 },
             },
         }
-        self._emit_resp(results, method_id, schema)
+        self._translate_results(results, method_id, schema)
         return responses
 
-    def _emit_resp(
+    def _translate_results(
         self, results: Optional[Results], method_id: str, schema: dict
     ) -> None:
-        schema_id = utils.camel_case(method_id) + "Resp"
+        if results is None:
+            schema["type"] = "object"
+            return
+        schema_id = utils.camel_case(method_id) + "Results"
         schema["$ref"] = _MODELS_YAML + "#/components/schemas/" + schema_id
         if schema_id in self._schemas:
             return
-        properties = {
-            "error": {
-                "$ref": self._common_file_path + "#/components/schemas/error",
-                "description": "The error encountered."
-                + (
-                    ""
-                    if results is None
-                    else " This field is mutually exclusive of the `results` field."
-                ),
-            },
-        }
-        schema2 = {
-            "type": "object",
-            "properties": properties,
-        }
-        self._schemas[schema_id] = schema2
-        if results is not None:
-            schema3 = {}
-            properties["results"] = schema3
-            self._translate_results(results, method_id, schema3)
-
-    def _translate_results(
-        self, results: Results, method_id: str, schema: dict
-    ) -> None:
-        schema_id = utils.camel_case(method_id) + "Results"
-        schema["$ref"] = "#/components/schemas/" + schema_id
-        schema[
-            "description"
-        ] = "The results returned. This field is mutually exclusive of the `error` field."
         schema2 = {}
         self._schemas[schema_id] = schema2
         self._translate_fields(results.fields, schema2)
@@ -355,12 +348,6 @@ _COMMON_OPEN_API = {
             "error": {
                 "type": "object",
                 "properties": {
-                    "code": {
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "The error type that occurred.",
-                        "example": -32700,
-                    },
                     "message": {
                         "type": "string",
                         "description": "A short description of the error.",
@@ -380,29 +367,23 @@ _COMMON_OPEN_API = {
                         },
                     },
                 },
-                "required": ["code", "message"],
+                "required": ["message"],
             },
         },
     },
 }
 
-_PARSE_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
-_PARSE_ERROR_CASE.error = Error("", "Parse-Error")
-_PARSE_ERROR_CASE.error.code = -32700
-_PARSE_ERROR_CASE.error.status_code = 400
-_PARSE_ERROR_CASE.error.description = "Invalid JSON was received by the server."
+_NOT_IMPLEMENTED_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
+_NOT_IMPLEMENTED_ERROR_CASE.error = Error("", "Not-Implemented")
+_NOT_IMPLEMENTED_ERROR_CASE.error.code = 1
+_NOT_IMPLEMENTED_ERROR_CASE.error.status_code = 501
+_NOT_IMPLEMENTED_ERROR_CASE.error.description = "The method is not implemented."
 
 _INVALID_PARAMS_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
 _INVALID_PARAMS_ERROR_CASE.error = Error("", "Invalid-Params")
-_INVALID_PARAMS_ERROR_CASE.error.code = -32602
-_INVALID_PARAMS_ERROR_CASE.error.status_code = 400
+_INVALID_PARAMS_ERROR_CASE.error.code = 2
+_INVALID_PARAMS_ERROR_CASE.error.status_code = 422
 _INVALID_PARAMS_ERROR_CASE.error.description = "Invalid method parameter(s)."
-
-_INTERNAL_ERROR_CASE = ErrorCase("", Ref(namespace="", id=""))
-_INTERNAL_ERROR_CASE.error = Error("", "Internal-Error")
-_INTERNAL_ERROR_CASE.error.code = -32603
-_INTERNAL_ERROR_CASE.error.status_code = 500
-_INTERNAL_ERROR_CASE.error.description = "Internal JSON-RPC error."
 
 
 def _translate_primitive_type_and_constraints(
@@ -449,8 +430,9 @@ def _translate_primitive_type_and_constraints(
 
 def _translate_error_cases(error_cases: list[ErrorCase]) -> str:
     lines = []
-    lines.append("| Code | Status | Message | Description |")
+    lines.append("| Error Code | Status Code | Message | Description |")
     lines.append("| - | - | - | - |")
+    lines.append("| -1 | ... | ... | Low-level error. |")
     for error_case in error_cases:
         error = error_case.error
         assert error is not None

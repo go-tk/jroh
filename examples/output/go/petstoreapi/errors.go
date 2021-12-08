@@ -10,46 +10,38 @@ const ErrorPetAlreadyExists apicommon.ErrorCode = 2001
 
 func NewPetAlreadyExistsError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorPetAlreadyExists,
-		Message: "pet already exists",
+		Code:       ErrorPetAlreadyExists,
+		StatusCode: 422,
+		Message:    "pet already exists",
 	}
 }
-
-var errPetAlreadyExists *apicommon.Error = NewPetAlreadyExistsError()
-var ErrPetAlreadyExists error = errPetAlreadyExists
 
 const ErrorPetNotFound apicommon.ErrorCode = 2002
 
 func NewPetNotFoundError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorPetNotFound,
-		Message: "pet not found",
+		Code:       ErrorPetNotFound,
+		StatusCode: 422,
+		Message:    "pet not found",
 	}
 }
-
-var errPetNotFound *apicommon.Error = NewPetNotFoundError()
-var ErrPetNotFound error = errPetNotFound
 
 const ErrorUserAlreadyExists apicommon.ErrorCode = 1001
 
 func NewUserAlreadyExistsError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorUserAlreadyExists,
-		Message: "user already exists",
+		Code:       ErrorUserAlreadyExists,
+		StatusCode: 422,
+		Message:    "user already exists",
 	}
 }
-
-var errUserAlreadyExists *apicommon.Error = NewUserAlreadyExistsError()
-var ErrUserAlreadyExists error = errUserAlreadyExists
 
 const ErrorUserNotFound apicommon.ErrorCode = 1002
 
 func NewUserNotFoundError() *apicommon.Error {
 	return &apicommon.Error{
-		Code:    ErrorUserNotFound,
-		Message: "user not found",
+		Code:       ErrorUserNotFound,
+		StatusCode: 422,
+		Message:    "user not found",
 	}
 }
-
-var errUserNotFound *apicommon.Error = NewUserNotFoundError()
-var ErrUserNotFound error = errUserNotFound

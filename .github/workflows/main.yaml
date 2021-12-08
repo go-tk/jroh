@@ -1,15 +1,16 @@
+name: main
 defaults:
   run:
     shell: bash
 on:
   push:
     branches:
-    - master
+    - main
     tags:
     - v*
   pull_request:
     branches:
-    - master
+    - main
 jobs:
   build1:
     runs-on: ubuntu-latest

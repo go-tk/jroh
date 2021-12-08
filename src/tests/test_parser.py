@@ -480,7 +480,7 @@ methods:
         xyz: 1
 errors:
   EEE:
-    code: 123
+    code: 1230
     status_code: 400
 """
                 },
@@ -1693,7 +1693,7 @@ errors:
                     "foo.yaml": """
 errors:
   EEE:
-    code: 100
+    code: 1000
     status_code: 400
     description: 1
 """
@@ -1706,11 +1706,11 @@ errors:
                     "foo.yaml": """
 errors:
   EEE:
-    code: -1
+    code: 999
 """
                 },
                 out_exception_type=InvalidSpecError,
-                out_exception_re=r"invalid specification: number too small: node_uri='foo\.yaml#/errors/EEE/code' number=-1 min_number=1",
+                out_exception_re=r"invalid specification: number too small: node_uri='foo\.yaml#/errors/EEE/code' number=999 min_number=1",
             ),
             common.TestData(
                 in_file_path_2_file_data={
@@ -1728,7 +1728,7 @@ errors:
                     "foo.yaml": f"""
 errors:
   EEE:
-    code: 100
+    code: 1000
     status_code: s
 """
                 },
@@ -1740,7 +1740,7 @@ errors:
                     "foo.yaml": f"""
 errors:
   EEE:
-    code: 100
+    code: 1000
     status_code: 99
 """
                 },
@@ -1752,7 +1752,7 @@ errors:
                     "foo.yaml": f"""
 errors:
   EEE:
-    code: 100
+    code: 1000
     status_code: 600
 """
                 },
@@ -1764,7 +1764,7 @@ errors:
                     "foo.yaml": """
 errors:
   EEE:
-    code: 100
+    code: 1000
     status_code: 400
     xyz: 1
 """

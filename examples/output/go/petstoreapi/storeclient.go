@@ -6,7 +6,6 @@ import (
 	context "context"
 	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type StoreClient interface {
@@ -15,53 +14,74 @@ type StoreClient interface {
 }
 
 type storeClient struct {
-	apicommon.Client
-
-	rpcFiltersTable [NumberOfStoreMethods][]apicommon.RPCHandler
-	transportTable  [NumberOfStoreMethods]http.RoundTripper
+	rpcBaseURL      string
+	options         apicommon.ClientOptions
+	rpcFiltersTable [NumberOfStoreMethods][]apicommon.OutgoingRPCHandler
 }
 
 func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreClient {
-	options.Sanitize()
 	var c storeClient
-	c.Init(rpcBaseURL, options.Timeout)
-	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
-	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
+	c.rpcBaseURL = rpcBaseURL
+	c.options = options
+	c.options.Sanitize()
+	apicommon.FillOutgoingRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	return &c
 }
 
 func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams) (*CreateOrderResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      CreateOrderParams
-		Results     CreateOrderResults
+		rpc     apicommon.OutgoingRPC
+		params  CreateOrderParams
+		results CreateOrderResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Store_CreateOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "CreateOrder", "Petstore.Store.CreateOrder", Store_CreateOrder, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Store_CreateOrder]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.CreateOrder"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.CreateOrder\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Store"
+	s.rpc.MethodName = "CreateOrder"
+	s.rpc.FullMethodName = "Petstore.Store.CreateOrder"
+	s.rpc.MethodIndex = Store_CreateOrder
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.CreateOrder"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
 }
 
 func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      GetOrderParams
-		Results     GetOrderResults
+		rpc     apicommon.OutgoingRPC
+		params  GetOrderParams
+		results GetOrderResults
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Store_GetOrder]
-	s.OutgoingRPC.Init("Petstore", "Store", "GetOrder", "Petstore.Store.GetOrder", Store_GetOrder, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Store_GetOrder]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Petstore.Store.GetOrder"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.GetOrder\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Store"
+	s.rpc.MethodName = "GetOrder"
+	s.rpc.FullMethodName = "Petstore.Store.GetOrder"
+	s.rpc.MethodIndex = Store_GetOrder
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.GetOrder"); err != nil {
+		return nil, err
 	}
-	return &s.Results, nil
+	return &s.results, nil
+}
+
+func (c *storeClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {
+	if timeout := c.options.Timeout; timeout >= 1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	rpc.Transport = c.options.Transport
+	rpc.URL = c.rpcBaseURL + rpcPath
+	rpc.SetHandler(apicommon.HandleOutgoingRPC)
+	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
+	if err := rpc.Do(ctx); err != nil {
+		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
+	}
+	return nil
 }
 
 type StoreClientFuncs struct {
@@ -75,12 +95,12 @@ func (cf *StoreClientFuncs) CreateOrder(ctx context.Context, params *CreateOrder
 	if f := cf.CreateOrderFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }
 
 func (cf *StoreClientFuncs) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
 	if f := cf.GetOrderFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.ErrNotImplemented
+	return nil, apicommon.NewNotImplementedError()
 }

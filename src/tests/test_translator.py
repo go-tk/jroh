@@ -48,23 +48,35 @@ paths:
   /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "default/greeting_v2_service.yaml": """\
 openapi: 3.0.0
@@ -76,46 +88,35 @@ paths:
   /rpc/Default.GreetingV2.SayHelloV2:
     post:
       operationId: sayHelloV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloV2Resp
-""",
-                    "default/models.yaml": """\
-openapi: 3.0.0
-info:
-  title: Models
-  version: ''
-paths: {}
-components:
-  schemas:
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
-    sayHelloV2Resp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "xyz/greeting_service.yaml": """\
 openapi: 3.0.0
@@ -126,39 +127,35 @@ paths:
   /test/XYZ-Greeting-SayHello:
     post:
       operationId: sayHello
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
-""",
-                    "xyz/models.yaml": """\
-openapi: 3.0.0
-info:
-  title: Models
-  version: ''
-paths: {}
-components:
-  schemas:
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                 },
             ),
@@ -209,23 +206,35 @@ paths:
   /Default.Greeting.SayHello:
     post:
       operationId: sayHello
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
   /Default.Greeting.SayHelloV2:
     post:
       operationId: sayHelloV2
@@ -240,41 +249,59 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | -32602 | 400 | invalid params | Invalid method parameter(s). |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloV2Resp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
   /Default.Greeting.SayHelloV3:
     post:
       operationId: sayHelloV3
       description: Test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloV3Resp
+                oneOf:
+                - $ref: models.yaml#/components/schemas/sayHelloV3Results
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "default/greeting_x_service.yaml": """\
 openapi: 3.0.0
@@ -296,20 +323,26 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | -32602 | 400 | invalid params | Invalid method parameter(s). |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloV2Resp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "default/models.yaml": """\
 openapi: 3.0.0
@@ -319,13 +352,6 @@ info:
 paths: {}
 components:
   schemas:
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
     sayHelloV2Params:
       type: object
       properties:
@@ -334,26 +360,6 @@ components:
           format: int32
       required:
       - foo
-    sayHelloV2Resp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
-    sayHelloV3Resp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered. This field is mutually exclusive of
-              the `results` field.
-        results:
-          allOf:
-          - $ref: '#/components/schemas/sayHelloV3Results'
-          - description: The results returned. This field is mutually exclusive of
-              the `error` field.
     sayHelloV3Results:
       type: object
       properties:
@@ -439,20 +445,26 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | -32602 | 400 | invalid params | Invalid method parameter(s). |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "default/models.yaml": """\
 openapi: 3.0.0
@@ -511,13 +523,6 @@ components:
       required:
       - color2
       - fruits2
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
     color:
       type: integer
       format: int32
@@ -619,20 +624,26 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | -32602 | 400 | invalid params | Invalid method parameter(s). |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "default/models.yaml": """\
 openapi: 3.0.0
@@ -671,13 +682,6 @@ components:
       - nickname
       - score
       - age
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
     nickname:
       type: string
       minLength: 1
@@ -736,10 +740,10 @@ methods:
                     "default/b.yaml": """
 errors:
   Fail:
-    code: 300
+    code: 3000
     status_code: 400
   Bad-Situation:
-    code: 400
+    code: 4000
     status_code: 500
     description: None
 """,
@@ -747,7 +751,7 @@ errors:
 namespace: Abc
 errors:
   Xyz:
-    code: 123
+    code: 1230
     status_code: 400
     description: Too Bad!
 """,
@@ -762,42 +766,38 @@ paths:
   /rpc/Default.Greeting.SayHello:
     post:
       operationId: sayHello
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | 123 | 400 | xyz | Too Bad! (>_<) |
-            | 300 | 400 | fail | Failed |
-            | 400 | 500 | bad situation | None |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 1230 | 400 | xyz | Too Bad! (>_<) |
+            | 3000 | 400 | fail | Failed |
+            | 4000 | 500 | bad situation | None |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
-""",
-                    "default/models.yaml": """\
-openapi: 3.0.0
-info:
-  title: Models
-  version: ''
-paths: {}
-components:
-  schemas:
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: common.yaml#/components/schemas/error
-          - description: The error encountered.
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                 },
             ),
@@ -930,20 +930,26 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Status | Message | Description |
+            | Error Code | Status Code | Message | Description |
             | - | - | - | - |
-            | -32700 | 400 | parse error | Invalid JSON was received by the server. |
-            | -32603 | 500 | internal error | Internal JSON-RPC error. |
-            | -32602 | 400 | invalid params | Invalid method parameter(s). |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/sayHelloResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
 """,
                     "ns1/models.yaml": """\
 openapi: 3.0.0
@@ -988,13 +994,6 @@ components:
       - ff2
       - ff44
       - fun
-    sayHelloResp:
-      type: object
-      properties:
-        error:
-          allOf:
-          - $ref: ../common.yaml#/components/schemas/error
-          - description: The error encountered.
     foo:
       type: object
       properties:

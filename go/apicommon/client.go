@@ -3,15 +3,18 @@ package apicommon
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"sync"
 	"time"
 )
 
 type ClientOptions struct {
-	RPCFilters  RPCFilters
-	Middlewares ClientMiddlewares
-	Transport   http.RoundTripper
-	Timeout     time.Duration
+	RPCFilters map[int][]OutgoingRPCHandler
+	Timeout    time.Duration
+	Transport  http.RoundTripper
 }
 
 func (co *ClientOptions) Sanitize() {
@@ -20,93 +23,113 @@ func (co *ClientOptions) Sanitize() {
 	}
 }
 
-type ClientMiddlewares map[MethodIndex][]ClientMiddleware
-
-func (cm *ClientMiddlewares) Add(methodIndex MethodIndex, items ...ClientMiddleware) {
-	if *cm == nil {
-		*cm = make(map[MethodIndex][]ClientMiddleware)
-	}
-	(*cm)[methodIndex] = append((*cm)[methodIndex], items...)
+func (so *ClientOptions) AddCommonRPCFilters(rpcFilters ...OutgoingRPCHandler) {
+	so.AddRPCFilters(-1, rpcFilters...)
 }
 
-type ClientMiddleware func(oldTransport http.RoundTripper) (newTransport http.RoundTripper)
+func (so *ClientOptions) AddRPCFilters(methodIndex int, rpcFilters ...OutgoingRPCHandler) {
+	if so.RPCFilters == nil {
+		so.RPCFilters = make(map[int][]OutgoingRPCHandler)
+	}
+	so.RPCFilters[methodIndex] = append(so.RPCFilters[methodIndex], rpcFilters...)
+}
 
-func FillTransportTable(transportTable []http.RoundTripper, transport http.RoundTripper, clientMiddlewares map[MethodIndex][]ClientMiddleware) {
-	transport = func(transport http.RoundTripper) http.RoundTripper {
-		return TransportFunc(func(request *http.Request) (*http.Response, error) {
-			outgoingRPC := MustGetRPCFromContext(request.Context()).OutgoingRPC()
-			outgoingRPC.isRequested = true
-			if outgoingRPC.traceID != "" {
-				injectTraceID(outgoingRPC.traceID, request.Header)
-			}
-			response, err := transport.RoundTrip(request)
-			if err != nil {
-				return nil, err
-			}
-			if outgoingRPC.traceID == "" {
-				outgoingRPC.traceID = extractTraceID(response.Header)
-			}
-			outgoingRPC.statusCode = response.StatusCode
-			if response.StatusCode != http.StatusOK {
-				response.Body.Close()
-				return response, nil
-			}
-			var buffer bytes.Buffer
-			_, err = buffer.ReadFrom(response.Body)
-			response.Body.Close()
-			if err != nil {
-				return nil, err
-			}
-			if buffer.Len() >= 1 {
-				outgoingRPC.rawResp = buffer.Bytes()
-			}
-			return response, nil
-		})
-	}(transport)
-	for i := range transportTable {
-		transport := transport
-		methodIndex := MethodIndex(i)
-		clientMiddlewares2 := clientMiddlewares[methodIndex]
-		for i := len(clientMiddlewares2) - 1; i >= 0; i-- {
-			clientMiddleware := clientMiddlewares2[i]
-			transport = clientMiddleware(transport)
+func FillOutgoingRPCFiltersTable(rpcFiltersTable [][]OutgoingRPCHandler, rpcFilters map[int][]OutgoingRPCHandler) {
+	commonRPCFilters := rpcFilters[-1]
+	for i := range rpcFiltersTable {
+		oldRPCFilters := rpcFilters[i]
+		if len(oldRPCFilters) == 0 {
+			rpcFiltersTable[i] = commonRPCFilters
+			continue
 		}
-		clientMiddlewares3 := clientMiddlewares[AnyMethod]
-		for i := len(clientMiddlewares3) - 1; i >= 0; i-- {
-			clientMiddleware := clientMiddlewares3[i]
-			transport = clientMiddleware(transport)
+		if len(commonRPCFilters) == 0 {
+			rpcFiltersTable[i] = oldRPCFilters
+			continue
 		}
-		transportTable[methodIndex] = transport
+		newRPCFilters := make([]OutgoingRPCHandler, len(commonRPCFilters)+len(oldRPCFilters))
+		copy(newRPCFilters, commonRPCFilters)
+		copy(newRPCFilters[len(commonRPCFilters):], oldRPCFilters)
+		rpcFiltersTable[i] = newRPCFilters
 	}
 }
 
-type Client struct {
-	rpcBaseURL string
-	timeout    time.Duration
-}
+var outboundHeaderPool = sync.Pool{New: func() interface{} { return make(http.Header) }}
 
-func (c *Client) Init(rpcBaseURL string, timeout time.Duration) {
-	c.rpcBaseURL = rpcBaseURL
-	c.timeout = timeout
-}
-
-func (c *Client) DoRPC(ctx context.Context, outgoingRPC *OutgoingRPC, transport http.RoundTripper, rpcPath string) error {
-	if rpc, ok := GetRPCFromContext(ctx); ok {
-		outgoingRPC.traceID = rpc.traceID
+func HandleOutgoingRPC(ctx context.Context, outgoingRPC *OutgoingRPC) error {
+	if err := outgoingRPC.EncodeParams(); err != nil {
+		return err
 	}
-	outgoingRPC.transport = transport
-	outgoingRPC.url = c.rpcBaseURL + rpcPath
-	ctx = makeContextWithRPC(ctx, &outgoingRPC.RPC)
-	if timeout := c.timeout; timeout >= 1 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
+	requestBody := bytes.NewReader(outgoingRPC.RawParams)
+	request, err := http.NewRequestWithContext(ctx, "POST", outgoingRPC.URL, requestBody)
+	if err != nil {
+		return err
 	}
-	return outgoingRPC.Do(ctx)
+	outboundHeaderPool.Put(request.Header)
+	request.Header = outgoingRPC.OutboundHeader
+	setContentTypeAsJSON(outgoingRPC.OutboundHeader)
+	if incomingRPC, ok := GetIncomingRPCFromContext(ctx); ok {
+		setTraceID(incomingRPC.TraceID, outgoingRPC.OutboundHeader)
+		outgoingRPC.TraceID = incomingRPC.TraceID
+	}
+	response, err := outgoingRPC.Transport.RoundTrip(request)
+	if err != nil {
+		return err
+	}
+	outgoingRPC.StatusCode = response.StatusCode
+	outgoingRPC.InboundHeader = response.Header
+	if traceID, ok := getTraceID(outgoingRPC.InboundHeader); ok {
+		outgoingRPC.TraceID = traceID
+	}
+	if errorCode, ok := getErrorCode(outgoingRPC.InboundHeader); ok {
+		outgoingRPC.ErrorCode = errorCode
+		error := Error{
+			Code:       outgoingRPC.ErrorCode,
+			StatusCode: outgoingRPC.StatusCode,
+		}
+		err := loadError(&error, response.Body)
+		response.Body.Close()
+		if err != nil {
+			return err
+		}
+		return &error
+	}
+	if outgoingRPC.StatusCode != http.StatusOK {
+		response.Body.Close()
+		return fmt.Errorf("%w - %v", ErrUnexpectedStatusCode, outgoingRPC.StatusCode)
+	}
+	outgoingRPC.SetReadCloser(response.Body)
+	return nil
 }
 
-type TransportFunc func(request *http.Request) (response *http.Response, err error)
+var _ = OutgoingRPCHandler(HandleOutgoingRPC)
 
-var _ http.RoundTripper = TransportFunc(nil)
+func loadError(error *Error, reader io.Reader) error {
+	rawError, err := readRawError(reader)
+	if err != nil {
+		return err
+	}
+	if err := decodeRawError(rawError, error); err != nil {
+		return err
+	}
+	return nil
+}
 
-func (tf TransportFunc) RoundTrip(request *http.Request) (*http.Response, error) { return tf(request) }
+func readRawError(reader io.Reader) ([]byte, error) {
+	var buffer bytes.Buffer
+	n, err := buffer.ReadFrom(reader)
+	if err != nil {
+		return nil, fmt.Errorf("raw error read failed: %w", err)
+	}
+	if n == 0 {
+		return nil, nil
+	}
+	rawError := buffer.Bytes()
+	return rawError, nil
+}
+
+func decodeRawError(rawError []byte, error *Error) error {
+	if err := json.Unmarshal(rawError, error); err != nil {
+		return fmt.Errorf("raw error decoding failed: %w", err)
+	}
+	return nil
+}

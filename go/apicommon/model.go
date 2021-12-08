@@ -1,28 +1,14 @@
 package apicommon
 
-import (
-	"context"
-)
+import "context"
 
 type Model interface {
-	Validator
-}
-
-type Validator interface {
 	Validate(validationContext *ValidationContext) (ok bool)
 }
 
 type FurtherValidator interface {
 	FurtherValidate(validationContext *ValidationContext) (ok bool)
 }
-
-type DummyFurtherValidator struct{ dummyFurtherValidator }
-
-var _ FurtherValidator = DummyFurtherValidator{}
-
-type dummyFurtherValidator struct{}
-
-func (dummyFurtherValidator) FurtherValidate(*ValidationContext) bool { return true }
 
 type ValidationContext struct {
 	Ctx context.Context
@@ -68,7 +54,21 @@ func (vc *ValidationContext) SetErrorDetails(errorDetails string) {
 	}
 	i += copy(data[i:], ": ")
 	i += copy(data[i:], errorDetails)
-	vc.errorDetails = string(data)
+	vc.errorDetails = BytesToString(data)
 }
 
 func (vc *ValidationContext) ErrorDetails() string { return vc.errorDetails }
+
+type DummyModel struct{}
+
+var _ Model = DummyModel{}
+
+func (DummyModel) Validate(*ValidationContext) bool { return true }
+
+type DummyFurtherValidator struct{ dummyFurtherValidator }
+
+var _ FurtherValidator = DummyFurtherValidator{}
+
+type dummyFurtherValidator struct{}
+
+func (dummyFurtherValidator) FurtherValidate(*ValidationContext) bool { return true }

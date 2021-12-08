@@ -19,21 +19,27 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
-            | 1001 | user already exists | The user ID is in use. |
+            | Error Code | Status Code | Message | Description |
+            | - | - | - | - |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
+            | 1001 | 422 | user already exists | The user ID is in use. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/createUserResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error
   /rpc/Petstore.User.GetUser:
     post:
       operationId: getUser
@@ -49,21 +55,27 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
-            | 1002 | user not found | Can't find the user. |
+            | Error Code | Status Code | Message | Description |
+            | - | - | - | - |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
+            | 1002 | 422 | user not found | Can't find the user. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/getUserResp
+                oneOf:
+                - $ref: models.yaml#/components/schemas/getUserResults
+                - $ref: ../common.yaml#/components/schemas/error
   /rpc/Petstore.User.GetUsers:
     post:
       operationId: getUsers
@@ -79,20 +91,26 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
+            | Error Code | Status Code | Message | Description |
+            | - | - | - | - |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/getUsersResp
+                oneOf:
+                - $ref: models.yaml#/components/schemas/getUsersResults
+                - $ref: ../common.yaml#/components/schemas/error
   /rpc/Petstore.User.UpdateUser:
     post:
       operationId: updateUser
@@ -108,18 +126,24 @@ paths:
           description: |-
             ## Error Cases
 
-            | Code | Message | Description |
-            | - | - | - |
-            | -32700 | parse error | Invalid JSON was received by the server. |
-            | -32603 | internal error | Internal JSON-RPC error. |
-            | -32602 | invalid params | Invalid method parameter(s). |
-            | 1002 | user not found | Can't find the user. |
+            | Error Code | Status Code | Message | Description |
+            | - | - | - | - |
+            | -1 | ... | ... | Low-level error. |
+            | 1 | 501 | not implemented | The method is not implemented. |
+            | 2 | 422 | invalid params | Invalid method parameter(s). |
+            | 1002 | 422 | user not found | Can't find the user. |
           headers:
-            X-JROH-Trace-ID:
+            X-Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
+            X-Jroh-Error-Code:
+              description: The error code. This header is present only if error occurs.
+              schema:
+                type: int32
           content:
             application/json:
               schema:
-                $ref: models.yaml#/components/schemas/updateUserResp
+                oneOf:
+                - type: object
+                - $ref: ../common.yaml#/components/schemas/error

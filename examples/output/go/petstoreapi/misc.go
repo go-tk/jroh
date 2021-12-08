@@ -2,32 +2,28 @@
 
 package petstoreapi
 
-import (
-	apicommon "github.com/go-tk/jroh/go/apicommon"
-)
-
 const (
-	Pet_AddPet    apicommon.MethodIndex = 0
-	Pet_GetPet    apicommon.MethodIndex = 1
-	Pet_GetPets   apicommon.MethodIndex = 2
-	Pet_UpdatePet apicommon.MethodIndex = 3
-	Pet_FindPets  apicommon.MethodIndex = 4
+	Pet_AddPet    = 0
+	Pet_GetPet    = 1
+	Pet_GetPets   = 2
+	Pet_UpdatePet = 3
+	Pet_FindPets  = 4
 )
 
 const NumberOfPetMethods = 5
 
 const (
-	Store_CreateOrder apicommon.MethodIndex = 0
-	Store_GetOrder    apicommon.MethodIndex = 1
+	Store_CreateOrder = 0
+	Store_GetOrder    = 1
 )
 
 const NumberOfStoreMethods = 2
 
 const (
-	User_CreateUser apicommon.MethodIndex = 0
-	User_GetUser    apicommon.MethodIndex = 1
-	User_GetUsers   apicommon.MethodIndex = 2
-	User_UpdateUser apicommon.MethodIndex = 3
+	User_CreateUser = 0
+	User_GetUser    = 1
+	User_GetUsers   = 2
+	User_UpdateUser = 3
 )
 
 const NumberOfUserMethods = 4

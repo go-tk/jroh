@@ -148,8 +148,10 @@ models:
 errors:
   User-Already-Exists:
     code: 1001
+    status_code: 422
     description: The user ID is in use.
 
   User-Not-Found:
     code: 1002
+    status_code: 422
     description: Can't find the user.

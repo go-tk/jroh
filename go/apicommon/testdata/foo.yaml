@@ -7,6 +7,9 @@ services:
 methods:
   Do-Something:
     service_id: Test
+
+  Do-Something1:
+    service_id: Test
     params:
       My-Struct-Int32:
         type: My-Struct-Int32
@@ -29,6 +32,29 @@ methods:
       Something-Wrong: {}
 
   Do-Something2:
+    service_id: Test
+    results:
+      My-Struct-Int32:
+        type: My-Struct-Int32
+        is_optional: true
+      My-Struct-Int64:
+        type: My-Struct-Int64
+        is_optional: true
+      My-Struct-Float32:
+        type: My-Struct-Float32
+        is_optional: true
+      My-Struct-Float64:
+        type: My-Struct-Float64
+        is_optional: true
+      My-Struct-String:
+        type: My-Struct-String
+        is_optional: true
+      My-On-Off:
+        type: bool
+    error_cases:
+      Something-Wrong: {}
+
+  Do-Something3:
     service_id: Test
     params:
       My-Struct-Int32:
@@ -68,9 +94,6 @@ methods:
         type: bool
     error_cases:
       Something-Wrong: {}
-
-  Do-Something3:
-    service_id: Test
 
 models:
   My-Struct-Int32:
@@ -654,5 +677,5 @@ models:
 
 errors:
   Something-Wrong:
-    code: 1
+    code: 1000
     status_code: 500

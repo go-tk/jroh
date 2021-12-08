@@ -9,7 +9,7 @@ import (
 	strconv "strconv"
 )
 
-type DoSomethingParams struct {
+type DoSomething1Params struct {
 	MyStructInt32   *MyStructInt32   `json:"myStructInt32,omitempty"`
 	MyStructInt64   *MyStructInt64   `json:"myStructInt64,omitempty"`
 	MyStructFloat32 *MyStructFloat32 `json:"myStructFloat32,omitempty"`
@@ -18,9 +18,9 @@ type DoSomethingParams struct {
 	MyOnOff         bool             `json:"myOnOff"`
 }
 
-var _ apicommon.Model = (*DoSomethingParams)(nil)
+var _ apicommon.Model = (*DoSomething1Params)(nil)
 
-func (m *DoSomethingParams) Validate(validationContext *apicommon.ValidationContext) bool {
+func (m *DoSomething1Params) Validate(validationContext *apicommon.ValidationContext) bool {
 	if m.MyStructInt32 != nil {
 		validationContext.Enter("myStructInt32")
 		if !m.MyStructInt32.Validate(validationContext) {
@@ -58,62 +58,8 @@ func (m *DoSomethingParams) Validate(validationContext *apicommon.ValidationCont
 	}
 	mm := struct {
 		apicommon.DummyFurtherValidator
-		*DoSomethingParams
-	}{DoSomethingParams: m}
-	return mm.FurtherValidate(validationContext)
-}
-
-type DoSomething2Params struct {
-	MyStructInt32   *MyStructInt32   `json:"myStructInt32,omitempty"`
-	MyStructInt64   *MyStructInt64   `json:"myStructInt64,omitempty"`
-	MyStructFloat32 *MyStructFloat32 `json:"myStructFloat32,omitempty"`
-	MyStructFloat64 *MyStructFloat64 `json:"myStructFloat64,omitempty"`
-	MyStructString  *MyStructString  `json:"myStructString,omitempty"`
-	MyOnOff         bool             `json:"myOnOff"`
-}
-
-var _ apicommon.Model = (*DoSomething2Params)(nil)
-
-func (m *DoSomething2Params) Validate(validationContext *apicommon.ValidationContext) bool {
-	if m.MyStructInt32 != nil {
-		validationContext.Enter("myStructInt32")
-		if !m.MyStructInt32.Validate(validationContext) {
-			return false
-		}
-		validationContext.Leave()
-	}
-	if m.MyStructInt64 != nil {
-		validationContext.Enter("myStructInt64")
-		if !m.MyStructInt64.Validate(validationContext) {
-			return false
-		}
-		validationContext.Leave()
-	}
-	if m.MyStructFloat32 != nil {
-		validationContext.Enter("myStructFloat32")
-		if !m.MyStructFloat32.Validate(validationContext) {
-			return false
-		}
-		validationContext.Leave()
-	}
-	if m.MyStructFloat64 != nil {
-		validationContext.Enter("myStructFloat64")
-		if !m.MyStructFloat64.Validate(validationContext) {
-			return false
-		}
-		validationContext.Leave()
-	}
-	if m.MyStructString != nil {
-		validationContext.Enter("myStructString")
-		if !m.MyStructString.Validate(validationContext) {
-			return false
-		}
-		validationContext.Leave()
-	}
-	mm := struct {
-		apicommon.DummyFurtherValidator
-		*DoSomething2Params
-	}{DoSomething2Params: m}
+		*DoSomething1Params
+	}{DoSomething1Params: m}
 	return mm.FurtherValidate(validationContext)
 }
 
@@ -168,6 +114,114 @@ func (m *DoSomething2Results) Validate(validationContext *apicommon.ValidationCo
 		apicommon.DummyFurtherValidator
 		*DoSomething2Results
 	}{DoSomething2Results: m}
+	return mm.FurtherValidate(validationContext)
+}
+
+type DoSomething3Params struct {
+	MyStructInt32   *MyStructInt32   `json:"myStructInt32,omitempty"`
+	MyStructInt64   *MyStructInt64   `json:"myStructInt64,omitempty"`
+	MyStructFloat32 *MyStructFloat32 `json:"myStructFloat32,omitempty"`
+	MyStructFloat64 *MyStructFloat64 `json:"myStructFloat64,omitempty"`
+	MyStructString  *MyStructString  `json:"myStructString,omitempty"`
+	MyOnOff         bool             `json:"myOnOff"`
+}
+
+var _ apicommon.Model = (*DoSomething3Params)(nil)
+
+func (m *DoSomething3Params) Validate(validationContext *apicommon.ValidationContext) bool {
+	if m.MyStructInt32 != nil {
+		validationContext.Enter("myStructInt32")
+		if !m.MyStructInt32.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructInt64 != nil {
+		validationContext.Enter("myStructInt64")
+		if !m.MyStructInt64.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructFloat32 != nil {
+		validationContext.Enter("myStructFloat32")
+		if !m.MyStructFloat32.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructFloat64 != nil {
+		validationContext.Enter("myStructFloat64")
+		if !m.MyStructFloat64.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructString != nil {
+		validationContext.Enter("myStructString")
+		if !m.MyStructString.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomething3Params
+	}{DoSomething3Params: m}
+	return mm.FurtherValidate(validationContext)
+}
+
+type DoSomething3Results struct {
+	MyStructInt32   *MyStructInt32   `json:"myStructInt32,omitempty"`
+	MyStructInt64   *MyStructInt64   `json:"myStructInt64,omitempty"`
+	MyStructFloat32 *MyStructFloat32 `json:"myStructFloat32,omitempty"`
+	MyStructFloat64 *MyStructFloat64 `json:"myStructFloat64,omitempty"`
+	MyStructString  *MyStructString  `json:"myStructString,omitempty"`
+	MyOnOff         bool             `json:"myOnOff"`
+}
+
+var _ apicommon.Model = (*DoSomething3Results)(nil)
+
+func (m *DoSomething3Results) Validate(validationContext *apicommon.ValidationContext) bool {
+	if m.MyStructInt32 != nil {
+		validationContext.Enter("myStructInt32")
+		if !m.MyStructInt32.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructInt64 != nil {
+		validationContext.Enter("myStructInt64")
+		if !m.MyStructInt64.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructFloat32 != nil {
+		validationContext.Enter("myStructFloat32")
+		if !m.MyStructFloat32.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructFloat64 != nil {
+		validationContext.Enter("myStructFloat64")
+		if !m.MyStructFloat64.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	if m.MyStructString != nil {
+		validationContext.Enter("myStructString")
+		if !m.MyStructString.Validate(validationContext) {
+			return false
+		}
+		validationContext.Leave()
+	}
+	mm := struct {
+		apicommon.DummyFurtherValidator
+		*DoSomething3Results
+	}{DoSomething3Results: m}
 	return mm.FurtherValidate(validationContext)
 }
 

@@ -139,8 +139,10 @@ models:
 errors:
   Pet-Already-Exists:
     code: 2001
+    status_code: 422
     description: The pet ID is in use.
 
   Pet-Not-Found:
     code: 2002
+    status_code: 422
     description: Can't find the pet.

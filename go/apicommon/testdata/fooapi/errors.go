@@ -6,7 +6,7 @@ import (
 	apicommon "github.com/go-tk/jroh/go/apicommon"
 )
 
-const ErrorSomethingWrong apicommon.ErrorCode = 1
+const ErrorSomethingWrong apicommon.ErrorCode = 1000
 
 func NewSomethingWrongError() *apicommon.Error {
 	return &apicommon.Error{
@@ -15,6 +15,3 @@ func NewSomethingWrongError() *apicommon.Error {
 		Message:    "something wrong",
 	}
 }
-
-var errSomethingWrong *apicommon.Error = NewSomethingWrongError()
-var ErrSomethingWrong error = errSomethingWrong

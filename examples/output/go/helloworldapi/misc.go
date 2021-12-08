@@ -2,12 +2,8 @@
 
 package helloworldapi
 
-import (
-	apicommon "github.com/go-tk/jroh/go/apicommon"
-)
-
 const (
-	Greeter_SayHello apicommon.MethodIndex = 0
+	Greeter_SayHello = 0
 )
 
 const NumberOfGreeterMethods = 1

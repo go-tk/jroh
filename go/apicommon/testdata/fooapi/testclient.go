@@ -6,103 +6,157 @@ import (
 	context "context"
 	fmt "fmt"
 	apicommon "github.com/go-tk/jroh/go/apicommon"
-	http "net/http"
 )
 
 type TestClient interface {
-	DoSomething(ctx context.Context, params *DoSomethingParams) (err error)
-	DoSomething2(ctx context.Context, params *DoSomething2Params) (results *DoSomething2Results, err error)
-	DoSomething3(ctx context.Context) (err error)
+	DoSomething(ctx context.Context) (err error)
+	DoSomething1(ctx context.Context, params *DoSomething1Params) (err error)
+	DoSomething2(ctx context.Context) (results *DoSomething2Results, err error)
+	DoSomething3(ctx context.Context, params *DoSomething3Params) (results *DoSomething3Results, err error)
 }
 
 type testClient struct {
-	apicommon.Client
-
-	rpcFiltersTable [NumberOfTestMethods][]apicommon.RPCHandler
-	transportTable  [NumberOfTestMethods]http.RoundTripper
+	rpcBaseURL      string
+	options         apicommon.ClientOptions
+	rpcFiltersTable [NumberOfTestMethods][]apicommon.OutgoingRPCHandler
 }
 
 func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClient {
-	options.Sanitize()
 	var c testClient
-	c.Init(rpcBaseURL, options.Timeout)
-	apicommon.FillRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
-	apicommon.FillTransportTable(c.transportTable[:], options.Transport, options.Middlewares)
+	c.rpcBaseURL = rpcBaseURL
+	c.options = options
+	c.options.Sanitize()
+	apicommon.FillOutgoingRPCFiltersTable(c.rpcFiltersTable[:], options.RPCFilters)
 	return &c
 }
 
-func (c *testClient) DoSomething(ctx context.Context, params *DoSomethingParams) error {
+func (c *testClient) DoSomething(ctx context.Context) error {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      DoSomethingParams
+		rpc     apicommon.OutgoingRPC
+		params  apicommon.DummyModel
+		results apicommon.DummyModel
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Test_DoSomething]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething", "Foo.Test.DoSomething", Test_DoSomething, &s.Params, nil, rpcFilters)
-	transport := c.transportTable[Test_DoSomething]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething"
+	s.rpc.MethodIndex = Test_DoSomething
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething"); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (c *testClient) DoSomething2(ctx context.Context, params *DoSomething2Params) (*DoSomething2Results, error) {
+func (c *testClient) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
-		Params      DoSomething2Params
-		Results     DoSomething2Results
+		rpc     apicommon.OutgoingRPC
+		params  DoSomething1Params
+		results apicommon.DummyModel
 	}
-	s.Params = *params
-	rpcFilters := c.rpcFiltersTable[Test_DoSomething2]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething2", "Foo.Test.DoSomething2", Test_DoSomething2, &s.Params, &s.Results, rpcFilters)
-	transport := c.transportTable[Test_DoSomething2]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething2"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething2\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething1"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething1"
+	s.rpc.MethodIndex = Test_DoSomething1
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething1"); err != nil {
+		return err
 	}
-	return &s.Results, nil
+	return nil
 }
 
-func (c *testClient) DoSomething3(ctx context.Context) error {
+func (c *testClient) DoSomething2(ctx context.Context) (*DoSomething2Results, error) {
 	var s struct {
-		OutgoingRPC apicommon.OutgoingRPC
+		rpc     apicommon.OutgoingRPC
+		params  apicommon.DummyModel
+		results DoSomething2Results
 	}
-	rpcFilters := c.rpcFiltersTable[Test_DoSomething3]
-	s.OutgoingRPC.Init("Foo", "Test", "DoSomething3", "Foo.Test.DoSomething3", Test_DoSomething3, nil, nil, rpcFilters)
-	transport := c.transportTable[Test_DoSomething3]
-	if err := c.DoRPC(ctx, &s.OutgoingRPC, transport, "/rpc/Foo.Test.DoSomething3"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\" traceID=%q: %w",
-			s.OutgoingRPC.TraceID(), err)
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething2"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething2"
+	s.rpc.MethodIndex = Test_DoSomething2
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething2"); err != nil {
+		return nil, err
+	}
+	return &s.results, nil
+}
+
+func (c *testClient) DoSomething3(ctx context.Context, params *DoSomething3Params) (*DoSomething3Results, error) {
+	var s struct {
+		rpc     apicommon.OutgoingRPC
+		params  DoSomething3Params
+		results DoSomething3Results
+	}
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething3"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething3"
+	s.rpc.MethodIndex = Test_DoSomething3
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething3"); err != nil {
+		return nil, err
+	}
+	return &s.results, nil
+}
+
+func (c *testClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {
+	if timeout := c.options.Timeout; timeout >= 1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	rpc.Transport = c.options.Transport
+	rpc.URL = c.rpcBaseURL + rpcPath
+	rpc.SetHandler(apicommon.HandleOutgoingRPC)
+	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
+	if err := rpc.Do(ctx); err != nil {
+		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
 	}
 	return nil
 }
 
 type TestClientFuncs struct {
-	DoSomethingFunc  func(context.Context, *DoSomethingParams) error
-	DoSomething2Func func(context.Context, *DoSomething2Params) (*DoSomething2Results, error)
-	DoSomething3Func func(context.Context) error
+	DoSomethingFunc  func(context.Context) error
+	DoSomething1Func func(context.Context, *DoSomething1Params) error
+	DoSomething2Func func(context.Context) (*DoSomething2Results, error)
+	DoSomething3Func func(context.Context, *DoSomething3Params) (*DoSomething3Results, error)
 }
 
 var _ TestClient = (*TestClientFuncs)(nil)
 
-func (cf *TestClientFuncs) DoSomething(ctx context.Context, params *DoSomethingParams) error {
+func (cf *TestClientFuncs) DoSomething(ctx context.Context) error {
 	if f := cf.DoSomethingFunc; f != nil {
-		return f(ctx, params)
-	}
-	return apicommon.ErrNotImplemented
-}
-
-func (cf *TestClientFuncs) DoSomething2(ctx context.Context, params *DoSomething2Params) (*DoSomething2Results, error) {
-	if f := cf.DoSomething2Func; f != nil {
-		return f(ctx, params)
-	}
-	return nil, apicommon.ErrNotImplemented
-}
-
-func (cf *TestClientFuncs) DoSomething3(ctx context.Context) error {
-	if f := cf.DoSomething3Func; f != nil {
 		return f(ctx)
 	}
-	return apicommon.ErrNotImplemented
+	return apicommon.NewNotImplementedError()
+}
+
+func (cf *TestClientFuncs) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
+	if f := cf.DoSomething1Func; f != nil {
+		return f(ctx, params)
+	}
+	return apicommon.NewNotImplementedError()
+}
+
+func (cf *TestClientFuncs) DoSomething2(ctx context.Context) (*DoSomething2Results, error) {
+	if f := cf.DoSomething2Func; f != nil {
+		return f(ctx)
+	}
+	return nil, apicommon.NewNotImplementedError()
+}
+
+func (cf *TestClientFuncs) DoSomething3(ctx context.Context, params *DoSomething3Params) (*DoSomething3Results, error) {
+	if f := cf.DoSomething3Func; f != nil {
+		return f(ctx, params)
+	}
+	return nil, apicommon.NewNotImplementedError()
 }

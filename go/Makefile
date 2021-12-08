@@ -24,6 +24,6 @@ default: vet
 
 test:
 	go test -coverpkg=./apicommon/... ./apicommon
-	go test -cover ./middleware/... ./rpcfilter/...
+	go test -cover ./rpcfilter/...
 .PHONY: test
 default: test
