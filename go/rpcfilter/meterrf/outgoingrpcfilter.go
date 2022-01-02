@@ -9,8 +9,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRPCHandler {
-	rpcsTotalCounterVec := prometheus.NewCounterVec(
+var (
+	clientRPCsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "jroh_client_rpcs_total",
 		},
@@ -22,7 +22,8 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			"jroh_error_code",
 		},
 	)
-	rpcDurationSecondsHistogramVec := prometheus.NewHistogramVec(
+
+	clientRPCDurationSeconds = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "jroh_client_rpc_duration_seconds",
 			Buckets: []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
@@ -33,7 +34,8 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			"jroh_method_name",
 		},
 	)
-	errorsTotalCounterVec := prometheus.NewCounterVec(
+
+	clientErrorsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "jroh_client_errors_total",
 		},
@@ -43,7 +45,8 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			"jroh_method_name",
 		},
 	)
-	paramsSizeBytesHistogramVec := prometheus.NewHistogramVec(
+
+	clientParamsSizeBytes = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "jroh_client_params_size_bytes",
 			Buckets: []float64{50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000},
@@ -54,7 +57,8 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			"jroh_method_name",
 		},
 	)
-	resultsSizeBytesHistogramVec := prometheus.NewHistogramVec(
+
+	clientResultsSizeBytes = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "jroh_client_results_size_bytes",
 			Buckets: []float64{50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000},
@@ -65,13 +69,22 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			"jroh_method_name",
 		},
 	)
-	registerer.MustRegister(
-		rpcsTotalCounterVec,
-		rpcDurationSecondsHistogramVec,
-		errorsTotalCounterVec,
-		paramsSizeBytesHistogramVec,
-		resultsSizeBytesHistogramVec,
-	)
+)
+
+func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRPCHandler {
+	for _, collector := range []prometheus.Collector{
+		clientRPCsTotal,
+		clientRPCDurationSeconds,
+		clientErrorsTotal,
+		clientParamsSizeBytes,
+		clientResultsSizeBytes,
+	} {
+		if err := registerer.Register(collector); err != nil {
+			if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
+				panic(err)
+			}
+		}
+	}
 	return func(ctx context.Context, outgoingRPC *apicommon.OutgoingRPC) (returnedErr error) {
 		t0 := time.Now()
 
@@ -80,31 +93,31 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 		if returnedErr == nil {
 			outgoingRPC.ReadRawResults()
 		}
-		rpcsTotalCounterVec.WithLabelValues(
+		clientRPCsTotal.WithLabelValues(
 			outgoingRPC.Namespace,
 			outgoingRPC.ServiceName,
 			outgoingRPC.MethodName,
 			strconv.Itoa(outgoingRPC.StatusCode),
 			strconv.Itoa(int(outgoingRPC.ErrorCode)),
 		).Add(1)
-		rpcDurationSecondsHistogramVec.WithLabelValues(
+		clientRPCDurationSeconds.WithLabelValues(
 			outgoingRPC.Namespace,
 			outgoingRPC.ServiceName,
 			outgoingRPC.MethodName,
 		).Observe(time.Since(t0).Seconds())
 		if returnedErr != nil && !apicommon.ErrIsTemporary(returnedErr) {
-			errorsTotalCounterVec.WithLabelValues(
+			clientErrorsTotal.WithLabelValues(
 				outgoingRPC.Namespace,
 				outgoingRPC.ServiceName,
 				outgoingRPC.MethodName,
 			).Add(1)
 		}
-		paramsSizeBytesHistogramVec.WithLabelValues(
+		clientParamsSizeBytes.WithLabelValues(
 			outgoingRPC.Namespace,
 			outgoingRPC.ServiceName,
 			outgoingRPC.MethodName,
 		).Observe(float64(len(outgoingRPC.RawParams)))
-		resultsSizeBytesHistogramVec.WithLabelValues(
+		clientResultsSizeBytes.WithLabelValues(
 			outgoingRPC.Namespace,
 			outgoingRPC.ServiceName,
 			outgoingRPC.MethodName,
