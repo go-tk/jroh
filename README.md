@@ -58,7 +58,7 @@ methods:
         description: The user's name.
         example: Roy
     results:
-      Message:
+      Greeting:
         type: string
         min_length: 1
         description: The greeting returned.
@@ -137,7 +137,7 @@ func main() {
                         if params.Name == "God" {
                                 return helloworldapi.NewUserNotAllowedError()
                         }
-                        results.Message = fmt.Sprintf("Hi, %v!", params.Name)
+                        results.Greeting = fmt.Sprintf("Hi, %v!", params.Name)
                         return nil
                 },
         }
@@ -169,7 +169,7 @@ $ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greet
 # Content-Length: 28
 #
 # {
-#   "message": "Hi, Roy!"
+#   "greeting": "Hi, Roy!"
 # }
 
 $ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
@@ -229,7 +229,7 @@ EOF
 
 $ go run -v ./client/client.go
 # Output:
-# 1 - &helloworldapi.SayHelloResults{Message:"Hi, Roy!"}
+# 1 - &helloworldapi.SayHelloResults{Greeting:"Hi, Roy!"}
 # 2 - &apicommon.Error{Code:1000, StatusCode:403, Message:"user not allowed", Details:"", Data:apicommon.ErrorData(nil)}
 ```
 
