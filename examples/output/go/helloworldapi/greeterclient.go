@@ -28,23 +28,23 @@ func NewGreeterClient(rpcBaseURL string, options apicommon.ClientOptions) Greete
 }
 
 func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*SayHelloResults, error) {
-	var s struct {
+	var a struct {
 		rpc     apicommon.OutgoingRPC
 		params  SayHelloParams
 		results SayHelloResults
 	}
-	s.rpc.Namespace = "HelloWorld"
-	s.rpc.ServiceName = "Greeter"
-	s.rpc.MethodName = "SayHello"
-	s.rpc.FullMethodName = "HelloWorld.Greeter.SayHello"
-	s.rpc.MethodIndex = Greeter_SayHello
-	s.params = *params
-	s.rpc.Params = &s.params
-	s.rpc.Results = &s.results
-	if err := c.doRPC(ctx, &s.rpc, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
+	a.rpc.Namespace = "HelloWorld"
+	a.rpc.ServiceName = "Greeter"
+	a.rpc.MethodName = "SayHello"
+	a.rpc.FullMethodName = "HelloWorld.Greeter.SayHello"
+	a.rpc.MethodIndex = Greeter_SayHello
+	a.params = *params
+	a.rpc.Params = &a.params
+	a.rpc.Results = &a.results
+	if err := c.doRPC(ctx, &a.rpc, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
 		return nil, err
 	}
-	return &s.results, nil
+	return &a.results, nil
 }
 
 func (c *greeterClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {

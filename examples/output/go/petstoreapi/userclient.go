@@ -31,80 +31,80 @@ func NewUserClient(rpcBaseURL string, options apicommon.ClientOptions) UserClien
 }
 
 func (c *userClient) CreateUser(ctx context.Context, params *CreateUserParams) error {
-	var s struct {
+	var a struct {
 		rpc     apicommon.OutgoingRPC
 		params  CreateUserParams
 		results apicommon.DummyModel
 	}
-	s.rpc.Namespace = "Petstore"
-	s.rpc.ServiceName = "User"
-	s.rpc.MethodName = "CreateUser"
-	s.rpc.FullMethodName = "Petstore.User.CreateUser"
-	s.rpc.MethodIndex = User_CreateUser
-	s.params = *params
-	s.rpc.Params = &s.params
-	s.rpc.Results = &s.results
-	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.CreateUser"); err != nil {
+	a.rpc.Namespace = "Petstore"
+	a.rpc.ServiceName = "User"
+	a.rpc.MethodName = "CreateUser"
+	a.rpc.FullMethodName = "Petstore.User.CreateUser"
+	a.rpc.MethodIndex = User_CreateUser
+	a.params = *params
+	a.rpc.Params = &a.params
+	a.rpc.Results = &a.results
+	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.User.CreateUser"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
-	var s struct {
+	var a struct {
 		rpc     apicommon.OutgoingRPC
 		params  GetUserParams
 		results GetUserResults
 	}
-	s.rpc.Namespace = "Petstore"
-	s.rpc.ServiceName = "User"
-	s.rpc.MethodName = "GetUser"
-	s.rpc.FullMethodName = "Petstore.User.GetUser"
-	s.rpc.MethodIndex = User_GetUser
-	s.params = *params
-	s.rpc.Params = &s.params
-	s.rpc.Results = &s.results
-	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.GetUser"); err != nil {
+	a.rpc.Namespace = "Petstore"
+	a.rpc.ServiceName = "User"
+	a.rpc.MethodName = "GetUser"
+	a.rpc.FullMethodName = "Petstore.User.GetUser"
+	a.rpc.MethodIndex = User_GetUser
+	a.params = *params
+	a.rpc.Params = &a.params
+	a.rpc.Results = &a.results
+	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.User.GetUser"); err != nil {
 		return nil, err
 	}
-	return &s.results, nil
+	return &a.results, nil
 }
 
 func (c *userClient) GetUsers(ctx context.Context, params *GetUsersParams) (*GetUsersResults, error) {
-	var s struct {
+	var a struct {
 		rpc     apicommon.OutgoingRPC
 		params  GetUsersParams
 		results GetUsersResults
 	}
-	s.rpc.Namespace = "Petstore"
-	s.rpc.ServiceName = "User"
-	s.rpc.MethodName = "GetUsers"
-	s.rpc.FullMethodName = "Petstore.User.GetUsers"
-	s.rpc.MethodIndex = User_GetUsers
-	s.params = *params
-	s.rpc.Params = &s.params
-	s.rpc.Results = &s.results
-	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.GetUsers"); err != nil {
+	a.rpc.Namespace = "Petstore"
+	a.rpc.ServiceName = "User"
+	a.rpc.MethodName = "GetUsers"
+	a.rpc.FullMethodName = "Petstore.User.GetUsers"
+	a.rpc.MethodIndex = User_GetUsers
+	a.params = *params
+	a.rpc.Params = &a.params
+	a.rpc.Results = &a.results
+	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.User.GetUsers"); err != nil {
 		return nil, err
 	}
-	return &s.results, nil
+	return &a.results, nil
 }
 
 func (c *userClient) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
-	var s struct {
+	var a struct {
 		rpc     apicommon.OutgoingRPC
 		params  UpdateUserParams
 		results apicommon.DummyModel
 	}
-	s.rpc.Namespace = "Petstore"
-	s.rpc.ServiceName = "User"
-	s.rpc.MethodName = "UpdateUser"
-	s.rpc.FullMethodName = "Petstore.User.UpdateUser"
-	s.rpc.MethodIndex = User_UpdateUser
-	s.params = *params
-	s.rpc.Params = &s.params
-	s.rpc.Results = &s.results
-	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.UpdateUser"); err != nil {
+	a.rpc.Namespace = "Petstore"
+	a.rpc.ServiceName = "User"
+	a.rpc.MethodName = "UpdateUser"
+	a.rpc.FullMethodName = "Petstore.User.UpdateUser"
+	a.rpc.MethodIndex = User_UpdateUser
+	a.params = *params
+	a.rpc.Params = &a.params
+	a.rpc.Results = &a.results
+	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.User.UpdateUser"); err != nil {
 		return err
 	}
 	return nil

@@ -16,122 +16,122 @@ type PetServer interface {
 	FindPets(ctx context.Context, params *FindPetsParams, results *FindPetsResults) (err error)
 }
 
-func RegisterPetServer(server PetServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterPetServer(s PetServer, router *apicommon.Router, options apicommon.ServerOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfPetMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Pet_AddPet]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  AddPetParams
 				results apicommon.DummyModel
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Pet"
-			s.rpc.MethodName = "AddPet"
-			s.rpc.FullMethodName = "Petstore.Pet.AddPet"
-			s.rpc.MethodIndex = Pet_AddPet
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.AddPet(ctx, rpc.Params.(*AddPetParams))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Pet"
+			a.rpc.MethodName = "AddPet"
+			a.rpc.FullMethodName = "Petstore.Pet.AddPet"
+			a.rpc.MethodIndex = Pet_AddPet
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.AddPet(ctx, rpc.Params.(*AddPetParams))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Pet.AddPet", handler, "Petstore.Pet.AddPet", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Pet_GetPet]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  GetPetParams
 				results GetPetResults
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Pet"
-			s.rpc.MethodName = "GetPet"
-			s.rpc.FullMethodName = "Petstore.Pet.GetPet"
-			s.rpc.MethodIndex = Pet_GetPet
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.GetPet(ctx, rpc.Params.(*GetPetParams), rpc.Results.(*GetPetResults))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Pet"
+			a.rpc.MethodName = "GetPet"
+			a.rpc.FullMethodName = "Petstore.Pet.GetPet"
+			a.rpc.MethodIndex = Pet_GetPet
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.GetPet(ctx, rpc.Params.(*GetPetParams), rpc.Results.(*GetPetResults))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Pet.GetPet", handler, "Petstore.Pet.GetPet", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Pet_GetPets]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  GetPetsParams
 				results GetPetsResults
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Pet"
-			s.rpc.MethodName = "GetPets"
-			s.rpc.FullMethodName = "Petstore.Pet.GetPets"
-			s.rpc.MethodIndex = Pet_GetPets
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.GetPets(ctx, rpc.Params.(*GetPetsParams), rpc.Results.(*GetPetsResults))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Pet"
+			a.rpc.MethodName = "GetPets"
+			a.rpc.FullMethodName = "Petstore.Pet.GetPets"
+			a.rpc.MethodIndex = Pet_GetPets
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.GetPets(ctx, rpc.Params.(*GetPetsParams), rpc.Results.(*GetPetsResults))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Pet.GetPets", handler, "Petstore.Pet.GetPets", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Pet_UpdatePet]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  UpdatePetParams
 				results apicommon.DummyModel
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Pet"
-			s.rpc.MethodName = "UpdatePet"
-			s.rpc.FullMethodName = "Petstore.Pet.UpdatePet"
-			s.rpc.MethodIndex = Pet_UpdatePet
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.UpdatePet(ctx, rpc.Params.(*UpdatePetParams))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Pet"
+			a.rpc.MethodName = "UpdatePet"
+			a.rpc.FullMethodName = "Petstore.Pet.UpdatePet"
+			a.rpc.MethodIndex = Pet_UpdatePet
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.UpdatePet(ctx, rpc.Params.(*UpdatePetParams))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Pet.UpdatePet", handler, "Petstore.Pet.UpdatePet", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Pet_FindPets]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  FindPetsParams
 				results FindPetsResults
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Pet"
-			s.rpc.MethodName = "FindPets"
-			s.rpc.FullMethodName = "Petstore.Pet.FindPets"
-			s.rpc.MethodIndex = Pet_FindPets
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.FindPets(ctx, rpc.Params.(*FindPetsParams), rpc.Results.(*FindPetsResults))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Pet"
+			a.rpc.MethodName = "FindPets"
+			a.rpc.FullMethodName = "Petstore.Pet.FindPets"
+			a.rpc.MethodIndex = Pet_FindPets
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.FindPets(ctx, rpc.Params.(*FindPetsParams), rpc.Results.(*FindPetsResults))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Pet.FindPets", handler, "Petstore.Pet.FindPets", rpcFilters)
 	}

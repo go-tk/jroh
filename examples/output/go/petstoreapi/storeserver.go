@@ -13,53 +13,53 @@ type StoreServer interface {
 	GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) (err error)
 }
 
-func RegisterStoreServer(server StoreServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterStoreServer(s StoreServer, router *apicommon.Router, options apicommon.ServerOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfStoreMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Store_CreateOrder]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  CreateOrderParams
 				results CreateOrderResults
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Store"
-			s.rpc.MethodName = "CreateOrder"
-			s.rpc.FullMethodName = "Petstore.Store.CreateOrder"
-			s.rpc.MethodIndex = Store_CreateOrder
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.CreateOrder(ctx, rpc.Params.(*CreateOrderParams), rpc.Results.(*CreateOrderResults))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Store"
+			a.rpc.MethodName = "CreateOrder"
+			a.rpc.FullMethodName = "Petstore.Store.CreateOrder"
+			a.rpc.MethodIndex = Store_CreateOrder
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.CreateOrder(ctx, rpc.Params.(*CreateOrderParams), rpc.Results.(*CreateOrderResults))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Store.CreateOrder", handler, "Petstore.Store.CreateOrder", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Store_GetOrder]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  GetOrderParams
 				results GetOrderResults
 			}
-			s.rpc.Namespace = "Petstore"
-			s.rpc.ServiceName = "Store"
-			s.rpc.MethodName = "GetOrder"
-			s.rpc.FullMethodName = "Petstore.Store.GetOrder"
-			s.rpc.MethodIndex = Store_GetOrder
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.GetOrder(ctx, rpc.Params.(*GetOrderParams), rpc.Results.(*GetOrderResults))
+			a.rpc.Namespace = "Petstore"
+			a.rpc.ServiceName = "Store"
+			a.rpc.MethodName = "GetOrder"
+			a.rpc.FullMethodName = "Petstore.Store.GetOrder"
+			a.rpc.MethodIndex = Store_GetOrder
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.GetOrder(ctx, rpc.Params.(*GetOrderParams), rpc.Results.(*GetOrderResults))
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Store.GetOrder", handler, "Petstore.Store.GetOrder", rpcFilters)
 	}

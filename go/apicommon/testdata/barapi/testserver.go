@@ -12,30 +12,30 @@ type TestServer interface {
 	DoSomething(ctx context.Context) (err error)
 }
 
-func RegisterTestServer(server TestServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterTestServer(s TestServer, router *apicommon.Router, options apicommon.ServerOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfTestMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var s struct {
+			var a struct {
 				rpc     apicommon.IncomingRPC
 				params  apicommon.DummyModel
 				results apicommon.DummyModel
 			}
-			s.rpc.Namespace = "Bar"
-			s.rpc.ServiceName = "Test"
-			s.rpc.MethodName = "DoSomething"
-			s.rpc.FullMethodName = "Bar.Test.DoSomething"
-			s.rpc.MethodIndex = Test_DoSomething
-			s.rpc.Params = &s.params
-			s.rpc.Results = &s.results
-			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return server.DoSomething(ctx)
+			a.rpc.Namespace = "Bar"
+			a.rpc.ServiceName = "Test"
+			a.rpc.MethodName = "DoSomething"
+			a.rpc.FullMethodName = "Bar.Test.DoSomething"
+			a.rpc.MethodIndex = Test_DoSomething
+			a.rpc.Params = &a.params
+			a.rpc.Results = &a.results
+			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return s.DoSomething(ctx)
 			})
-			s.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
+			a.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Bar.Test.DoSomething", handler, "Bar.Test.DoSomething", rpcFilters)
 	}
