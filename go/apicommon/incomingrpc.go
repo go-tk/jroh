@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 )
 
 type IncomingRPC struct {
@@ -63,15 +61,6 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 	}
 	if i == 0 {
 		ctx = MakeContextWithIncomingRPC(ctx, ir)
-		defer func() {
-			if v := recover(); v != nil {
-				ir.StatusCode = http.StatusInternalServerError
-				buffer := make([]byte, 4096)
-				i := copy(buffer, fmt.Sprintf("panic: %v\n\n", v))
-				i += runtime.Stack(buffer[i:], false)
-				returnedErr = errors.New(BytesToString(buffer[:i]))
-			}
-		}()
 	}
 	if i < n {
 		return ir.filters[i](ctx, ir)
