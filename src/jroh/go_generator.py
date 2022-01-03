@@ -84,7 +84,7 @@ package {self._make_package_name()}
     namespace = utils.pascal_case(g._namespace)
     service_name = utils.pascal_case(service.id)
 %>\
-type ${service_name}Server interface {
+type ${service_name}Actor interface {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
@@ -100,7 +100,7 @@ type ${service_name}Server interface {
 % endfor
 }
 
-func Register${service_name}Server(s ${service_name}Server, router *${apicommon()}.Router, options ${apicommon()}.ServerOptions) {
+func Register${service_name}Actor(a ${service_name}Actor, router *${apicommon()}.Router, options ${apicommon()}.ActorOptions) {
     options.Sanitize()
     var rpcFiltersTable [NumberOf${service_name}Methods][]${apicommon()}.IncomingRPCHandler
     ${apicommon()}.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
@@ -113,7 +113,7 @@ func Register${service_name}Server(s ${service_name}Server, router *${apicommon(
     {
         rpcFilters := rpcFiltersTable[${service_name}_${method_name}]
         handler := ${http()}.HandlerFunc(func (w ${http()}.ResponseWriter, r *${http()}.Request) {
-            var a struct {
+            var s struct {
                 rpc ${apicommon()}.IncomingRPC
                 params \
     % if method.params is None:
@@ -128,15 +128,15 @@ ${apicommon()}.DummyModel
 ${method_name}Results
     % endif
             }
-            a.rpc.Namespace = "${namespace}"
-            a.rpc.ServiceName = "${service_name}"
-            a.rpc.MethodName = "${method_name}"
-            a.rpc.FullMethodName = "${full_method_name}"
-            a.rpc.MethodIndex = ${service_name}_${method_name}
-            a.rpc.Params = &a.params
-            a.rpc.Results = &a.results
-            a.rpc.SetHandler(func(ctx ${context1()}.Context, rpc *${apicommon()}.IncomingRPC) error {
-                return s.${method_name}(ctx\
+            s.rpc.Namespace = "${namespace}"
+            s.rpc.ServiceName = "${service_name}"
+            s.rpc.MethodName = "${method_name}"
+            s.rpc.FullMethodName = "${full_method_name}"
+            s.rpc.MethodIndex = ${service_name}_${method_name}
+            s.rpc.Params = &s.params
+            s.rpc.Results = &s.results
+            s.rpc.SetHandler(func(ctx ${context1()}.Context, rpc *${apicommon()}.IncomingRPC) error {
+                return a.${method_name}(ctx\
     % if method.params is not None:
 , rpc.Params.(*${method_name}Params)\
     % endif
@@ -145,15 +145,15 @@ ${method_name}Results
     % endif
 )
             })
-            a.rpc.SetFilters(rpcFilters)
-            ${apicommon()}.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+            s.rpc.SetFilters(rpcFilters)
+            ${apicommon()}.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
         })
         router.AddRoute(${utils.quote(rpc_path)}, handler, "${full_method_name}", rpcFilters)
     }
 % endfor
 }
 
-type ${service_name}ServerFuncs struct {
+type ${service_name}ActorFuncs struct {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
@@ -169,13 +169,13 @@ type ${service_name}ServerFuncs struct {
 % endfor
 }
 
-var _ ${service_name}Server = (*${service_name}ServerFuncs)(nil)
+var _ ${service_name}Actor = (*${service_name}ActorFuncs)(nil)
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
 %>\
 
-func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
+func (sf *${service_name}ActorFuncs) ${method_name}(ctx ${context1()}.Context\
     % if method.params is not None:
 , params *${method_name}Params\
     % endif
@@ -204,7 +204,7 @@ func (sf *${service_name}ServerFuncs) ${method_name}(ctx ${context1()}.Context\
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        file_name = f"{utils.flat_case(service.id)}server.go"
+        file_name = f"{utils.flat_case(service.id)}actor.go"
         self._flush(file_name)
 
     def _generate_client_code(self, service: Service) -> None:
@@ -276,7 +276,7 @@ func (c *${service_name2}Client) ${method_name}(ctx ${context1()}.Context\
 *${method_name}Results,\
     % endif
 error) {
-    var a struct {
+    var s struct {
         rpc ${apicommon()}.OutgoingRPC
         params \
     % if method.params is None:
@@ -291,17 +291,17 @@ ${apicommon()}.DummyModel
 ${method_name}Results
     % endif
     }
-    a.rpc.Namespace = "${namespace}"
-    a.rpc.ServiceName = "${service_name}"
-    a.rpc.MethodName = "${method_name}"
-    a.rpc.FullMethodName = "${full_method_name}"
-    a.rpc.MethodIndex = ${service_name}_${method_name}
+    s.rpc.Namespace = "${namespace}"
+    s.rpc.ServiceName = "${service_name}"
+    s.rpc.MethodName = "${method_name}"
+    s.rpc.FullMethodName = "${full_method_name}"
+    s.rpc.MethodIndex = ${service_name}_${method_name}
     % if method.params is not None:
-    a.params = *params
+    s.params = *params
     % endif
-    a.rpc.Params = &a.params
-    a.rpc.Results = &a.results
-    if err := c.doRPC(ctx, &a.rpc, ${utils.quote(rpc_path)}); err != nil {
+    s.rpc.Params = &s.params
+    s.rpc.Results = &s.results
+    if err := c.doRPC(ctx, &s.rpc, ${utils.quote(rpc_path)}); err != nil {
         return \
     % if method.results is not None:
 nil, \
@@ -310,7 +310,7 @@ err
     }
     return \
     % if method.results is not None:
-&a.results, \
+&s.results, \
     % endif
 nil
 }

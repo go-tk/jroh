@@ -8,142 +8,142 @@ import (
 	http "net/http"
 )
 
-type TestServer interface {
+type TestActor interface {
 	DoSomething(ctx context.Context) (err error)
 	DoSomething1(ctx context.Context, params *DoSomething1Params) (err error)
 	DoSomething2(ctx context.Context, results *DoSomething2Results) (err error)
 	DoSomething3(ctx context.Context, params *DoSomething3Params, results *DoSomething3Results) (err error)
 }
 
-func RegisterTestServer(s TestServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterTestActor(a TestActor, router *apicommon.Router, options apicommon.ActorOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfTestMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  apicommon.DummyModel
 				results apicommon.DummyModel
 			}
-			a.rpc.Namespace = "Foo"
-			a.rpc.ServiceName = "Test"
-			a.rpc.MethodName = "DoSomething"
-			a.rpc.FullMethodName = "Foo.Test.DoSomething"
-			a.rpc.MethodIndex = Test_DoSomething
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.DoSomething(ctx)
+			s.rpc.Namespace = "Foo"
+			s.rpc.ServiceName = "Test"
+			s.rpc.MethodName = "DoSomething"
+			s.rpc.FullMethodName = "Foo.Test.DoSomething"
+			s.rpc.MethodIndex = Test_DoSomething
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.DoSomething(ctx)
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Foo.Test.DoSomething", handler, "Foo.Test.DoSomething", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething1]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  DoSomething1Params
 				results apicommon.DummyModel
 			}
-			a.rpc.Namespace = "Foo"
-			a.rpc.ServiceName = "Test"
-			a.rpc.MethodName = "DoSomething1"
-			a.rpc.FullMethodName = "Foo.Test.DoSomething1"
-			a.rpc.MethodIndex = Test_DoSomething1
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.DoSomething1(ctx, rpc.Params.(*DoSomething1Params))
+			s.rpc.Namespace = "Foo"
+			s.rpc.ServiceName = "Test"
+			s.rpc.MethodName = "DoSomething1"
+			s.rpc.FullMethodName = "Foo.Test.DoSomething1"
+			s.rpc.MethodIndex = Test_DoSomething1
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.DoSomething1(ctx, rpc.Params.(*DoSomething1Params))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Foo.Test.DoSomething1", handler, "Foo.Test.DoSomething1", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething2]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  apicommon.DummyModel
 				results DoSomething2Results
 			}
-			a.rpc.Namespace = "Foo"
-			a.rpc.ServiceName = "Test"
-			a.rpc.MethodName = "DoSomething2"
-			a.rpc.FullMethodName = "Foo.Test.DoSomething2"
-			a.rpc.MethodIndex = Test_DoSomething2
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.DoSomething2(ctx, rpc.Results.(*DoSomething2Results))
+			s.rpc.Namespace = "Foo"
+			s.rpc.ServiceName = "Test"
+			s.rpc.MethodName = "DoSomething2"
+			s.rpc.FullMethodName = "Foo.Test.DoSomething2"
+			s.rpc.MethodIndex = Test_DoSomething2
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.DoSomething2(ctx, rpc.Results.(*DoSomething2Results))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Foo.Test.DoSomething2", handler, "Foo.Test.DoSomething2", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething3]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  DoSomething3Params
 				results DoSomething3Results
 			}
-			a.rpc.Namespace = "Foo"
-			a.rpc.ServiceName = "Test"
-			a.rpc.MethodName = "DoSomething3"
-			a.rpc.FullMethodName = "Foo.Test.DoSomething3"
-			a.rpc.MethodIndex = Test_DoSomething3
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.DoSomething3(ctx, rpc.Params.(*DoSomething3Params), rpc.Results.(*DoSomething3Results))
+			s.rpc.Namespace = "Foo"
+			s.rpc.ServiceName = "Test"
+			s.rpc.MethodName = "DoSomething3"
+			s.rpc.FullMethodName = "Foo.Test.DoSomething3"
+			s.rpc.MethodIndex = Test_DoSomething3
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.DoSomething3(ctx, rpc.Params.(*DoSomething3Params), rpc.Results.(*DoSomething3Results))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Foo.Test.DoSomething3", handler, "Foo.Test.DoSomething3", rpcFilters)
 	}
 }
 
-type TestServerFuncs struct {
+type TestActorFuncs struct {
 	DoSomethingFunc  func(context.Context) error
 	DoSomething1Func func(context.Context, *DoSomething1Params) error
 	DoSomething2Func func(context.Context, *DoSomething2Results) error
 	DoSomething3Func func(context.Context, *DoSomething3Params, *DoSomething3Results) error
 }
 
-var _ TestServer = (*TestServerFuncs)(nil)
+var _ TestActor = (*TestActorFuncs)(nil)
 
-func (sf *TestServerFuncs) DoSomething(ctx context.Context) error {
+func (sf *TestActorFuncs) DoSomething(ctx context.Context) error {
 	if f := sf.DoSomethingFunc; f != nil {
 		return f(ctx)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *TestServerFuncs) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
+func (sf *TestActorFuncs) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
 	if f := sf.DoSomething1Func; f != nil {
 		return f(ctx, params)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *TestServerFuncs) DoSomething2(ctx context.Context, results *DoSomething2Results) error {
+func (sf *TestActorFuncs) DoSomething2(ctx context.Context, results *DoSomething2Results) error {
 	if f := sf.DoSomething2Func; f != nil {
 		return f(ctx, results)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *TestServerFuncs) DoSomething3(ctx context.Context, params *DoSomething3Params, results *DoSomething3Results) error {
+func (sf *TestActorFuncs) DoSomething3(ctx context.Context, params *DoSomething3Params, results *DoSomething3Results) error {
 	if f := sf.DoSomething3Func; f != nil {
 		return f(ctx, params, results)
 	}

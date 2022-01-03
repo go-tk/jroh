@@ -23,15 +23,15 @@ func (co *ClientOptions) Sanitize() {
 	}
 }
 
-func (so *ClientOptions) AddCommonRPCFilters(rpcFilters ...OutgoingRPCHandler) {
-	so.AddRPCFilters(-1, rpcFilters...)
+func (co *ClientOptions) AddCommonRPCFilters(rpcFilters ...OutgoingRPCHandler) {
+	co.AddRPCFilters(-1, rpcFilters...)
 }
 
-func (so *ClientOptions) AddRPCFilters(methodIndex int, rpcFilters ...OutgoingRPCHandler) {
-	if so.RPCFilters == nil {
-		so.RPCFilters = make(map[int][]OutgoingRPCHandler)
+func (co *ClientOptions) AddRPCFilters(methodIndex int, rpcFilters ...OutgoingRPCHandler) {
+	if co.RPCFilters == nil {
+		co.RPCFilters = make(map[int][]OutgoingRPCHandler)
 	}
-	so.RPCFilters[methodIndex] = append(so.RPCFilters[methodIndex], rpcFilters...)
+	co.RPCFilters[methodIndex] = append(co.RPCFilters[methodIndex], rpcFilters...)
 }
 
 func FillOutgoingRPCFiltersTable(rpcFiltersTable [][]OutgoingRPCHandler, rpcFilters map[int][]OutgoingRPCHandler) {

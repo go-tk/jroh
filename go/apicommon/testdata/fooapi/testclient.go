@@ -31,81 +31,81 @@ func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClien
 }
 
 func (c *testClient) DoSomething(ctx context.Context) error {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  apicommon.DummyModel
 		results apicommon.DummyModel
 	}
-	a.rpc.Namespace = "Foo"
-	a.rpc.ServiceName = "Test"
-	a.rpc.MethodName = "DoSomething"
-	a.rpc.FullMethodName = "Foo.Test.DoSomething"
-	a.rpc.MethodIndex = Test_DoSomething
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Foo.Test.DoSomething"); err != nil {
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething"
+	s.rpc.MethodIndex = Test_DoSomething
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *testClient) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  DoSomething1Params
 		results apicommon.DummyModel
 	}
-	a.rpc.Namespace = "Foo"
-	a.rpc.ServiceName = "Test"
-	a.rpc.MethodName = "DoSomething1"
-	a.rpc.FullMethodName = "Foo.Test.DoSomething1"
-	a.rpc.MethodIndex = Test_DoSomething1
-	a.params = *params
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Foo.Test.DoSomething1"); err != nil {
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething1"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething1"
+	s.rpc.MethodIndex = Test_DoSomething1
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething1"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *testClient) DoSomething2(ctx context.Context) (*DoSomething2Results, error) {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  apicommon.DummyModel
 		results DoSomething2Results
 	}
-	a.rpc.Namespace = "Foo"
-	a.rpc.ServiceName = "Test"
-	a.rpc.MethodName = "DoSomething2"
-	a.rpc.FullMethodName = "Foo.Test.DoSomething2"
-	a.rpc.MethodIndex = Test_DoSomething2
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Foo.Test.DoSomething2"); err != nil {
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething2"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething2"
+	s.rpc.MethodIndex = Test_DoSomething2
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething2"); err != nil {
 		return nil, err
 	}
-	return &a.results, nil
+	return &s.results, nil
 }
 
 func (c *testClient) DoSomething3(ctx context.Context, params *DoSomething3Params) (*DoSomething3Results, error) {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  DoSomething3Params
 		results DoSomething3Results
 	}
-	a.rpc.Namespace = "Foo"
-	a.rpc.ServiceName = "Test"
-	a.rpc.MethodName = "DoSomething3"
-	a.rpc.FullMethodName = "Foo.Test.DoSomething3"
-	a.rpc.MethodIndex = Test_DoSomething3
-	a.params = *params
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Foo.Test.DoSomething3"); err != nil {
+	s.rpc.Namespace = "Foo"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething3"
+	s.rpc.FullMethodName = "Foo.Test.DoSomething3"
+	s.rpc.MethodIndex = Test_DoSomething3
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething3"); err != nil {
 		return nil, err
 	}
-	return &a.results, nil
+	return &s.results, nil
 }
 
 func (c *testClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {

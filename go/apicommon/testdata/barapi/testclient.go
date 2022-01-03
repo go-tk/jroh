@@ -28,19 +28,19 @@ func NewTestClient(rpcBaseURL string, options apicommon.ClientOptions) TestClien
 }
 
 func (c *testClient) DoSomething(ctx context.Context) error {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  apicommon.DummyModel
 		results apicommon.DummyModel
 	}
-	a.rpc.Namespace = "Bar"
-	a.rpc.ServiceName = "Test"
-	a.rpc.MethodName = "DoSomething"
-	a.rpc.FullMethodName = "Bar.Test.DoSomething"
-	a.rpc.MethodIndex = Test_DoSomething
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Bar.Test.DoSomething"); err != nil {
+	s.rpc.Namespace = "Bar"
+	s.rpc.ServiceName = "Test"
+	s.rpc.MethodName = "DoSomething"
+	s.rpc.FullMethodName = "Bar.Test.DoSomething"
+	s.rpc.MethodIndex = Test_DoSomething
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Bar.Test.DoSomething"); err != nil {
 		return err
 	}
 	return nil

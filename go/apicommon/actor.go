@@ -10,16 +10,16 @@ import (
 	"strings"
 )
 
-type ServerOptions struct {
+type ActorOptions struct {
 	RPCFilters       map[int][]IncomingRPCHandler
 	TraceIDGenerator TraceIDGenerator
 }
 
 type TraceIDGenerator func() (traceID string)
 
-func (so *ServerOptions) Sanitize() {
-	if so.TraceIDGenerator == nil {
-		so.TraceIDGenerator = defaultTraceIDGenerator
+func (ao *ActorOptions) Sanitize() {
+	if ao.TraceIDGenerator == nil {
+		ao.TraceIDGenerator = defaultTraceIDGenerator
 	}
 }
 
@@ -30,15 +30,15 @@ func defaultTraceIDGenerator() string {
 	return traceID
 }
 
-func (so *ServerOptions) AddCommonRPCFilters(rpcFilters ...IncomingRPCHandler) {
-	so.AddRPCFilters(-1, rpcFilters...)
+func (ao *ActorOptions) AddCommonRPCFilters(rpcFilters ...IncomingRPCHandler) {
+	ao.AddRPCFilters(-1, rpcFilters...)
 }
 
-func (so *ServerOptions) AddRPCFilters(methodIndex int, rpcFilters ...IncomingRPCHandler) {
-	if so.RPCFilters == nil {
-		so.RPCFilters = make(map[int][]IncomingRPCHandler)
+func (ao *ActorOptions) AddRPCFilters(methodIndex int, rpcFilters ...IncomingRPCHandler) {
+	if ao.RPCFilters == nil {
+		ao.RPCFilters = make(map[int][]IncomingRPCHandler)
 	}
-	so.RPCFilters[methodIndex] = append(so.RPCFilters[methodIndex], rpcFilters...)
+	ao.RPCFilters[methodIndex] = append(ao.RPCFilters[methodIndex], rpcFilters...)
 }
 
 func FillIncomingRPCFiltersTable(rpcFiltersTable [][]IncomingRPCHandler, rpcFilters map[int][]IncomingRPCHandler) {

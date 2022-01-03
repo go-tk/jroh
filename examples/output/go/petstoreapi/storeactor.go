@@ -8,78 +8,78 @@ import (
 	http "net/http"
 )
 
-type StoreServer interface {
+type StoreActor interface {
 	CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) (err error)
 	GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) (err error)
 }
 
-func RegisterStoreServer(s StoreServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterStoreActor(a StoreActor, router *apicommon.Router, options apicommon.ActorOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfStoreMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Store_CreateOrder]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  CreateOrderParams
 				results CreateOrderResults
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "Store"
-			a.rpc.MethodName = "CreateOrder"
-			a.rpc.FullMethodName = "Petstore.Store.CreateOrder"
-			a.rpc.MethodIndex = Store_CreateOrder
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.CreateOrder(ctx, rpc.Params.(*CreateOrderParams), rpc.Results.(*CreateOrderResults))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "Store"
+			s.rpc.MethodName = "CreateOrder"
+			s.rpc.FullMethodName = "Petstore.Store.CreateOrder"
+			s.rpc.MethodIndex = Store_CreateOrder
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.CreateOrder(ctx, rpc.Params.(*CreateOrderParams), rpc.Results.(*CreateOrderResults))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Store.CreateOrder", handler, "Petstore.Store.CreateOrder", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[Store_GetOrder]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  GetOrderParams
 				results GetOrderResults
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "Store"
-			a.rpc.MethodName = "GetOrder"
-			a.rpc.FullMethodName = "Petstore.Store.GetOrder"
-			a.rpc.MethodIndex = Store_GetOrder
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.GetOrder(ctx, rpc.Params.(*GetOrderParams), rpc.Results.(*GetOrderResults))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "Store"
+			s.rpc.MethodName = "GetOrder"
+			s.rpc.FullMethodName = "Petstore.Store.GetOrder"
+			s.rpc.MethodIndex = Store_GetOrder
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.GetOrder(ctx, rpc.Params.(*GetOrderParams), rpc.Results.(*GetOrderResults))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.Store.GetOrder", handler, "Petstore.Store.GetOrder", rpcFilters)
 	}
 }
 
-type StoreServerFuncs struct {
+type StoreActorFuncs struct {
 	CreateOrderFunc func(context.Context, *CreateOrderParams, *CreateOrderResults) error
 	GetOrderFunc    func(context.Context, *GetOrderParams, *GetOrderResults) error
 }
 
-var _ StoreServer = (*StoreServerFuncs)(nil)
+var _ StoreActor = (*StoreActorFuncs)(nil)
 
-func (sf *StoreServerFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) error {
+func (sf *StoreActorFuncs) CreateOrder(ctx context.Context, params *CreateOrderParams, results *CreateOrderResults) error {
 	if f := sf.CreateOrderFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *StoreServerFuncs) GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) error {
+func (sf *StoreActorFuncs) GetOrder(ctx context.Context, params *GetOrderParams, results *GetOrderResults) error {
 	if f := sf.GetOrderFunc; f != nil {
 		return f(ctx, params, results)
 	}

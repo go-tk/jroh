@@ -92,11 +92,12 @@ $ docker run --rm \
 
 $ ls -R ./api ./oapi3
 # Output:
+#
 # ./api:
 # helloworldapi
 #
 # ./api/helloworldapi:
-# errors.go  greeterclient.go  greeterservice.go  misc.go  models.go
+# errors.go  greeteractor.go  greeterclient.go  misc.go  models.go
 #
 # ./oapi3:
 # common.yaml  hello_world
@@ -126,7 +127,7 @@ import (
 )
 
 func main() {
-        server := helloworldapi.GreeterServerFuncs{
+        actor := helloworldapi.GreeterActorFuncs{
                 SayHelloFunc: func(
                         ctx context.Context,
                         params *helloworldapi.SayHelloParams,
@@ -142,7 +143,7 @@ func main() {
                 },
         }
         router := apicommon.NewRouter()
-        helloworldapi.RegisterGreeterServer(&server, router, apicommon.ServerOptions{})
+        helloworldapi.RegisterGreeterActor(&actor, router, apicommon.ActorOptions{})
         log.Printf("route infos: %#v", router.RouteInfos())
 
         apicommon.DebugMode = true
@@ -162,6 +163,7 @@ $ go run -v ./server/server.go
 ```sh
 $ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
+#
 # HTTP/1.1 200 OK
 # Content-Type: application/json; charset=utf-8
 # X-Jroh-Trace-Id: Uv38ByGCZU8WP18PmmIdcg
@@ -174,6 +176,7 @@ $ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greet
 
 $ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
 # Output:
+#
 # HTTP/1.1 403 Forbidden
 # Content-Type: application/json; charset=utf-8
 # X-Jroh-Error-Code: 1000
@@ -229,6 +232,7 @@ EOF
 
 $ go run -v ./client/client.go
 # Output:
+#
 # 1 - &helloworldapi.SayHelloResults{Greeting:"Hi, Roy!"}
 # 2 - &apicommon.Error{Code:1000, StatusCode:403, Message:"user not allowed", Details:"", Data:apicommon.ErrorData(nil)}
 ```

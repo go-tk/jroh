@@ -8,46 +8,46 @@ import (
 	http "net/http"
 )
 
-type TestServer interface {
+type TestActor interface {
 	DoSomething(ctx context.Context) (err error)
 }
 
-func RegisterTestServer(s TestServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterTestActor(a TestActor, router *apicommon.Router, options apicommon.ActorOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfTestMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Test_DoSomething]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  apicommon.DummyModel
 				results apicommon.DummyModel
 			}
-			a.rpc.Namespace = "Bar"
-			a.rpc.ServiceName = "Test"
-			a.rpc.MethodName = "DoSomething"
-			a.rpc.FullMethodName = "Bar.Test.DoSomething"
-			a.rpc.MethodIndex = Test_DoSomething
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.DoSomething(ctx)
+			s.rpc.Namespace = "Bar"
+			s.rpc.ServiceName = "Test"
+			s.rpc.MethodName = "DoSomething"
+			s.rpc.FullMethodName = "Bar.Test.DoSomething"
+			s.rpc.MethodIndex = Test_DoSomething
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.DoSomething(ctx)
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Bar.Test.DoSomething", handler, "Bar.Test.DoSomething", rpcFilters)
 	}
 }
 
-type TestServerFuncs struct {
+type TestActorFuncs struct {
 	DoSomethingFunc func(context.Context) error
 }
 
-var _ TestServer = (*TestServerFuncs)(nil)
+var _ TestActor = (*TestActorFuncs)(nil)
 
-func (sf *TestServerFuncs) DoSomething(ctx context.Context) error {
+func (sf *TestActorFuncs) DoSomething(ctx context.Context) error {
 	if f := sf.DoSomethingFunc; f != nil {
 		return f(ctx)
 	}

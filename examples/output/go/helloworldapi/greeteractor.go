@@ -8,46 +8,46 @@ import (
 	http "net/http"
 )
 
-type GreeterServer interface {
+type GreeterActor interface {
 	SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) (err error)
 }
 
-func RegisterGreeterServer(s GreeterServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterGreeterActor(a GreeterActor, router *apicommon.Router, options apicommon.ActorOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfGreeterMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[Greeter_SayHello]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  SayHelloParams
 				results SayHelloResults
 			}
-			a.rpc.Namespace = "HelloWorld"
-			a.rpc.ServiceName = "Greeter"
-			a.rpc.MethodName = "SayHello"
-			a.rpc.FullMethodName = "HelloWorld.Greeter.SayHello"
-			a.rpc.MethodIndex = Greeter_SayHello
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.SayHello(ctx, rpc.Params.(*SayHelloParams), rpc.Results.(*SayHelloResults))
+			s.rpc.Namespace = "HelloWorld"
+			s.rpc.ServiceName = "Greeter"
+			s.rpc.MethodName = "SayHello"
+			s.rpc.FullMethodName = "HelloWorld.Greeter.SayHello"
+			s.rpc.MethodIndex = Greeter_SayHello
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.SayHello(ctx, rpc.Params.(*SayHelloParams), rpc.Results.(*SayHelloResults))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/HelloWorld.Greeter.SayHello", handler, "HelloWorld.Greeter.SayHello", rpcFilters)
 	}
 }
 
-type GreeterServerFuncs struct {
+type GreeterActorFuncs struct {
 	SayHelloFunc func(context.Context, *SayHelloParams, *SayHelloResults) error
 }
 
-var _ GreeterServer = (*GreeterServerFuncs)(nil)
+var _ GreeterActor = (*GreeterActorFuncs)(nil)
 
-func (sf *GreeterServerFuncs) SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) error {
+func (sf *GreeterActorFuncs) SayHello(ctx context.Context, params *SayHelloParams, results *SayHelloResults) error {
 	if f := sf.SayHelloFunc; f != nil {
 		return f(ctx, params, results)
 	}

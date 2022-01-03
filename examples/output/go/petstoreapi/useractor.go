@@ -8,142 +8,142 @@ import (
 	http "net/http"
 )
 
-type UserServer interface {
+type UserActor interface {
 	CreateUser(ctx context.Context, params *CreateUserParams) (err error)
 	GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) (err error)
 	GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) (err error)
 	UpdateUser(ctx context.Context, params *UpdateUserParams) (err error)
 }
 
-func RegisterUserServer(s UserServer, router *apicommon.Router, options apicommon.ServerOptions) {
+func RegisterUserActor(a UserActor, router *apicommon.Router, options apicommon.ActorOptions) {
 	options.Sanitize()
 	var rpcFiltersTable [NumberOfUserMethods][]apicommon.IncomingRPCHandler
 	apicommon.FillIncomingRPCFiltersTable(rpcFiltersTable[:], options.RPCFilters)
 	{
 		rpcFilters := rpcFiltersTable[User_CreateUser]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  CreateUserParams
 				results apicommon.DummyModel
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "User"
-			a.rpc.MethodName = "CreateUser"
-			a.rpc.FullMethodName = "Petstore.User.CreateUser"
-			a.rpc.MethodIndex = User_CreateUser
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.CreateUser(ctx, rpc.Params.(*CreateUserParams))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "User"
+			s.rpc.MethodName = "CreateUser"
+			s.rpc.FullMethodName = "Petstore.User.CreateUser"
+			s.rpc.MethodIndex = User_CreateUser
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.CreateUser(ctx, rpc.Params.(*CreateUserParams))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.User.CreateUser", handler, "Petstore.User.CreateUser", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[User_GetUser]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  GetUserParams
 				results GetUserResults
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "User"
-			a.rpc.MethodName = "GetUser"
-			a.rpc.FullMethodName = "Petstore.User.GetUser"
-			a.rpc.MethodIndex = User_GetUser
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.GetUser(ctx, rpc.Params.(*GetUserParams), rpc.Results.(*GetUserResults))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "User"
+			s.rpc.MethodName = "GetUser"
+			s.rpc.FullMethodName = "Petstore.User.GetUser"
+			s.rpc.MethodIndex = User_GetUser
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.GetUser(ctx, rpc.Params.(*GetUserParams), rpc.Results.(*GetUserResults))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.User.GetUser", handler, "Petstore.User.GetUser", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[User_GetUsers]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  GetUsersParams
 				results GetUsersResults
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "User"
-			a.rpc.MethodName = "GetUsers"
-			a.rpc.FullMethodName = "Petstore.User.GetUsers"
-			a.rpc.MethodIndex = User_GetUsers
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.GetUsers(ctx, rpc.Params.(*GetUsersParams), rpc.Results.(*GetUsersResults))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "User"
+			s.rpc.MethodName = "GetUsers"
+			s.rpc.FullMethodName = "Petstore.User.GetUsers"
+			s.rpc.MethodIndex = User_GetUsers
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.GetUsers(ctx, rpc.Params.(*GetUsersParams), rpc.Results.(*GetUsersResults))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.User.GetUsers", handler, "Petstore.User.GetUsers", rpcFilters)
 	}
 	{
 		rpcFilters := rpcFiltersTable[User_UpdateUser]
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var a struct {
+			var s struct {
 				rpc     apicommon.IncomingRPC
 				params  UpdateUserParams
 				results apicommon.DummyModel
 			}
-			a.rpc.Namespace = "Petstore"
-			a.rpc.ServiceName = "User"
-			a.rpc.MethodName = "UpdateUser"
-			a.rpc.FullMethodName = "Petstore.User.UpdateUser"
-			a.rpc.MethodIndex = User_UpdateUser
-			a.rpc.Params = &a.params
-			a.rpc.Results = &a.results
-			a.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
-				return s.UpdateUser(ctx, rpc.Params.(*UpdateUserParams))
+			s.rpc.Namespace = "Petstore"
+			s.rpc.ServiceName = "User"
+			s.rpc.MethodName = "UpdateUser"
+			s.rpc.FullMethodName = "Petstore.User.UpdateUser"
+			s.rpc.MethodIndex = User_UpdateUser
+			s.rpc.Params = &s.params
+			s.rpc.Results = &s.results
+			s.rpc.SetHandler(func(ctx context.Context, rpc *apicommon.IncomingRPC) error {
+				return a.UpdateUser(ctx, rpc.Params.(*UpdateUserParams))
 			})
-			a.rpc.SetFilters(rpcFilters)
-			apicommon.HandleRequest(r, &a.rpc, options.TraceIDGenerator, w)
+			s.rpc.SetFilters(rpcFilters)
+			apicommon.HandleRequest(r, &s.rpc, options.TraceIDGenerator, w)
 		})
 		router.AddRoute("/rpc/Petstore.User.UpdateUser", handler, "Petstore.User.UpdateUser", rpcFilters)
 	}
 }
 
-type UserServerFuncs struct {
+type UserActorFuncs struct {
 	CreateUserFunc func(context.Context, *CreateUserParams) error
 	GetUserFunc    func(context.Context, *GetUserParams, *GetUserResults) error
 	GetUsersFunc   func(context.Context, *GetUsersParams, *GetUsersResults) error
 	UpdateUserFunc func(context.Context, *UpdateUserParams) error
 }
 
-var _ UserServer = (*UserServerFuncs)(nil)
+var _ UserActor = (*UserActorFuncs)(nil)
 
-func (sf *UserServerFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
+func (sf *UserActorFuncs) CreateUser(ctx context.Context, params *CreateUserParams) error {
 	if f := sf.CreateUserFunc; f != nil {
 		return f(ctx, params)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *UserServerFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
+func (sf *UserActorFuncs) GetUser(ctx context.Context, params *GetUserParams, results *GetUserResults) error {
 	if f := sf.GetUserFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *UserServerFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
+func (sf *UserActorFuncs) GetUsers(ctx context.Context, params *GetUsersParams, results *GetUsersResults) error {
 	if f := sf.GetUsersFunc; f != nil {
 		return f(ctx, params, results)
 	}
 	return apicommon.NewNotImplementedError()
 }
 
-func (sf *UserServerFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
+func (sf *UserActorFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
 	if f := sf.UpdateUserFunc; f != nil {
 		return f(ctx, params)
 	}

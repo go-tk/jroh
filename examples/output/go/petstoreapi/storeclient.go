@@ -29,43 +29,43 @@ func NewStoreClient(rpcBaseURL string, options apicommon.ClientOptions) StoreCli
 }
 
 func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams) (*CreateOrderResults, error) {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  CreateOrderParams
 		results CreateOrderResults
 	}
-	a.rpc.Namespace = "Petstore"
-	a.rpc.ServiceName = "Store"
-	a.rpc.MethodName = "CreateOrder"
-	a.rpc.FullMethodName = "Petstore.Store.CreateOrder"
-	a.rpc.MethodIndex = Store_CreateOrder
-	a.params = *params
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.Store.CreateOrder"); err != nil {
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Store"
+	s.rpc.MethodName = "CreateOrder"
+	s.rpc.FullMethodName = "Petstore.Store.CreateOrder"
+	s.rpc.MethodIndex = Store_CreateOrder
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.CreateOrder"); err != nil {
 		return nil, err
 	}
-	return &a.results, nil
+	return &s.results, nil
 }
 
 func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
-	var a struct {
+	var s struct {
 		rpc     apicommon.OutgoingRPC
 		params  GetOrderParams
 		results GetOrderResults
 	}
-	a.rpc.Namespace = "Petstore"
-	a.rpc.ServiceName = "Store"
-	a.rpc.MethodName = "GetOrder"
-	a.rpc.FullMethodName = "Petstore.Store.GetOrder"
-	a.rpc.MethodIndex = Store_GetOrder
-	a.params = *params
-	a.rpc.Params = &a.params
-	a.rpc.Results = &a.results
-	if err := c.doRPC(ctx, &a.rpc, "/rpc/Petstore.Store.GetOrder"); err != nil {
+	s.rpc.Namespace = "Petstore"
+	s.rpc.ServiceName = "Store"
+	s.rpc.MethodName = "GetOrder"
+	s.rpc.FullMethodName = "Petstore.Store.GetOrder"
+	s.rpc.MethodIndex = Store_GetOrder
+	s.params = *params
+	s.rpc.Params = &s.params
+	s.rpc.Results = &s.results
+	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.GetOrder"); err != nil {
 		return nil, err
 	}
-	return &a.results, nil
+	return &s.results, nil
 }
 
 func (c *storeClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPath string) error {

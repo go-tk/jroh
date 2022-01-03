@@ -1021,11 +1021,11 @@ func TestModelFurtherValidation(t *testing.T) {
 	}
 }
 
-func TestClientServerCommunication(t *testing.T) {
+func TestClientActorCommunication(t *testing.T) {
 	r := NewRouter()
-	var tsf fooapi.TestServerFuncs
-	so := ServerOptions{TraceIDGenerator: func() string { return "xyz" }}
-	fooapi.RegisterTestServer(&tsf, r, so)
+	var tsf fooapi.TestActorFuncs
+	ao := ActorOptions{TraceIDGenerator: func() string { return "xyz" }}
+	fooapi.RegisterTestActor(&tsf, r, ao)
 	co := ClientOptions{
 		Transport: MakeInMemoryTransport(r),
 	}
@@ -1074,9 +1074,9 @@ func TestClientServerCommunication(t *testing.T) {
 
 func TestClientTimeout(t *testing.T) {
 	r := NewRouter()
-	var tsf fooapi.TestServerFuncs
-	so := ServerOptions{}
-	fooapi.RegisterTestServer(&tsf, r, so)
+	var tsf fooapi.TestActorFuncs
+	ao := ActorOptions{}
+	fooapi.RegisterTestActor(&tsf, r, ao)
 	co := ClientOptions{
 		Timeout:   200 * time.Millisecond,
 		Transport: MakeInMemoryTransport(r),
@@ -1092,9 +1092,9 @@ func TestClientTimeout(t *testing.T) {
 
 func TestClientOutgoingRPCInfo(t *testing.T) {
 	r := NewRouter()
-	var tsf fooapi.TestServerFuncs
-	so := ServerOptions{}
-	fooapi.RegisterTestServer(&tsf, r, so)
+	var tsf fooapi.TestActorFuncs
+	ao := ActorOptions{}
+	fooapi.RegisterTestActor(&tsf, r, ao)
 	co := ClientOptions{
 		Transport: MakeInMemoryTransport(r),
 	}
@@ -1125,13 +1125,13 @@ func TestClientOutgoingRPCInfo(t *testing.T) {
 	assert.True(t, f)
 }
 
-func TestServerIncomingRPCInfo(t *testing.T) {
+func TestActorIncomingRPCInfo(t *testing.T) {
 	r := NewRouter()
-	var tsf fooapi.TestServerFuncs
-	so := ServerOptions{}
+	var tsf fooapi.TestActorFuncs
+	ao := ActorOptions{}
 	f := false
 	results := fooapi.DoSomething3Results{MyOnOff: true}
-	so.AddCommonRPCFilters(
+	ao.AddCommonRPCFilters(
 		func(ctx context.Context, incomingRPC *IncomingRPC) error {
 			f = true
 			assert.Equal(t, "Foo", incomingRPC.Namespace)
@@ -1146,12 +1146,12 @@ func TestServerIncomingRPCInfo(t *testing.T) {
 			return err
 		},
 	)
-	fooapi.RegisterTestServer(&tsf, r, so)
+	fooapi.RegisterTestActor(&tsf, r, ao)
 	assert.Equal(t, []RouteInfo{
-		{RPCPath: "/rpc/Foo.Test.DoSomething", FullMethodName: "Foo.Test.DoSomething", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestServerIncomingRPCInfo.func1"}},
-		{RPCPath: "/rpc/Foo.Test.DoSomething1", FullMethodName: "Foo.Test.DoSomething1", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestServerIncomingRPCInfo.func1"}},
-		{RPCPath: "/rpc/Foo.Test.DoSomething2", FullMethodName: "Foo.Test.DoSomething2", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestServerIncomingRPCInfo.func1"}},
-		{RPCPath: "/rpc/Foo.Test.DoSomething3", FullMethodName: "Foo.Test.DoSomething3", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestServerIncomingRPCInfo.func1"}},
+		{RPCPath: "/rpc/Foo.Test.DoSomething", FullMethodName: "Foo.Test.DoSomething", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestActorIncomingRPCInfo.func1"}},
+		{RPCPath: "/rpc/Foo.Test.DoSomething1", FullMethodName: "Foo.Test.DoSomething1", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestActorIncomingRPCInfo.func1"}},
+		{RPCPath: "/rpc/Foo.Test.DoSomething2", FullMethodName: "Foo.Test.DoSomething2", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestActorIncomingRPCInfo.func1"}},
+		{RPCPath: "/rpc/Foo.Test.DoSomething3", FullMethodName: "Foo.Test.DoSomething3", RPCFilters: []string{"github.com/go-tk/jroh/go/apicommon_test.TestActorIncomingRPCInfo.func1"}},
 	}, r.RouteInfos())
 	co := ClientOptions{
 		Transport: MakeInMemoryTransport(r),
@@ -1171,10 +1171,10 @@ func TestServerIncomingRPCInfo(t *testing.T) {
 
 func TestRPCFilters(t *testing.T) {
 	r := NewRouter()
-	var tsf fooapi.TestServerFuncs
-	so := ServerOptions{}
+	var tsf fooapi.TestActorFuncs
+	ao := ActorOptions{}
 	var s string
-	so.AddCommonRPCFilters(
+	ao.AddCommonRPCFilters(
 		func(ctx context.Context, incomingRPC *IncomingRPC) error {
 			s += "a"
 			err := incomingRPC.Do(ctx)
@@ -1188,7 +1188,7 @@ func TestRPCFilters(t *testing.T) {
 			return err
 		},
 	)
-	so.AddRPCFilters(
+	ao.AddRPCFilters(
 		fooapi.Test_DoSomething,
 		func(ctx context.Context, incomingRPC *IncomingRPC) error {
 			s += "e"
@@ -1203,7 +1203,7 @@ func TestRPCFilters(t *testing.T) {
 			return err
 		},
 	)
-	fooapi.RegisterTestServer(&tsf, r, so)
+	fooapi.RegisterTestActor(&tsf, r, ao)
 	co := ClientOptions{
 		Transport: MakeInMemoryTransport(r),
 	}
