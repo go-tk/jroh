@@ -85,7 +85,7 @@ func HandleRequest(
 				StatusCode: incomingRPC.StatusCode,
 				Message:    statusCode2Message[incomingRPC.StatusCode],
 			}
-			if error.StatusCode/100 != 5 {
+			if DebugMode || error.StatusCode/100 != 5 {
 				error.Details = err.Error()
 			}
 		}
