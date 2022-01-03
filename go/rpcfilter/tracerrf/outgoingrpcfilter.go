@@ -29,7 +29,7 @@ func NewOutgoingRPCFilter(tracer trace.Tracer) apicommon.OutgoingRPCHandler {
 			semconv.HTTPStatusCodeKey.Int(outgoingRPC.StatusCode),
 			attribute.Int("rpc.jroh.error_code", int(outgoingRPC.ErrorCode)),
 		)
-		if returnedErr != nil && !apicommon.ErrIsTemporary(returnedErr) {
+		if apicommon.ClientShouldReportError(returnedErr, outgoingRPC.StatusCode) {
 			span.SetStatus(codes.Error, "")
 		} else {
 			span.SetStatus(codes.Ok, "")

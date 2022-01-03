@@ -105,7 +105,7 @@ func NewOutgoingRPCFilter(registerer prometheus.Registerer) apicommon.OutgoingRP
 			outgoingRPC.ServiceName,
 			outgoingRPC.MethodName,
 		).Observe(time.Since(t0).Seconds())
-		if returnedErr != nil && !apicommon.ErrIsTemporary(returnedErr) {
+		if apicommon.ClientShouldReportError(returnedErr, outgoingRPC.StatusCode) {
 			clientErrorsTotal.WithLabelValues(
 				outgoingRPC.Namespace,
 				outgoingRPC.ServiceName,

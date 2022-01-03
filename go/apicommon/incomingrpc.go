@@ -79,7 +79,7 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 			ir.StatusCode = error.StatusCode
 			ir.ErrorCode = error.Code
 		} else {
-			if ErrIsTemporary(err) {
+			if errIsTemporary(err) {
 				ir.StatusCode = http.StatusServiceUnavailable
 			} else {
 				ir.StatusCode = http.StatusInternalServerError

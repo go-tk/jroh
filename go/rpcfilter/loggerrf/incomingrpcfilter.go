@@ -34,7 +34,7 @@ func NewIncomingRPCFilter(logger zerolog.Logger, optionsBuilders ...OptionsBuild
 				}
 			}
 			var event *zerolog.Event
-			if incomingRPC.StatusCode/100 == 5 {
+			if apicommon.ServerShouldReportError(returnedErr, incomingRPC.StatusCode) {
 				event = subLogger.Error()
 			} else {
 				event = subLogger.Info()

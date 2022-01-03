@@ -24,7 +24,7 @@ func NewOutgoingRPCFilter(logger zerolog.Logger, optionsBuilders ...OptionsBuild
 			}
 		}
 		var event *zerolog.Event
-		if returnedErr != nil && !apicommon.ErrIsTemporary(returnedErr) {
+		if apicommon.ClientShouldReportError(returnedErr, outgoingRPC.StatusCode) {
 			event = subLogger.Error()
 		} else {
 			event = subLogger.Info()

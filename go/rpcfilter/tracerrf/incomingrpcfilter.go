@@ -29,7 +29,7 @@ func NewIncomingRPCFilter(tracer trace.Tracer) apicommon.IncomingRPCHandler {
 			semconv.HTTPStatusCodeKey.Int(incomingRPC.StatusCode),
 			attribute.Int("rpc.jroh.error_code", int(incomingRPC.ErrorCode)),
 		)
-		if incomingRPC.StatusCode/100 == 5 {
+		if apicommon.ServerShouldReportError(returnedErr, incomingRPC.StatusCode) {
 			span.SetStatus(codes.Error, "")
 		} else {
 			span.SetStatus(codes.Ok, "")

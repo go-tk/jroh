@@ -105,7 +105,7 @@ func NewIncomingRPCFilter(registerer prometheus.Registerer) apicommon.IncomingRP
 			incomingRPC.ServiceName,
 			incomingRPC.MethodName,
 		).Observe(time.Since(t0).Seconds())
-		if incomingRPC.StatusCode/100 == 5 {
+		if apicommon.ServerShouldReportError(returnedErr, incomingRPC.StatusCode) {
 			serverErrorsTotal.WithLabelValues(
 				incomingRPC.Namespace,
 				incomingRPC.ServiceName,

@@ -13,7 +13,15 @@ import (
 
 func BytesToString(bytes []byte) string { return *(*string)(unsafe.Pointer(&bytes)) }
 
-func ErrIsTemporary(err error) bool {
+func ServerShouldReportError(err error, statusCode int) bool {
+	return err != nil && (statusCode/100 == 5 && !errors.Is(err, context.Canceled))
+}
+
+func ClientShouldReportError(err error, statusCode int) bool {
+	return err != nil && (statusCode/100 == 4 || !errIsTemporary(err))
+}
+
+func errIsTemporary(err error) bool {
 	for {
 		if v, ok := err.(interface{ Temporary() bool }); ok && v.Temporary() {
 			return true
