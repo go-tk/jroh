@@ -251,6 +251,8 @@ $ docker run --rm \
 
 Open http://127.0.0.1:2333 in the browser.
 
+![screenshot](https://user-images.githubusercontent.com/6377788/148325351-d57e6dd1-0646-4b66-ae82-370eedcdd16f.png)
+
 ## Advanced examples
 
 - [Petstore](examples/2-petstore)
