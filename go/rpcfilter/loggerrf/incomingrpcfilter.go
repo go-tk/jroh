@@ -22,7 +22,7 @@ func NewIncomingRPCFilter(logger zerolog.Logger, optionsBuilders ...OptionsBuild
 		defer func() {
 			if v := recover(); v != nil {
 				incomingRPC.StatusCode = http.StatusInternalServerError
-				incomingRPC.ErrorCode = 0
+				incomingRPC.ErrorCode = -1
 				buffer := make([]byte, 4096)
 				i := copy(buffer, fmt.Sprintf("panic: %v\n\n", v))
 				i += runtime.Stack(buffer[i:], false)

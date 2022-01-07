@@ -81,7 +81,7 @@ func HandleRequest(
 		error, ok := err.(*Error)
 		if !ok {
 			error = &Error{
-				Code:       -1,
+				Code:       incomingRPC.ErrorCode,
 				StatusCode: incomingRPC.StatusCode,
 				Message:    statusCode2Message[incomingRPC.StatusCode],
 			}

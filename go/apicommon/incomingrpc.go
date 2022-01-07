@@ -71,6 +71,7 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 			ir.ErrorCode = error.Code
 		} else {
 			ir.StatusCode = http.StatusBadRequest
+			ir.ErrorCode = -1
 		}
 		return err
 	}
@@ -84,6 +85,7 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 			} else {
 				ir.StatusCode = http.StatusInternalServerError
 			}
+			ir.ErrorCode = -1
 		}
 		return err
 	}
