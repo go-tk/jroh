@@ -44,7 +44,7 @@ func (c *testClient) DoSomething(ctx context.Context) error {
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func (c *testClient) DoSomething1(ctx context.Context, params *DoSomething1Param
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething1"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething1\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -83,7 +83,7 @@ func (c *testClient) DoSomething2(ctx context.Context) (*DoSomething2Results, er
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething2"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething2\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -103,7 +103,7 @@ func (c *testClient) DoSomething3(ctx context.Context, params *DoSomething3Param
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Foo.Test.DoSomething3"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -118,10 +118,7 @@ func (c *testClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcP
 	rpc.URL = c.rpcBaseURL + rpcPath
 	rpc.SetHandler(apicommon.HandleOutgoingRPC)
 	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-	if err := rpc.Do(ctx); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-	}
-	return nil
+	return rpc.Do(ctx)
 }
 
 type TestClientFuncs struct {
@@ -137,26 +134,30 @@ func (cf *TestClientFuncs) DoSomething(ctx context.Context) error {
 	if f := cf.DoSomethingFunc; f != nil {
 		return f(ctx)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\": %w", err)
 }
 
 func (cf *TestClientFuncs) DoSomething1(ctx context.Context, params *DoSomething1Params) error {
 	if f := cf.DoSomething1Func; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\": %w", err)
 }
 
 func (cf *TestClientFuncs) DoSomething2(ctx context.Context) (*DoSomething2Results, error) {
 	if f := cf.DoSomething2Func; f != nil {
 		return f(ctx)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\": %w", err)
 }
 
 func (cf *TestClientFuncs) DoSomething3(ctx context.Context, params *DoSomething3Params) (*DoSomething3Results, error) {
 	if f := cf.DoSomething3Func; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Foo.Test.DoSomething3\": %w", err)
 }

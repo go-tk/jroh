@@ -42,7 +42,7 @@ func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -57,10 +57,7 @@ func (c *greeterClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, r
 	rpc.URL = c.rpcBaseURL + rpcPath
 	rpc.SetHandler(apicommon.HandleOutgoingRPC)
 	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-	if err := rpc.Do(ctx); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-	}
-	return nil
+	return rpc.Do(ctx)
 }
 
 type GreeterClientFuncs struct {
@@ -73,5 +70,6 @@ func (cf *GreeterClientFuncs) SayHello(ctx context.Context, params *SayHelloPara
 	if f := cf.SayHelloFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\": %w", err)
 }

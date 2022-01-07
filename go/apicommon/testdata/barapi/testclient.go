@@ -41,7 +41,7 @@ func (c *testClient) DoSomething(ctx context.Context) error {
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Bar.Test.DoSomething"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Bar.Test.DoSomething\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -56,10 +56,7 @@ func (c *testClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcP
 	rpc.URL = c.rpcBaseURL + rpcPath
 	rpc.SetHandler(apicommon.HandleOutgoingRPC)
 	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-	if err := rpc.Do(ctx); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-	}
-	return nil
+	return rpc.Do(ctx)
 }
 
 type TestClientFuncs struct {
@@ -72,5 +69,6 @@ func (cf *TestClientFuncs) DoSomething(ctx context.Context) error {
 	if f := cf.DoSomethingFunc; f != nil {
 		return f(ctx)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Bar.Test.DoSomething\": %w", err)
 }

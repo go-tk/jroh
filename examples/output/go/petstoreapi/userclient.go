@@ -45,7 +45,7 @@ func (c *userClient) CreateUser(ctx context.Context, params *CreateUserParams) e
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.CreateUser"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.CreateUser\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (c *userClient) GetUser(ctx context.Context, params *GetUserParams) (*GetUs
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.GetUser"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.GetUser\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -85,7 +85,7 @@ func (c *userClient) GetUsers(ctx context.Context, params *GetUsersParams) (*Get
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.GetUsers"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.GetUsers\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -105,7 +105,7 @@ func (c *userClient) UpdateUser(ctx context.Context, params *UpdateUserParams) e
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.User.UpdateUser"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -120,10 +120,7 @@ func (c *userClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcP
 	rpc.URL = c.rpcBaseURL + rpcPath
 	rpc.SetHandler(apicommon.HandleOutgoingRPC)
 	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-	if err := rpc.Do(ctx); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-	}
-	return nil
+	return rpc.Do(ctx)
 }
 
 type UserClientFuncs struct {
@@ -139,26 +136,30 @@ func (cf *UserClientFuncs) CreateUser(ctx context.Context, params *CreateUserPar
 	if f := cf.CreateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\": %w", err)
 }
 
 func (cf *UserClientFuncs) GetUser(ctx context.Context, params *GetUserParams) (*GetUserResults, error) {
 	if f := cf.GetUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\": %w", err)
 }
 
 func (cf *UserClientFuncs) GetUsers(ctx context.Context, params *GetUsersParams) (*GetUsersResults, error) {
 	if f := cf.GetUsersFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\": %w", err)
 }
 
 func (cf *UserClientFuncs) UpdateUser(ctx context.Context, params *UpdateUserParams) error {
 	if f := cf.UpdateUserFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.User.UpdateUser\": %w", err)
 }

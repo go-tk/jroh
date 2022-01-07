@@ -46,7 +46,7 @@ func (c *petClient) AddPet(ctx context.Context, params *AddPetParams) error {
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.AddPet"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.AddPet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func (c *petClient) GetPet(ctx context.Context, params *GetPetParams) (*GetPetRe
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPet"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -86,7 +86,7 @@ func (c *petClient) GetPets(ctx context.Context, params *GetPetsParams) (*GetPet
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPets"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPets\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -106,7 +106,7 @@ func (c *petClient) UpdatePet(ctx context.Context, params *UpdatePetParams) erro
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.UpdatePet"); err != nil {
-		return err
+		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.UpdatePet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func (c *petClient) FindPets(ctx context.Context, params *FindPetsParams) (*Find
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.FindPets"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -141,10 +141,7 @@ func (c *petClient) doRPC(ctx context.Context, rpc *apicommon.OutgoingRPC, rpcPa
 	rpc.URL = c.rpcBaseURL + rpcPath
 	rpc.SetHandler(apicommon.HandleOutgoingRPC)
 	rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-	if err := rpc.Do(ctx); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-	}
-	return nil
+	return rpc.Do(ctx)
 }
 
 type PetClientFuncs struct {
@@ -161,33 +158,38 @@ func (cf *PetClientFuncs) AddPet(ctx context.Context, params *AddPetParams) erro
 	if f := cf.AddPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
 	if f := cf.GetPetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
 	if f := cf.GetPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
 	if f := cf.UpdatePetFunc; f != nil {
 		return f(ctx, params)
 	}
-	return apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
 	if f := cf.FindPetsFunc; f != nil {
 		return f(ctx, params)
 	}
-	return nil, apicommon.NewNotImplementedError()
+	err := apicommon.NewNotImplementedError()
+	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }

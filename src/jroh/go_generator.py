@@ -306,7 +306,7 @@ ${method_name}Results
     % if method.results is not None:
 nil, \
     % endif
-err
+${fmt()}.Errorf("rpc failed; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]} traceID=%q: %w", s.rpc.TraceID, err)
     }
     return \
     % if method.results is not None:
@@ -326,16 +326,14 @@ func (c *${service_name2}Client) doRPC(ctx ${context1()}.Context, rpc *${apicomm
     rpc.URL = c.rpcBaseURL + rpcPath
     rpc.SetHandler(${apicommon()}.HandleOutgoingRPC)
     rpc.SetFilters(c.rpcFiltersTable[rpc.MethodIndex])
-    if err := rpc.Do(ctx); err != nil {
-        return ${fmt()}.Errorf("rpc failed; fullMethodName=%q traceID=%q: %w", rpc.FullMethodName, rpc.TraceID, err)
-    }
-    return nil
+    return rpc.Do(ctx)
 }
 
 type ${service_name}ClientFuncs struct {
 % for method in service.methods:
 <%
     method_name = utils.pascal_case(method.id)
+    full_method_name = f"{namespace}.{service_name}.{method_name}"
 %>\
     ${method_name}Func func(${context1()}.Context\
     % if method.params is not None:
@@ -373,11 +371,12 @@ error {
         % endif
 )
     }
+    err := ${apicommon()}.NewNotImplementedError()
     return \
     % if method.results is not None:
 nil, \
     % endif
-${apicommon()}.NewNotImplementedError()
+${fmt()}.Errorf("rpc failed; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]}: %w", err)
 }
 % endfor
 """
