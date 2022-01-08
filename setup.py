@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name="jroh",
     version="0.9.1",
-    description="JSON-RPC over HTTP",
+    description="JSON RPC over HTTP",
     packages=["jroh"],
     package_dir={"jroh": "src/jroh"},
     python_requires=">=3.9",

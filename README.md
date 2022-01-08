@@ -1,18 +1,18 @@
 # JROH
 
-Solution & Framework for **J**SON-**R**PC **o**ver **H**TTP
+Framework for **J**SON **R**PC **o**ver **H**TTP
 
 ## Why not OpenAPI?
 
-OpenAPI addresses the definition of RESTful APIs, when it comes to JSON-RPCs, some important elements
+OpenAPI addresses the definition of RESTful APIs, when it comes to JSON RPCs, some important elements
 for defining RPCs is missing, e.g., service name, method name and RPC error code.
 
 ## The user story
 
-1. Users shall define JSON-RPCs in **YAML**.
+1. Users shall define JSON RPCs in **YAML**.
 2. Users can compile the YAML files into stub (client-side) code and skeleton (server-side) code in **Go**.
 3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to leverage
-**Swagger UI** as a browser for JSON-RPCs.
+**Swagger UI** as a browser for JSON RPCs.
 
 ## Integration
 
@@ -34,7 +34,7 @@ $ mkdir temp && cd temp
 
 ---
 
-**2. Define JSON-RPC(s)**
+**2. Define JSON RPC(s)**
 
 ```sh
 # Create file ./jroh/hello_world/greeter_service.yaml
@@ -241,7 +241,7 @@ $ go run -v ./client/client.go
 
 ---
 
-**6. Browse  JSON-RPC(s) with Swagger UI**
+**6. Browse  JSON RPC(s) with Swagger UI**
 
 ```sh
 $ docker run --rm \
