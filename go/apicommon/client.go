@@ -71,6 +71,9 @@ func HandleOutgoingRPC(ctx context.Context, outgoingRPC *OutgoingRPC) error {
 		setTraceID(incomingRPC.TraceID, outgoingRPC.OutboundHeader)
 		outgoingRPC.TraceID = incomingRPC.TraceID
 	}
+	if deadline, ok := ctx.Deadline(); ok {
+		setDeadline(deadline, outgoingRPC.OutboundHeader)
+	}
 	response, err := outgoingRPC.Transport.RoundTrip(request)
 	if err != nil {
 		return err

@@ -1078,12 +1078,18 @@ func TestClientTimeout(t *testing.T) {
 	ao := ActorOptions{}
 	fooapi.RegisterTestActor(&tsf, r, ao)
 	co := ClientOptions{
-		Timeout:   200 * time.Millisecond,
+		Timeout:   150 * time.Millisecond,
 		Transport: MakeInMemoryTransport(r),
 	}
 	c := fooapi.NewTestClient("https://localhost", co)
 	tsf.DoSomethingFunc = func(ctx context.Context) error {
+		deadline, ok := ctx.Deadline()
+		if assert.True(t, ok) {
+			timeout := time.Until(deadline)
+			assert.InDelta(t, co.Timeout, timeout, 50*float64(time.Millisecond))
+		}
 		<-ctx.Done()
+		time.Sleep(50 * time.Millisecond)
 		return nil
 	}
 	err := c.DoSomething(context.Background())

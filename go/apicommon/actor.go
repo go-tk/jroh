@@ -2,6 +2,7 @@ package apicommon
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -74,10 +75,16 @@ func HandleRequest(
 		traceID = traceIDGenerator()
 		setTraceID(traceID, incomingRPC.OutboundHeader)
 	}
+	ctx := request.Context()
+	if deadline, ok := getDeadline(incomingRPC.InboundHeader); ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithDeadline(ctx, deadline)
+		defer cancel()
+	}
 	incomingRPC.TraceID = traceID
 	incomingRPC.StatusCode = http.StatusOK
 	incomingRPC.SetReader(request.Body)
-	if err := incomingRPC.Do(request.Context()); err != nil {
+	if err := incomingRPC.Do(ctx); err != nil {
 		error, ok := err.(*Error)
 		if !ok {
 			error = &Error{
