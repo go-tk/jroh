@@ -66,13 +66,6 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 		return ir.filters[i](ctx, ir)
 	}
 	if err := ir.LoadParams(ctx); err != nil {
-		if error, ok := err.(*Error); ok {
-			ir.StatusCode = error.StatusCode
-			ir.ErrorCode = error.Code
-		} else {
-			ir.StatusCode = http.StatusBadRequest
-			ir.ErrorCode = -1
-		}
 		return err
 	}
 	if err := ir.handler(ctx, ir); err != nil {
@@ -103,15 +96,21 @@ func (ir *IncomingRPC) LoadParams(ctx context.Context) error {
 
 func (ir *IncomingRPC) doLoadParams(ctx context.Context) error {
 	if err := ir.ReadRawParams(); err != nil {
+		ir.StatusCode = http.StatusBadRequest
+		ir.ErrorCode = -1
 		return err
 	}
 	if err := ir.decodeRawParams(ctx); err != nil {
+		ir.StatusCode = http.StatusBadRequest
+		ir.ErrorCode = -1
 		return err
 	}
 	validationContext := NewValidationContext(ctx)
 	if !ir.Params.Validate(validationContext) {
 		error := NewInvalidParamsError()
 		error.Details = validationContext.ErrorDetails()
+		ir.StatusCode = error.StatusCode
+		ir.ErrorCode = error.Code
 		return error
 	}
 	return nil
