@@ -14,9 +14,11 @@ for defining RPCs is missing, e.g., service name, method name and RPC error code
 3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to leverage
 **Swagger UI** as a browser for JSON-RPCs.
 
-## Features
+## Integration
 
-TODO
+- [Zerolog](./go/middleware/zerologmw)
+- [OpenTelemetry](./go/middleware/opentelemetrymw)
+- [Prometheus](./go/middleware/prometheusmw)
 
 ## Installation
 

@@ -1,4 +1,4 @@
-package meterrf
+package prometheusmw
 
 import (
 	"context"

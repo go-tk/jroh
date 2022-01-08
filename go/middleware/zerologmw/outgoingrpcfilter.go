@@ -1,4 +1,4 @@
-package loggerrf
+package zerologmw
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package loggerrf
+package zerologmw
 
 type OptionsBuilder func(options *options)
 

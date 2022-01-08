@@ -1,4 +1,4 @@
-package tracerrf
+package opentelemetrymw
 
 import (
 	"context"
