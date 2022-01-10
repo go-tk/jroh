@@ -26,19 +26,20 @@ No installation required, we run the toolchain in Docker containers.
 
 ## Getting started
 
-**1. Create a temporary directory as workspace**
+### 1. Prepare
+
+Create a temporary directory as workspace:
 
 ```sh
-$ mkdir temp && cd temp
+mkdir temp && cd temp
 ```
 
----
+### 2. Define JSON RPC(s) with YAML
 
-**2. Define JSON RPC(s)**
+Create new file `./jroh/hello_world/greeter_service.yaml` by the command:
 
 ```sh
-# Create file ./jroh/hello_world/greeter_service.yaml
-$ install -Dm 644 /dev/stdin ./jroh/hello_world/greeter_service.yaml <<EOF
+mkdir -p ./jroh/hello_world && cat >./jroh/hello_world/greeter_service.yaml <<EOF
 ######### BEGIN greeter_service.yaml ##########
 namespace: Hello-World
 
@@ -77,22 +78,33 @@ errors:
 EOF
 ```
 
----
+### 3. Generate Go code and OpenAPI 3 specifications
 
-**3. Generate Go code and OpenAPI 3.0 specification(s)**
+Transform the current directory into Go module `pkg.go.test`:
 
 ```sh
-$ go mod init pkg.go.test
+go mod init pkg.go.test
+```
 
-$ docker run --rm \
+Generate files:
+
+```sh
+docker run --rm \
   --volume="${PWD}:/workspace" \
   --workdir=/workspace \
   ghcr.io/go-tk/jrohc:v0.9.1 \
     --go_out=./api:pkg.go.test/api \
     --oapi3_out=./oapi3 \
     ./jroh/hello_world/greeter_service.yaml
+```
 
-$ ls -R ./api ./oapi3
+Check generated files:
+
+```sh
+ls -R ./api ./oapi3
+```
+
+```sh
 # Output:
 #
 # ./api:
@@ -108,13 +120,12 @@ $ ls -R ./api ./oapi3
 # greeter_service.yaml  models.yaml
 ```
 
----
+### 4. Start up an RPC server
 
-**4. Start up an RPC server**
+Create new file `./server/server.go` by the command:
 
 ```sh
-# Create file ./server/server.go
-$ install -Dm 644 /dev/stdin ./server/server.go <<EOF
+mkdir -p ./server && cat >./server/server.go <<EOF
 ////////// BEGIN server.go //////////
 package main
 
@@ -154,16 +165,23 @@ func main() {
 }
 ////////// END server.go //////////
 EOF
-
-$ go run -v ./server/server.go
 ```
 
----
-
-**5.a. Send RPC requests with `curl`**
+Run the program:
 
 ```sh
-$ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+go mod tidy && go run -v ./server/server.go
+```
+
+### 5.a. Invoke RPCs with `curl`
+
+Call `HelloWorld.Greeter.SayHello` with good parameters:
+
+```sh
+curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+```
+
+```sh
 # Output:
 #
 # HTTP/1.1 200 OK
@@ -175,8 +193,15 @@ $ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greet
 # {
 #   "greeting": "Hi, Roy!"
 # }
+```
 
-$ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+Call `HelloWorld.Greeter.SayHello` with bad parameters:
+
+```sh
+curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter.SayHello
+```
+
+```sh
 # Output:
 #
 # HTTP/1.1 403 Forbidden
@@ -191,13 +216,12 @@ $ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greet
 # }
 ```
 
----
+### 5.b. Invoke RPCs with Go client
 
-**5.b. Send RPC requests with Go client**
+Create new file `./client/client.go` by the command:
 
 ```sh
-# Create file ./client/client.go
-$ install -Dm 644 /dev/stdin ./client/client.go <<EOF
+mkdir -p ./client && cat >./client/client.go <<EOF
 ////////// BEGIN client.go //////////
 package main
 
@@ -231,27 +255,34 @@ func main() {
 
 ////////// END client.go //////////
 EOF
+```
 
-$ go run -v ./client/client.go
+Run the program:
+
+```sh
+go mod tidy && go run -v ./client/client.go
+```
+
+```sh
 # Output:
 #
 # 1 - &helloworldapi.SayHelloResults{Greeting:"Hi, Roy!"}
 # 2 - &apicommon.Error{Code:1000, StatusCode:403, Message:"user not allowed", Details:"", Data:apicommon.ErrorData(nil)}
 ```
 
----
+### 6. View the definition of JSON RPC(s)
 
-**6. Browse  JSON RPC(s) with Swagger UI**
+Run an instance of [Swagger UI](https://swagger.io/tools/swagger-ui/) as viewer:
 
 ```sh
-$ docker run --rm \
+docker run --rm \
   --volume="${PWD}:/usr/share/nginx/html/data" \
   --env=SWAGGER_JSON_URL=./data/oapi3/hello_world/greeter_service.yaml \
   --publish=2333:8080 \
   swaggerapi/swagger-ui:latest
 ```
 
-Open http://127.0.0.1:2333 in the browser.
+Open http://127.0.0.1:2333 in the browser:
 
 ![screenshot](https://user-images.githubusercontent.com/6377788/148325351-d57e6dd1-0646-4b66-ae82-370eedcdd16f.png)
 
