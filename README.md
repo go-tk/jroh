@@ -12,7 +12,7 @@ for defining RPCs is missing, e.g., service name, method name and RPC error code
 1. Users shall define JSON RPCs in **YAML**.
 2. Users can compile the YAML files into stub (client-side) code and skeleton (server-side) code in **Go**.
 3. Users can compile the YAML files into OpenAPI 3.0 specifications so that it's able to leverage
-**Swagger UI** as a browser for JSON RPCs.
+**Swagger UI** as viewer for JSON RPCs.
 
 ## Integration
 
@@ -284,7 +284,7 @@ docker run --rm \
 
 Open http://127.0.0.1:2333 in the browser:
 
-![screenshot](https://user-images.githubusercontent.com/6377788/148325351-d57e6dd1-0646-4b66-ae82-370eedcdd16f.png)
+![screenshot](https://user-images.githubusercontent.com/6377788/148944012-143461b2-c399-46eb-b649-6183d485cd3b.png)
 
 ## Advanced examples
 
