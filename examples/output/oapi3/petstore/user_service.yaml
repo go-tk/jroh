@@ -26,11 +26,11 @@ paths:
             | 2 | 422 | invalid params | Invalid method parameter(s). |
             | 1001 | 422 | user already exists | The user ID is in use. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -62,11 +62,11 @@ paths:
             | 2 | 422 | invalid params | Invalid method parameter(s). |
             | 1002 | 422 | user not found | Can't find the user. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -97,11 +97,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -133,11 +133,11 @@ paths:
             | 2 | 422 | invalid params | Invalid method parameter(s). |
             | 1002 | 422 | user not found | Can't find the user. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32

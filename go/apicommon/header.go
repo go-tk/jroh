@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const traceIDHeaderKey = "X-Jroh-Trace-Id"
+const traceIDHeaderKey = "Jroh-Trace-Id"
 
 func setTraceID(traceID string, header http.Header) {
 	header[traceIDHeaderKey] = []string{traceID}
@@ -20,7 +20,7 @@ func getTraceID(header http.Header) (string, bool) {
 	return "", false
 }
 
-const deadlineHeaderKey = "X-Jroh-Deadline"
+const deadlineHeaderKey = "Jroh-Deadline"
 
 func setDeadline(deadline time.Time, header http.Header) {
 	timestamp := float64(deadline.UnixNano()) / float64(time.Second/time.Nanosecond)
@@ -38,7 +38,7 @@ func getDeadline(header http.Header) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-const errorCodeHeaderKey = "X-Jroh-Error-Code"
+const errorCodeHeaderKey = "Jroh-Error-Code"
 
 func setErrorCode(errorCode ErrorCode, header http.Header) {
 	errorCodeStr := strconv.FormatInt(int64(errorCode), 10)

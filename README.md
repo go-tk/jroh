@@ -36,7 +36,7 @@ mkdir temp && cd temp
 
 ### 2. Define JSON RPC(s) with YAML
 
-Create new file `./jroh/hello_world/greeter_service.yaml` by the command:
+Create new file `./jroh/hello_world/greeter_service.yaml` by the following command:
 
 ```sh
 mkdir -p ./jroh/hello_world && cat >./jroh/hello_world/greeter_service.yaml <<EOF
@@ -122,7 +122,7 @@ ls -R ./api ./oapi3
 
 ### 4. Start up an RPC server
 
-Create new file `./server/server.go` by the command:
+Create new file `./server/server.go` by the following command:
 
 ```sh
 mkdir -p ./server && cat >./server/server.go <<EOF
@@ -186,7 +186,7 @@ curl -XPOST -d'{"name": "Roy"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter
 #
 # HTTP/1.1 200 OK
 # Content-Type: application/json; charset=utf-8
-# X-Jroh-Trace-Id: Uv38ByGCZU8WP18PmmIdcg
+# Jroh-Trace-Id: Uv38ByGCZU8WP18PmmIdcg
 # Date: Sun, 02 Jan 2022 07:34:15 GMT
 # Content-Length: 28
 #
@@ -206,8 +206,8 @@ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter
 #
 # HTTP/1.1 403 Forbidden
 # Content-Type: application/json; charset=utf-8
-# X-Jroh-Error-Code: 1000
-# X-Jroh-Trace-Id: lWbHTRADfE17uwQH0eLGSQ
+# Jroh-Error-Code: 1000
+# Jroh-Trace-Id: lWbHTRADfE17uwQH0eLGSQ
 # Date: Sun, 02 Jan 2022 07:35:01 GMT
 # Content-Length: 36
 #
@@ -218,7 +218,7 @@ curl -XPOST -d'{"name": "God"}' -D- http://127.0.0.1:2220/rpc/HelloWorld.Greeter
 
 ### 5.b. Invoke RPCs with Go client
 
-Create new file `./client/client.go` by the command:
+Create new file `./client/client.go` by the following command:
 
 ```sh
 mkdir -p ./client && cat >./client/client.go <<EOF

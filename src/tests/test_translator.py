@@ -63,11 +63,11 @@ paths:
             | -1 | ... | ... | Low-level error. |
             | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -103,11 +103,11 @@ paths:
             | -1 | ... | ... | Low-level error. |
             | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -142,11 +142,11 @@ paths:
             | -1 | ... | ... | Low-level error. |
             | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -221,11 +221,11 @@ paths:
             | -1 | ... | ... | Low-level error. |
             | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -255,11 +255,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -288,11 +288,11 @@ paths:
             | -1 | ... | ... | Low-level error. |
             | 1 | 501 | not implemented | The method is not implemented. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -329,11 +329,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -451,11 +451,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -630,11 +630,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -784,11 +784,11 @@ paths:
             | 3000 | 400 | fail | Failed |
             | 4000 | 500 | bad situation | None |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32
@@ -936,11 +936,11 @@ paths:
             | 1 | 501 | not implemented | The method is not implemented. |
             | 2 | 422 | invalid params | Invalid method parameter(s). |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32

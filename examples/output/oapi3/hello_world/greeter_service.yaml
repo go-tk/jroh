@@ -27,11 +27,11 @@ paths:
             | 2 | 422 | invalid params | Invalid method parameter(s). |
             | 1001 | 403 | user not allowed | The user is in the blacklist. |
           headers:
-            X-Jroh-Trace-Id:
+            Jroh-Trace-Id:
               description: The trace identifier.
               schema:
                 type: string
-            X-Jroh-Error-Code:
+            Jroh-Error-Code:
               description: The error code. This header is present only if error occurs.
               schema:
                 type: int32

@@ -169,13 +169,13 @@ class _Translator:
             "200": {
                 "description": "\n\n".join(description_parts),
                 "headers": {
-                    "X-Jroh-Trace-Id": {
+                    "Jroh-Trace-Id": {
                         "description": "The trace identifier.",
                         "schema": {
                             "type": "string",
                         },
                     },
-                    "X-Jroh-Error-Code": {
+                    "Jroh-Error-Code": {
                         "description": "The error code. This header is present only if error occurs.",
                         "schema": {
                             "type": "int32",
