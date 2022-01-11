@@ -306,7 +306,7 @@ ${method_name}Results
     % if method.results is not None:
 nil, \
     % endif
-${fmt()}.Errorf("rpc failed; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]} traceID=%q: %w", s.rpc.TraceID, err)
+${fmt()}.Errorf("do rpc; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]} traceID=%q: %w", s.rpc.TraceID, err)
     }
     return \
     % if method.results is not None:
@@ -376,7 +376,7 @@ error {
     % if method.results is not None:
 nil, \
     % endif
-${fmt()}.Errorf("rpc failed; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]}: %w", err)
+${fmt()}.Errorf("do rpc; fullMethodName=${utils.quote(utils.quote(full_method_name))[1:-1]}: %w", err)
 }
 % endfor
 """
@@ -944,7 +944,7 @@ def format_go_code(output_file_paths: list[str]) -> None:
     try:
         subprocess.run(["gofmt", "-w", *output_file_paths])
     except Exception as e:
-        print(f"WARNING: go code formatting failed: {e}", file=sys.stderr)
+        print(f"WARNING: format go code: {e}", file=sys.stderr)
 
 
 def update_go_mod_file(output_dir_path: str, output_package_path: str) -> None:
@@ -970,4 +970,4 @@ def update_go_mod_file(output_dir_path: str, output_package_path: str) -> None:
             cwd=output_dir_path,
         )
     except Exception as e:
-        print(f"WARNING: go.mod update failed: {e}", file=sys.stderr)
+        print(f"WARNING: update go.mod: {e}", file=sys.stderr)

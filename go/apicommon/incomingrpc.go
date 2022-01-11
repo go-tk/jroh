@@ -118,7 +118,7 @@ func (ir *IncomingRPC) doLoadParams(ctx context.Context) error {
 
 func (ir *IncomingRPC) decodeRawParams(ctx context.Context) error {
 	if err := json.Unmarshal(ir.RawParams, ir.Params); err != nil {
-		return fmt.Errorf("raw params decoding failed: %w", err)
+		return fmt.Errorf("decode raw params: %w", err)
 	}
 	return nil
 }
@@ -136,7 +136,7 @@ func (ir *IncomingRPC) doReadRawParams() error {
 	var buffer bytes.Buffer
 	n, err := buffer.ReadFrom(ir.reader)
 	if err != nil {
-		return fmt.Errorf("raw params read failed: %w", err)
+		return fmt.Errorf("read raw params: %w", err)
 	}
 	if n == 0 {
 		return nil
@@ -162,7 +162,7 @@ func (ir *IncomingRPC) doEncodeResults() error {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(ir.Results); err != nil {
-		return fmt.Errorf("results encoding failed: %w", err)
+		return fmt.Errorf("encode results: %w", err)
 	}
 	rawResults := buffer.Bytes()
 	if !DebugMode {

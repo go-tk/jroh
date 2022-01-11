@@ -46,7 +46,7 @@ func (c *petClient) AddPet(ctx context.Context, params *AddPetParams) error {
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.AddPet"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.AddPet\" traceID=%q: %w", s.rpc.TraceID, err)
+		return fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.AddPet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func (c *petClient) GetPet(ctx context.Context, params *GetPetParams) (*GetPetRe
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPet"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPet\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.GetPet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -86,7 +86,7 @@ func (c *petClient) GetPets(ctx context.Context, params *GetPetsParams) (*GetPet
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.GetPets"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.GetPets\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.GetPets\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -106,7 +106,7 @@ func (c *petClient) UpdatePet(ctx context.Context, params *UpdatePetParams) erro
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.UpdatePet"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.UpdatePet\" traceID=%q: %w", s.rpc.TraceID, err)
+		return fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.UpdatePet\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func (c *petClient) FindPets(ctx context.Context, params *FindPetsParams) (*Find
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Pet.FindPets"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -159,7 +159,7 @@ func (cf *PetClientFuncs) AddPet(ctx context.Context, params *AddPetParams) erro
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
+	return fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*GetPetResults, error) {
@@ -167,7 +167,7 @@ func (cf *PetClientFuncs) GetPet(ctx context.Context, params *GetPetParams) (*Ge
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*GetPetsResults, error) {
@@ -175,7 +175,7 @@ func (cf *PetClientFuncs) GetPets(ctx context.Context, params *GetPetsParams) (*
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams) error {
@@ -183,7 +183,7 @@ func (cf *PetClientFuncs) UpdatePet(ctx context.Context, params *UpdatePetParams
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
+	return fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }
 
 func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) (*FindPetsResults, error) {
@@ -191,5 +191,5 @@ func (cf *PetClientFuncs) FindPets(ctx context.Context, params *FindPetsParams) 
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Pet.FindPets\": %w", err)
 }

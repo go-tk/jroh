@@ -1069,7 +1069,7 @@ func TestClientActorCommunication(t *testing.T) {
 		t.FailNow()
 	}
 	assert.Equal(t, ErrorNotImplemented, error.Code)
-	assert.Equal(t, `rpc failed; fullMethodName="Foo.Test.DoSomething" traceID="xyz": api: not implemented`, err.Error())
+	assert.Equal(t, `do rpc; fullMethodName="Foo.Test.DoSomething" traceID="xyz": api: not implemented`, err.Error())
 }
 
 func TestClientTimeout(t *testing.T) {

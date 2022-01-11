@@ -41,7 +41,7 @@ func (c *testClient) DoSomething(ctx context.Context) error {
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Bar.Test.DoSomething"); err != nil {
-		return fmt.Errorf("rpc failed; fullMethodName=\"Bar.Test.DoSomething\" traceID=%q: %w", s.rpc.TraceID, err)
+		return fmt.Errorf("do rpc; fullMethodName=\"Bar.Test.DoSomething\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return nil
 }
@@ -70,5 +70,5 @@ func (cf *TestClientFuncs) DoSomething(ctx context.Context) error {
 		return f(ctx)
 	}
 	err := apicommon.NewNotImplementedError()
-	return fmt.Errorf("rpc failed; fullMethodName=\"Bar.Test.DoSomething\": %w", err)
+	return fmt.Errorf("do rpc; fullMethodName=\"Bar.Test.DoSomething\": %w", err)
 }

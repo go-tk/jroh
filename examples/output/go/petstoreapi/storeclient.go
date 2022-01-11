@@ -43,7 +43,7 @@ func (c *storeClient) CreateOrder(ctx context.Context, params *CreateOrderParams
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.CreateOrder"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.CreateOrder\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Store.CreateOrder\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -63,7 +63,7 @@ func (c *storeClient) GetOrder(ctx context.Context, params *GetOrderParams) (*Ge
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/Petstore.Store.GetOrder"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.GetOrder\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Store.GetOrder\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -93,7 +93,7 @@ func (cf *StoreClientFuncs) CreateOrder(ctx context.Context, params *CreateOrder
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.GetOrder\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Store.GetOrder\": %w", err)
 }
 
 func (cf *StoreClientFuncs) GetOrder(ctx context.Context, params *GetOrderParams) (*GetOrderResults, error) {
@@ -101,5 +101,5 @@ func (cf *StoreClientFuncs) GetOrder(ctx context.Context, params *GetOrderParams
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"Petstore.Store.GetOrder\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"Petstore.Store.GetOrder\": %w", err)
 }

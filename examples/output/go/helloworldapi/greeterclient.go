@@ -42,7 +42,7 @@ func (c *greeterClient) SayHello(ctx context.Context, params *SayHelloParams) (*
 	s.rpc.Params = &s.params
 	s.rpc.Results = &s.results
 	if err := c.doRPC(ctx, &s.rpc, "/rpc/HelloWorld.Greeter.SayHello"); err != nil {
-		return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w", s.rpc.TraceID, err)
+		return nil, fmt.Errorf("do rpc; fullMethodName=\"HelloWorld.Greeter.SayHello\" traceID=%q: %w", s.rpc.TraceID, err)
 	}
 	return &s.results, nil
 }
@@ -71,5 +71,5 @@ func (cf *GreeterClientFuncs) SayHello(ctx context.Context, params *SayHelloPara
 		return f(ctx, params)
 	}
 	err := apicommon.NewNotImplementedError()
-	return nil, fmt.Errorf("rpc failed; fullMethodName=\"HelloWorld.Greeter.SayHello\": %w", err)
+	return nil, fmt.Errorf("do rpc; fullMethodName=\"HelloWorld.Greeter.SayHello\": %w", err)
 }

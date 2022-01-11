@@ -121,7 +121,7 @@ func readRawError(reader io.Reader) ([]byte, error) {
 	var buffer bytes.Buffer
 	n, err := buffer.ReadFrom(reader)
 	if err != nil {
-		return nil, fmt.Errorf("raw error read failed: %w", err)
+		return nil, fmt.Errorf("read raw error: %w", err)
 	}
 	if n == 0 {
 		return nil, nil
@@ -132,7 +132,7 @@ func readRawError(reader io.Reader) ([]byte, error) {
 
 func decodeRawError(rawError []byte, error *Error) error {
 	if err := json.Unmarshal(rawError, error); err != nil {
-		return fmt.Errorf("raw error decoding failed: %w", err)
+		return fmt.Errorf("decode raw error: %w", err)
 	}
 	return nil
 }
