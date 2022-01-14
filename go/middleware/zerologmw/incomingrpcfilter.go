@@ -30,7 +30,8 @@ func NewIncomingRPCFilter(logger zerolog.Logger, optionsBuilders ...OptionsBuild
 			}
 			if returnedErr == nil {
 				if err := incomingRPC.EncodeResults(); err != nil {
-					logger.Error().Str("traceID", incomingRPC.TraceID).Msg(err.Error())
+					logger.Err(err).Str("traceID", incomingRPC.TraceID).
+						Msg("results encoding failed")
 				}
 			}
 			var event *zerolog.Event

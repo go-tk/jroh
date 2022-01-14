@@ -78,7 +78,7 @@ func (or *OutgoingRPC) Do(ctx context.Context) error {
 		return err
 	}
 	if err := or.LoadResults(ctx); err != nil {
-		return err
+		return fmt.Errorf("load results: %w", err)
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func (or *OutgoingRPC) doEncodeParams() error {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(or.Params); err != nil {
-		return fmt.Errorf("encode params: %w", err)
+		return fmt.Errorf("marshal json: objectType=\"%T\": %w", or.Params, err)
 	}
 	rawParams := buffer.Bytes()
 	if !DebugMode {
@@ -136,7 +136,7 @@ func (or *OutgoingRPC) doLoadResults(ctx context.Context) error {
 
 func (or *OutgoingRPC) decodeRawResults(ctx context.Context) error {
 	if err := json.Unmarshal(or.RawResults, or.Results); err != nil {
-		return fmt.Errorf("decode raw results: %w", err)
+		return fmt.Errorf("unmarshal json; objectType=\"%T\": %w", or.Results, err)
 	}
 	return nil
 }
@@ -154,7 +154,7 @@ func (or *OutgoingRPC) doReadRawResults() error {
 	var buffer bytes.Buffer
 	n, err := buffer.ReadFrom(or.readCloser)
 	if err != nil {
-		return fmt.Errorf("read raw results: %w", err)
+		return fmt.Errorf("read data: %w", err)
 	}
 	if n == 0 {
 		return nil

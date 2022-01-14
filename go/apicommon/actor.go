@@ -180,7 +180,7 @@ func encodeError(error *Error) ([]byte, error) {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(error); err != nil {
-		return nil, fmt.Errorf("encode error: %w", err)
+		return nil, fmt.Errorf("marshal json; objectType=\"%T\": %w", error, err)
 	}
 	rawError := buffer.Bytes()
 	if !DebugMode {

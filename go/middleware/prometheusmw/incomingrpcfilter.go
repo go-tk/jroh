@@ -2,6 +2,7 @@ package prometheusmw
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -81,7 +82,7 @@ func NewIncomingRPCFilter(registerer prometheus.Registerer) apicommon.IncomingRP
 	} {
 		if err := registerer.Register(collector); err != nil {
 			if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
-				panic(err)
+				panic(fmt.Sprintf("register collector: %v", err))
 			}
 		}
 	}

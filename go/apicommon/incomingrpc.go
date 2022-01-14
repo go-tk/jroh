@@ -66,7 +66,7 @@ func (ir *IncomingRPC) Do(ctx context.Context) (returnedErr error) {
 		return ir.filters[i](ctx, ir)
 	}
 	if err := ir.LoadParams(ctx); err != nil {
-		return err
+		return fmt.Errorf("load params: %w", err)
 	}
 	if err := ir.handler(ctx, ir); err != nil {
 		if error, ok := err.(*Error); ok {
@@ -118,7 +118,7 @@ func (ir *IncomingRPC) doLoadParams(ctx context.Context) error {
 
 func (ir *IncomingRPC) decodeRawParams(ctx context.Context) error {
 	if err := json.Unmarshal(ir.RawParams, ir.Params); err != nil {
-		return fmt.Errorf("decode raw params: %w", err)
+		return fmt.Errorf("unmarshal json; objectType=\"%T\": %w", ir.Params, err)
 	}
 	return nil
 }
@@ -136,7 +136,7 @@ func (ir *IncomingRPC) doReadRawParams() error {
 	var buffer bytes.Buffer
 	n, err := buffer.ReadFrom(ir.reader)
 	if err != nil {
-		return fmt.Errorf("read raw params: %w", err)
+		return fmt.Errorf("read data: %w", err)
 	}
 	if n == 0 {
 		return nil
@@ -162,7 +162,7 @@ func (ir *IncomingRPC) doEncodeResults() error {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(ir.Results); err != nil {
-		return fmt.Errorf("encode results: %w", err)
+		return fmt.Errorf("marshal json; objectType=\"%T\": %w", ir.Results, err)
 	}
 	rawResults := buffer.Bytes()
 	if !DebugMode {

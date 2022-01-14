@@ -20,7 +20,8 @@ func NewOutgoingRPCFilter(logger zerolog.Logger, optionsBuilders ...OptionsBuild
 
 		if returnedErr == nil {
 			if err := outgoingRPC.LoadResults(ctx); err != nil {
-				logger.Error().Str("traceID", outgoingRPC.TraceID).Msg(err.Error())
+				logger.Err(err).Str("traceID", outgoingRPC.TraceID).
+					Msg("results loading failed")
 			}
 		}
 		var event *zerolog.Event

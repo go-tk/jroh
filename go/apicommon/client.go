@@ -57,12 +57,12 @@ var outboundHeaderPool = sync.Pool{New: func() interface{} { return make(http.He
 
 func HandleOutgoingRPC(ctx context.Context, outgoingRPC *OutgoingRPC) error {
 	if err := outgoingRPC.EncodeParams(); err != nil {
-		return err
+		return fmt.Errorf("encode params: %w", err)
 	}
 	requestBody := bytes.NewReader(outgoingRPC.RawParams)
 	request, err := http.NewRequestWithContext(ctx, "POST", outgoingRPC.URL, requestBody)
 	if err != nil {
-		return err
+		return fmt.Errorf("new request: %w", err)
 	}
 	outboundHeaderPool.Put(request.Header)
 	request.Header = outgoingRPC.OutboundHeader
@@ -76,7 +76,7 @@ func HandleOutgoingRPC(ctx context.Context, outgoingRPC *OutgoingRPC) error {
 	}
 	response, err := outgoingRPC.Transport.RoundTrip(request)
 	if err != nil {
-		return err
+		return fmt.Errorf("do round trip: %w", err)
 	}
 	outgoingRPC.StatusCode = response.StatusCode
 	outgoingRPC.InboundHeader = response.Header
@@ -121,7 +121,7 @@ func readRawError(reader io.Reader) ([]byte, error) {
 	var buffer bytes.Buffer
 	n, err := buffer.ReadFrom(reader)
 	if err != nil {
-		return nil, fmt.Errorf("read raw error: %w", err)
+		return nil, fmt.Errorf("read data: %w", err)
 	}
 	if n == 0 {
 		return nil, nil
@@ -132,7 +132,7 @@ func readRawError(reader io.Reader) ([]byte, error) {
 
 func decodeRawError(rawError []byte, error *Error) error {
 	if err := json.Unmarshal(rawError, error); err != nil {
-		return fmt.Errorf("decode raw error: %w", err)
+		return fmt.Errorf("unmarshal json; objectType=\"%T\": %w", error, err)
 	}
 	return nil
 }
