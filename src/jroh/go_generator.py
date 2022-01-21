@@ -204,7 +204,7 @@ func (sf *${service_name}ActorFuncs) ${method_name}(ctx ${context1()}.Context\
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        file_name = f"{utils.flat_case(service.id)}actor.go"
+        file_name = f"{utils.flat_case(service.id)}actor_generated.go"
         self._flush(file_name)
 
     def _generate_client_code(self, service: Service) -> None:
@@ -387,7 +387,7 @@ ${fmt()}.Errorf("do rpc; fullMethodName=${utils.quote(utils.quote(full_method_na
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        file_name = f"{utils.flat_case(service.id)}client.go"
+        file_name = f"{utils.flat_case(service.id)}client_generated.go"
         self._flush(file_name)
 
     def _generate_models_code(self, methods: list[Method], models: list[Model]) -> None:
@@ -720,7 +720,7 @@ ${validate_primitive_value("    ", "m", xprimit.primitive_type, xprimit)}\
         )
         self._buffer.append(self._generate_patterns_code())
         self._buffer[1] = self._generate_imports_code()
-        self._flush("models.go")
+        self._flush("models_generated.go")
 
     def _generate_errors_code(self, errors: list[Error]) -> None:
         self._buffer.append(
@@ -758,7 +758,7 @@ func New${error_name}Error() *${apicommon()}.Error {
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        self._flush("errors.go")
+        self._flush("errors_generated.go")
 
     def _generate_misc_code(self, services: list[Service]) -> None:
         self._buffer.append(
@@ -794,7 +794,7 @@ const NumberOf${service_name}Methods = ${len(service.methods)}
             )
         )
         self._buffer[1] = self._generate_imports_code()
-        self._flush("misc.go")
+        self._flush("misc_generated.go")
 
     def _generate_imports_code(self) -> str:
         imports = [

@@ -111,7 +111,7 @@ ls -R ./api ./oapi3
 # helloworldapi
 #
 # ./api/helloworldapi:
-# errors.go  greeteractor.go  greeterclient.go  misc.go  models.go
+# errors_generated.go  greeteractor_generated.go  greeterclient_generated.go  misc_generated.go  models_generated.go
 #
 # ./oapi3:
 # common.yaml  hello_world
@@ -170,7 +170,7 @@ EOF
 Run the program:
 
 ```sh
-go mod tidy && go run -v ./server/server.go
+go mod tidy && go run ./server/server.go
 ```
 
 ### 5.a. Invoke RPCs with `curl`
@@ -260,7 +260,7 @@ EOF
 Run the program:
 
 ```sh
-go mod tidy && go run -v ./client/client.go
+go mod tidy && go run ./client/client.go
 ```
 
 ```sh
