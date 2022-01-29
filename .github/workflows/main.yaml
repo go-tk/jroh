@@ -12,7 +12,7 @@ on:
     branches:
     - main
 jobs:
-  build1:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v2
@@ -25,8 +25,8 @@ jobs:
     - run: DEBUG=1 make envrc
     - run: source .envrc && DEBUG=1 make
     - run: git diff --exit-code
-  build2:
-    needs: build1
+  build:
+    needs: test
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
