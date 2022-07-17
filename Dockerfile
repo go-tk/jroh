@@ -1,4 +1,4 @@
-FROM golang:1.16-bullseye
+FROM golang:1.17-bullseye
 
 FROM python:3.9-slim-bullseye
 COPY --from=0 /usr/local/go/bin/go /usr/local/bin/go
